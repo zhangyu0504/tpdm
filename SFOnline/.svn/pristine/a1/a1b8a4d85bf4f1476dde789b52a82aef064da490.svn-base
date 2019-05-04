@@ -1,0 +1,200 @@
+package core.communication.access.zlsecu;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+
+import common.util.SFConst;
+
+import core.log.SFLogger;
+
+/**
+ * 【类名】客户端TCPIP通讯类。
+ * <p>
+ * 类功能说明：
+ * 
+ * <pre>
+ * 实现银银平台与外围系统的TCPIP通讯
+ * </pre>
+ * 
+ * @author zhanglm@hundsun.com
+ * @version 2.1
+ * @since 1.0 2011-4-14
+ * 
+ */
+public class BBCPCommClient {
+	private DataInputStream in;
+	private DataOutputStream out;
+
+	private String sIP;
+	private String sPort;
+	private int timeOut;
+	private int pkgLen;// 报文长度的位数
+	private String sResult = null;
+
+	public BBCPCommClient(String sIP, String sPort, int timeOut, int pkgLen) {
+		this.sIP = sIP;
+		this.sPort = sPort;
+		this.timeOut = timeOut;
+		this.pkgLen = pkgLen;
+	}
+
+	public String getResult() {
+		return sResult;
+	}
+
+	/**
+	 * 使用Socket向外围系统发送
+	 * 
+	 * @param sCmd:
+	 *            字符串
+	 * @return: 0为成功; 1为无法建立连接; 2为发送超时; 3为接收超时; 4为出现异常;5其他错误
+	 */
+	public String SendCMD(byte[] sCmd) {
+		int state = 1;
+		Socket sock = null;
+		ByteArrayOutputStream swapStream = null;
+
+		try {
+			SFLogger.info(SFConst.DEFAULT_TRXCODE, null,
+					"connect ip:" + sIP + ",port:" + sPort + ",timeOut:"
+							+ timeOut + ",pkgLen=" + pkgLen);
+			sock = new Socket(sIP, Integer.parseInt(sPort));
+
+			// 设置超时
+			sock.setSoTimeout(timeOut);
+			out = new DataOutputStream(sock.getOutputStream());
+
+			// 发送报文内容
+			out.write(sCmd);
+			out.flush();
+			// out.close();
+			SFLogger.info(SFConst.DEFAULT_TRXCODE, null,
+					"发送数据成功.发送内容:[" + new String(sCmd) + "]");
+
+			// 设置为接收状态
+			state = 2;
+			in = new DataInputStream(sock.getInputStream());
+			swapStream = new ByteArrayOutputStream();
+			int rc = 0;
+
+			if (pkgLen > 0) {
+				byte[] lenByte = new byte[pkgLen];
+				in.read(lenByte, 0, lenByte.length);
+				int len = Integer.parseInt(new String(lenByte));
+				SFLogger.info(SFConst.DEFAULT_TRXCODE, null,
+						"接收数据报文长度:[" + len + "]");
+				byte[] buff = new byte[1024]; // buff用于存放循环读取的临时数据
+				int off = 0;
+				while ((rc = in.read(buff, 0, buff.length)) > 0) {
+					swapStream.write(buff, 0, rc);
+					off = off + rc;
+					if (off == len) {
+						break;
+					}
+				}
+				sResult = new String(swapStream.toByteArray());
+			} else {
+				byte[] buff = new byte[256]; // buff用于存放循环读取的临时数据
+				while ((rc = in.read(buff, 0, buff.length)) > 0) {
+					swapStream.write(buff, 0, rc);
+					
+					 //if(rc < buff.length){ break; }
+					 
+				}
+				sResult = new String(swapStream.toByteArray());
+			}
+
+			SFLogger.info(SFConst.DEFAULT_TRXCODE, null,
+					"接收数据成功.接收数据:[" + sResult + "]");
+		} catch (ConnectException e) {
+			//e.printStackTrace();
+			SFLogger.error(SFConst.DEFAULT_TRXCODE, null,
+					"ConnectException通讯异常:" ,e);
+			//EMPLog.log(SFConst.SF_SYS_TRXCODE, EMPLog.ERROR, 0,
+			//		"ConnectException通讯异常:" + e.getMessage());
+			return "1:为无法建立连接";
+		} catch (SocketTimeoutException e) {
+//			EMPLog.log(SFConst.SF_SYS_TRXCODE, EMPLog.ERROR, 0,
+//					"SocketTimeoutException通讯异常:" + e.getMessage());
+			SFLogger.error(SFConst.DEFAULT_TRXCODE, null,
+					"SocketTimeoutException通讯异常:" ,e);
+			if (state == 1)
+				return "2:为发送超时";
+			else{
+				//EMPLog.log(SFConst.SF_SYS_TRXCODE, EMPLog.ERROR, 0,
+					//	"SocketTimeoutException通讯异常:接收超时" + e.getMessage());
+				SFLogger.error(SFConst.DEFAULT_TRXCODE, null,
+						"SocketTimeoutException通讯异常:接收超时" ,e);
+				throw new RuntimeException("receiveTimeOut");
+			}
+		} catch (SocketException e) {
+			//e.printStackTrace();
+//			EMPLog.log(SFConst.SF_SYS_TRXCODE, EMPLog.ERROR, 0,
+//					"SocketException通讯异常:" + e.getMessage());
+			SFLogger.error(SFConst.DEFAULT_TRXCODE, null,
+					"SocketException通讯异常:" ,e);
+			return "4:为出现异常";
+		} catch (IOException e) {
+			//e.printStackTrace();
+//			EMPLog.log(SFConst.SF_SYS_TRXCODE, EMPLog.ERROR, 0,
+//					"IOException通讯异常:" + e.getMessage());
+			SFLogger.error(SFConst.DEFAULT_TRXCODE, null,
+					"IOException通讯异常:" ,e);	
+			return "4:为出现异常";
+		} catch (Exception e) {
+			//e.printStackTrace();
+//			EMPLog.log(SFConst.SF_SYS_TRXCODE, EMPLog.ERROR, 0,
+//					"Exception通讯异常:" + e.getMessage());				
+			SFLogger.error(SFConst.DEFAULT_TRXCODE, null,
+					"Exception通讯异常:" ,e);	
+			return "5:其他错误";
+		} finally {
+			try {
+				if (in != null) {
+					in.close();
+				}
+				if (out != null) {
+					out.close();
+				}
+				if (swapStream != null) {
+					swapStream.close();
+				}
+				if (sock != null) {
+					sock.close();
+				}
+			} catch (IOException e) {
+//				e.printStackTrace();
+//				EMPLog.log(SFConst.SF_SYS_TRXCODE, EMPLog.ERROR, 0,
+//						"IOException关闭数据流异常:" + e.getMessage());					
+				SFLogger.error(SFConst.DEFAULT_TRXCODE, null,
+						"IOException关闭数据流异常:" ,e);
+				return "5:其他错误";
+			}
+		}
+
+		return "0";
+	}
+
+	/**
+	 * 测试用
+	 * 
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		BBCPCommClient client = new BBCPCommClient("10.14.154.23", "10003",
+				60000, 4);
+		try {
+			String ret = client.SendCMD("0322810010                                                                                                                                                            2016120108:44:2116113008670632      2016120100050361                            16223228801371134                102800000700466485            1RMB0000000000050".getBytes());
+			System.out.println("ret="+ret);
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	}
+
+}

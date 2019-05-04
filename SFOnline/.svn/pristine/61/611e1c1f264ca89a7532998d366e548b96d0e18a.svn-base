@@ -1,0 +1,49 @@
+package module.batch;
+
+import module.cache.TransCache;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+import core.schedule.ScheduleActionInterface;
+
+/**
+ * (轮询/定时/手动)零售、对公及同业客户信息整合 
+ * 
+ * 
+ * 功能描述： 零售、对公及同业客户信息整合，接收并处理ISC消息通知
+ * 
+ * 逻辑描述：
+ * 			1.	接收BECIF系统发送的同步客户信息接口
+ *			2.	解析接口中的交易码,通过交易码判断当前交易为：修改交易，还是合并交易
+ *			3.	根据交易码解析报文
+ *			4.	更新数据库客户信息字段：
+ *   
+ * tran code :800040
+ * @author 吕超鸿
+ *
+ */
+public class T800040 implements ScheduleActionInterface{
+
+	@Override
+	public boolean init( Context context ) throws SFException {
+		String tranCode = SFUtil.getDataValue( context, SFConst.PUBLIC_TX_CODE );
+		TransCache.getValue( tranCode );
+
+		return true;
+	}
+
+	@Override
+	public void execute( Context context ) throws SFException {
+
+		SFLogger.info( context, "发送当日开户数及总签约户数开始" );
+
+		
+		SFLogger.info( context, "发送当日开户数及总签约户数结束" );
+
+	}
+
+}

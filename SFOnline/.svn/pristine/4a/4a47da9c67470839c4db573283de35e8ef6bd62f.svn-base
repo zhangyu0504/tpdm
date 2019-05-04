@@ -1,0 +1,53 @@
+package module.trans;
+
+import java.util.Map;
+
+import module.dao.SystemDao;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * F5探测交易
+ * 交易码 : 200305
+ */
+public class T000100 extends TranBase {
+
+	@Override
+	protected void initialize(Context context) throws SFException {
+
+	}
+	@Override
+	public void doHandle(Context context) throws SFException {
+		//上主机R3036账户信息查询
+		SFLogger.info(context, String.format("doHost()开始"));
+		doHost(context);
+		SFLogger.info(context, String.format("doHost()结束"));
+	}
+
+	@Override
+	public void doHost(Context context) throws SFException {
+		SystemDao dao=new SystemDao();
+		Map<String, Object> result=dao.qryDual(context, tranConnection);
+		if(result==null||!result.containsKey("DUAL_VALUE")){
+			SFUtil.chkCond(context, "ST4895", "数据库查询默认值失败！");
+		}
+	}
+	
+	@Override
+	public void doSecu(Context context) throws SFException {
+	}
+
+	@Override
+	protected void chkStart(Context context) throws SFException {
+	}
+
+	@Override
+	protected void chkEnd(Context context) throws SFException {
+		
+	}
+
+}

@@ -1,0 +1,257 @@
+package module.trans.sf2secu;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import module.communication.SZTSecuClientBase;
+import module.communication.SecuClientBase;
+import module.communication.ZLSecuClientBase;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.util.BizUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * 银行确认/银行签约  
+ * @author 汪华
+ *
+ */
+public class SignContractClient extends SecuClientBase {
+
+	@Override
+	protected Context doHandle( Context context, Map<String, Object> msg ) throws SFException {
+		String secuType = SFUtil.getDataValue( context, SFConst.PUBLIC_SECU_TYPE );
+		Context msgContext = null;
+		if( SFUtil.isNotEmpty( msg.get( "BIZ_SEQ_NO" ) ) ) {
+			SFUtil.setDataValue( context, SFConst.PUBLIC_MSG_SEQ_NO, msg.get( "BIZ_SEQ_NO" ) );
+		}
+		// 证件类型转换
+		Object idType = msg.get( "ID_TYPE" );
+		SFLogger.info( context, String.format( "券商证件类型转存管证件类型成功，返回:[%s] ", idType ) );
+		if( SFUtil.isNotEmpty( idType ) ) {
+			idType = BizUtil.convSF2Secu4IdType( context, idType.toString() );
+			msg.put( "ID_TYPE", idType );
+		}
+		Object flag = msg.get( "SIGN_FLAG" );
+		if( SFConst.SECU_ZL.equals( secuType ) ) {// 直联
+			//券商预指定和签约处理中调用6022接口
+			if( SFConst.SIGN_FLAG_SECU_PRE.equals( flag ) || SFConst.SIGN_FLAG_CONFIRM_IN_PROCESS.equals( flag ) ) {
+				msgContext = zl6022( context, msg );
+			} else {
+				//国泰证券银行一站式签约使用6025交易码
+				if( SFConst.SECU_GUOTAIJAXY.equals( msg.get( "SEC_COMP_CODE" ) ) || SFConst.SECU_GUOTAIJAZQ.equals( msg.get( "SEC_COMP_CODE" ) ) ) {
+					msgContext = zl6025( context, msg );
+				} else {
+					msgContext = zl6022( context, msg );
+				}
+			}
+		} else if( SFConst.SECU_SZT.equals( secuType ) ) {// 深证通
+			if( SFConst.SIGN_FLAG_SECU_PRE.equals( flag ) || SFConst.SIGN_FLAG_CONFIRM_IN_PROCESS.equals( flag ) ) {
+				msgContext = szt11003( context, msg );
+			} else {
+				msgContext = szt11001( context, msg );
+			}
+		}
+		return msgContext;
+	}
+
+	/**
+	 * 6022 银行确认/银行签约  
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	private Context zl6022( Context context, Map<String, Object> msg ) throws SFException {
+		SFLogger.info( context, "直联券商银行确认/银行签约  -开始" );
+		KeyedCollection kColl = new KeyedCollection( "6022_I" );
+		SFUtil.addDataField( context, kColl, "INV_TYPE", msg.get( "INV_TYPE" ) );
+		SFUtil.addDataField( context, kColl, "INV_NAME", msg.get( "INV_NAME" ) );
+		SFUtil.addDataField( context, kColl, "ID_TYPE_ZL", msg.get( "ID_TYPE" ) );
+		SFUtil.addDataField( context, kColl, "INV_ID_CODE", msg.get( "INV_ID_CODE" ) );
+		SFUtil.addDataField( context, kColl, "ACCT_ID", msg.get( "ACCT_ID" ) );
+		SFUtil.addDataField( context, kColl, "DEP_NAME", msg.get( "DEP_NAME" ) );
+		SFUtil.addDataField( context, kColl, "SEC_ACCT", msg.get( "SEC_ACCT" ) );
+		SFUtil.addDataField( context, kColl, "SEC_COMP_CODE", msg.get( "SEC_COMP_CODE" ) );
+		SFUtil.addDataField( context, kColl, "CAP_ACCT", msg.get( "CAP_ACCT" ) );
+		SFUtil.addDataField( context, kColl, "CAP_ACCT_PWD", msg.get( "CAP_ACCT_PWD" ) );
+		SFUtil.addDataField( context, kColl, "CUR_CODE", msg.get( "CUR_CODE" ) );
+		SFUtil.addDataField( context, kColl, "STH_CODE", msg.get( "STH_CODE" ) );
+		SFUtil.addDataField( context, kColl, "SIGN_MODE", msg.get( "SIGN_MODE" ) );
+		SFUtil.addDataField( context, kColl, "LEGAL_NAME", msg.get( "LEGAL_NAME" ) );
+		SFUtil.addDataField( context, kColl, "LEGAL_ID_TYPE", msg.get( "LEGAL_ID_TYPE" ) );
+		SFUtil.addDataField( context, kColl, "TRN_NAME", msg.get( "TRN_NAME" ) );
+		SFUtil.addDataField( context, kColl, "TRN_ID_TYPE", msg.get( "TRN_ID_TYPE" ) );
+		SFUtil.addDataField( context, kColl, "TRN_ID_CODE", msg.get( "TRN_ID_CODE" ) );
+		SFUtil.addDataField( context, kColl, "ZIP", msg.get( "ZIP" ) );
+		SFUtil.addDataField( context, kColl, "ADDR", msg.get( "ADDR" ) );
+		SFUtil.addDataField( context, kColl, "EMAIL_ADDR", msg.get( "EMAIL_ADDR" ) );
+		SFUtil.addDataField( context, kColl, "PHONE", msg.get( "PHONE" ) );
+		SFUtil.addDataField( context, kColl, "FAX", msg.get( "FAX" ) );
+		SFUtil.addDataField( context, kColl, "MOBILE", msg.get( "MOBILE" ) );
+		SFUtil.addDataField( context, kColl, "SUB_TX_SEQ_ID", msg.get( "SUB_TX_SEQ_ID" ) );
+
+		Map<String, Object> tmpMsg = new HashMap<String, Object>();
+		tmpMsg.put( "6022_I", kColl );
+		// 发送报文
+		ZLSecuClientBase client = new ZLSecuClientBase();
+		Context msgContext = client.send( context, tmpMsg, "6022" );
+		SFLogger.info( context, "直联券商银行确认/银行签约  -结束" );
+		return msgContext;
+	}
+
+	/**
+	 * 6025 银行确认/银行签约  国泰专用
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	private Context zl6025( Context context, Map<String, Object> msg ) throws SFException {
+		SFLogger.info( context, "直联券商银行确认/银行签约  -开始" );
+		KeyedCollection kColl = new KeyedCollection( "100100_I" );
+		SFUtil.addDataField( context, kColl, "SEC_SEQ_ID", msg.get( "SEC_SEQ_ID" ) );
+		SFUtil.addDataField( context, kColl, "INV_TYPE", msg.get( "INV_TYPE" ) );
+		SFUtil.addDataField( context, kColl, "INV_NAME", msg.get( "INV_NAME" ) );
+		SFUtil.addDataField( context, kColl, "ID_TYPE_ZL", msg.get( "ID_TYPE" ) );
+		SFUtil.addDataField( context, kColl, "INV_ID_CODE", msg.get( "INV_ID_CODE" ) );
+		SFUtil.addDataField( context, kColl, "ACCT_ID", msg.get( "ACCT_ID" ) );
+		SFUtil.addDataField( context, kColl, "SEC_COMP_CODE", msg.get( "SEC_COMP_CODE" ) );
+		SFUtil.addDataField( context, kColl, "CAP_ACCT", msg.get( "CAP_ACCT" ) );
+		SFUtil.addDataField( context, kColl, "CUR_CODE", msg.get( "CUR_CODE" ) );
+
+		Map<String, Object> tmpMsg = new HashMap<String, Object>();
+		tmpMsg.put( "100100_I", kColl );
+		// 发送报文
+		ZLSecuClientBase client = new ZLSecuClientBase();
+		Context msgContext = client.send( context, tmpMsg, "6025" );
+		SFLogger.info( context, "直联券商银行确认/银行签约  -结束" );
+		return msgContext;
+	}
+
+	/**
+	 * 客户指定存管银行（业务功能码：11001）
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	private Context szt11001( Context context, Map<String, Object> msg ) throws SFException {
+		SFLogger.info( context, "发送报文至深证通客户指定存管银行  -开始" );
+		// 克隆深证通通信临时上下文
+		Context msgContext = SFUtil.cloneMsgContextForSZT( context, "Acmt.001.01" );
+
+		KeyedCollection kColl = SFUtil.getDataElement( msgContext, "Acmt00101" );
+		if( SFUtil.isNotEmpty( msg.get( "SEC_BRCH_ID" ) ) ) {
+			if( !msgContext.containsKey( "MsgHdr" ) ) {
+				SFUtil.addFormatToContext( msgContext, "MsgHdr" );
+			}
+			SFUtil.setDataValue( msgContext, "MsgHdr.Recver.BrchId", msg.get( "SEC_BRCH_ID" ) );
+		}
+		KeyedCollection custKcoll = SFUtil.getDataElement( msgContext, kColl, "Cust" );
+		SFUtil.setDataValue( msgContext, custKcoll, "INV_NAME", msg.get( "INV_NAME" ) );// Cust/Name
+		SFUtil.setDataValue( msgContext, custKcoll, "ID_TYPE_SZT", msg.get( "ID_TYPE" ) );// Cust/CertType
+		SFUtil.setDataValue( msgContext, custKcoll, "INV_ID_CODE", msg.get( "INV_ID_CODE" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "ADDR", msg.get( "ADDR" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "ZIP", msg.get( "ZIP" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "EMAIL_ADDR", msg.get( "EMAIL_ADDR" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "FAX", msg.get( "FAX" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "MOBILE", msg.get( "MOBILE" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "PHONE", msg.get( "PHONE" ) );// Cust/CertId
+		// 客户类型转换
+		Object invType = msg.get( "INV_TYPE" );
+		if( SFUtil.isNotEmpty( invType ) ) {
+			String tmpInvType = BizUtil.convSF2SZTInvType( msgContext, invType.toString() );
+			SFUtil.setDataValue( msgContext, custKcoll, "INV_TYPE_SZT", tmpInvType );
+		}
+
+		KeyedCollection agtKcoll = SFUtil.getDataElement( msgContext, kColl, "Agt" );
+		SFUtil.setDataValue( msgContext, agtKcoll, "TRN_NAME", msg.get( "TRN_NAME" ) );
+		SFUtil.setDataValue( msgContext, agtKcoll, "TRN_ID_TYPE", msg.get( "TRN_ID_TYPE" ) );
+		SFUtil.setDataValue( msgContext, agtKcoll, "TRN_ID_CODE", msg.get( "TRN_ID_CODE" ) );
+
+		KeyedCollection bkAcctKcoll = SFUtil.getDataElement( msgContext, kColl, "BkAcct" );
+		SFUtil.setDataValue( msgContext, bkAcctKcoll, "ACCT_ID", msg.get( "ACCT_ID" ) );
+		KeyedCollection scAcctKcoll = SFUtil.getDataElement( msgContext, kColl, "ScAcct" );
+		SFUtil.setDataValue( msgContext, scAcctKcoll, "CAP_ACCT", msg.get( "CAP_ACCT" ) );
+		KeyedCollection acctSvcrKcoll = SFUtil.getDataElement( msgContext, scAcctKcoll, "AcctSvcr" );
+		SFUtil.setDataValue( msgContext, acctSvcrKcoll, "SEC_COMP_TYPE", "S" );
+		SFUtil.setDataValue( msgContext, acctSvcrKcoll, "SEC_COMP_CODE", msg.get( "SEC_COMP_CODE" ) );
+		KeyedCollection pwdKcoll = SFUtil.getDataElement( msgContext, scAcctKcoll, "Pwd" );
+		SFUtil.setDataValue( msgContext, pwdKcoll, "CAP_ACCT_PWD", msg.get( "CAP_ACCT_PWD" ) );
+		SFUtil.setDataValue( msgContext, pwdKcoll, "SEC_COMP_CODE", msg.get( "SEC_COMP_CODE" ) );
+		SFUtil.setDataValue( msgContext, kColl, "CUR_CODE", msg.get( "CUR_CODE" ) );
+		// 发送报文
+		SZTSecuClientBase client = new SZTSecuClientBase();
+		msgContext = client.send( msgContext, msg, "11001" );
+		SFLogger.info( msgContext, "发送报文至深证通客户指定存管银行  -结束" );
+		return msgContext;
+	}
+
+	/**
+	 * 预指定存管银行确认（业务功能码：11003）
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	private Context szt11003( Context context, Map<String, Object> msg ) throws SFException {
+		SFLogger.info( context, "发送报文至深证通客户指定存管银行  -开始" );
+		// 克隆深证通通信临时上下文
+		Context msgContext = SFUtil.cloneMsgContextForSZT( context, "Acmt.001.01" );
+		KeyedCollection kColl = SFUtil.getDataElement( msgContext, "Acmt00101" );
+		if( SFUtil.isNotEmpty( msg.get( "SEC_BRCH_ID" ) ) ) {
+			if( !msgContext.containsKey( "MsgHdr" ) ) {
+				SFUtil.addFormatToContext( msgContext, "MsgHdr" );
+			}
+			SFUtil.setDataValue( msgContext, "MsgHdr.Recver.BrchId", msg.get( "SEC_BRCH_ID" ) );
+			/*
+			 * KeyedCollection headKcoll = new KeyedCollection("MsgHdr"); KeyedCollection recverKcoll = new KeyedCollection("Recver"); SFUtil.addDataField( context, recverKcoll, "BrchId", msg.get( "SEC_BRCH_ID" ) ); SFUtil.addDataElement( context, headKcoll, recverKcoll ); SFUtil.addDataElement( msgContext, headKcoll );
+			 */
+		}
+		SFLogger.info( context, String.format( "券商证件类型转存管证件类型成功，返回:[%s] ", msg.get( "ID_TYPE" ) ) );
+		KeyedCollection custKcoll = SFUtil.getDataElement( msgContext, kColl, "Cust" );
+		SFUtil.setDataValue( msgContext, custKcoll, "INV_NAME", msg.get( "INV_NAME" ) );// Cust/Name
+		SFUtil.setDataValue( msgContext, custKcoll, "ID_TYPE_SZT", msg.get( "ID_TYPE" ) );// Cust/CertType
+		SFUtil.setDataValue( msgContext, custKcoll, "INV_ID_CODE", msg.get( "INV_ID_CODE" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "ADDR", msg.get( "ADDR" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "ZIP", msg.get( "ZIP" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "EMAIL_ADDR", msg.get( "EMAIL_ADDR" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "FAX", msg.get( "FAX" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "MOBILE", msg.get( "MOBILE" ) );// Cust/CertId
+		SFUtil.setDataValue( msgContext, custKcoll, "PHONE", msg.get( "PHONE" ) );// Cust/CertId
+		// 客户类型转换
+		Object invType = msg.get( "INV_TYPE" );
+		if( SFUtil.isNotEmpty( invType ) ) {
+			String tmpInvType = BizUtil.convSF2SZTInvType( msgContext, invType.toString() );
+			SFUtil.setDataValue( msgContext, custKcoll, "INV_TYPE_SZT", tmpInvType );
+		}
+
+		KeyedCollection agtKcoll = SFUtil.getDataElement( msgContext, kColl, "Agt" );
+		SFUtil.setDataValue( msgContext, agtKcoll, "TRN_NAME", msg.get( "TRN_NAME" ) );
+		SFUtil.setDataValue( msgContext, agtKcoll, "TRN_ID_TYPE", msg.get( "TRN_ID_TYPE" ) );
+		SFUtil.setDataValue( msgContext, agtKcoll, "TRN_ID_CODE", msg.get( "TRN_ID_CODE" ) );
+
+		KeyedCollection bkAcctKcoll = SFUtil.getDataElement( msgContext, kColl, "BkAcct" );
+		SFUtil.setDataValue( msgContext, bkAcctKcoll, "ACCT_ID", msg.get( "ACCT_ID" ) );
+		KeyedCollection scAcctKcoll = SFUtil.getDataElement( msgContext, kColl, "ScAcct" );
+		SFUtil.setDataValue( msgContext, scAcctKcoll, "CAP_ACCT", msg.get( "CAP_ACCT" ) );
+		KeyedCollection acctSvcrKcoll = SFUtil.getDataElement( msgContext, scAcctKcoll, "AcctSvcr" );
+		SFUtil.setDataValue( msgContext, acctSvcrKcoll, "SEC_COMP_TYPE", "S" );
+		SFUtil.setDataValue( msgContext, acctSvcrKcoll, "SEC_COMP_CODE", msg.get( "SEC_COMP_CODE" ) );
+		KeyedCollection pwdKcoll = SFUtil.getDataElement( msgContext, scAcctKcoll, "Pwd" );
+		SFUtil.setDataValue( msgContext, pwdKcoll, "CAP_ACCT_PWD", msg.get( "CAP_ACCT_PWD" ) );
+		SFUtil.setDataValue( msgContext, pwdKcoll, "SEC_COMP_CODE", msg.get( "SEC_COMP_CODE" ) );
+		SFUtil.setDataValue( msgContext, kColl, "CUR_CODE", msg.get( "CUR_CODE" ) );
+		
+		KeyedCollection scBalKcoll = SFUtil.getDataElement( msgContext, kColl, "ScBal" );
+		SFUtil.setDataValue( msgContext, scBalKcoll, "BEGIN_BAL", "0.00" );
+		// 发送报文
+		SZTSecuClientBase client = new SZTSecuClientBase();
+		msgContext = client.send( msgContext, msg, "11003" );
+		SFLogger.info( msgContext, "发送报文至深证通客户指定存管银行  -结束" );
+		return msgContext;
+	}
+
+}

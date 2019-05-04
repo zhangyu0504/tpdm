@@ -1,0 +1,66 @@
+package module.trans.sf2cobank;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+import core.log.SFLogger;
+
+import module.communication.CoBankClientBase;
+
+/**
+ * 810022 资金划转的请求报文体，代理平台发起
+ * @author 汪华
+ *
+ */
+public class T810022Client extends CoBankClientBase {
+
+	@Override
+	protected Context doHandle( Context context, Map<String, Object> msg, String bankNo ) throws SFException {
+		SFLogger.info( context, "上合作行资金划转-开始" );
+		//将日志号放入上下文中作为业务流水号
+		SFUtil.setDataValue( context, SFConst.PUBLIC_MSG_SEQ_NO, SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID ) );
+		KeyedCollection inKeyColl = new KeyedCollection( "810022_I" );
+		KeyedCollection headKcoll = new KeyedCollection( "A_REQUEST_HEAD" );
+		// 往报文头放入bankId
+		if( SFUtil.isNotEmpty( msg.get( "BANK_ID" ) ) ) {
+			if( context.containsKey( "A_REQUEST_HEAD" ) ) {
+				headKcoll = SFUtil.getDataElement( context, "A_REQUEST_HEAD" );
+				SFUtil.setDataValue( context, headKcoll, "BANKNO", msg.get( "BANK_ID" ) );
+			} else {
+				try {
+					headKcoll = SFUtil.getTemplateKColl( context, "A_REQUEST_HEAD" );
+					SFUtil.setDataValue( context, headKcoll, "BANKNO", msg.get( "BANK_ID" ) );
+					SFUtil.addDataElement( context, headKcoll );
+				} catch( Exception e ) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		// 构建请求报文
+		SFUtil.addDataField( context, inKeyColl, "ACCT_ID", msg.get( "ACCT_ID" ) );// 银行帐号account_no
+		SFUtil.addDataField( context, inKeyColl, "SEC_COMP_CODE", msg.get( "SEC_COMP_CODE" ) );// 券商代码SecCode
+		SFUtil.addDataField( context, inKeyColl, "CAP_ACCT", msg.get( "CAP_ACCT" ) );// 证券资金台账号CapAcct
+		SFUtil.addDataField( context, inKeyColl, "TX_AMOUNT", msg.get( "TX_AMOUNT" ) );// 划转金额exch_bal
+		SFUtil.addDataField( context, inKeyColl, "MAC", msg.get( "MAC" ) );//
+		SFUtil.addDataField( context, inKeyColl, "TRADE_TYPE", msg.get( "TRADE_TYPE" ) );// 资金类型access_type
+		SFUtil.addDataElement( context, inKeyColl );
+
+		// KeyedCollection outKeyColl = new KeyedCollection("810022_O");
+		// SFUtil.addDataField(context, outKeyColl, "AGENT_LOG_NO  ","");//联网行流水号serial_no
+		// SFUtil.addDataElement(context,outKeyColl);
+		// 发送报文
+		Map<String, Object> tmpMsg = new HashMap<String, Object>();
+		tmpMsg.put( "810022_I", inKeyColl );
+		Context msgContext = super.send( context, tmpMsg, "810022", bankNo );
+		SFLogger.info( context, "上合作行资金划转-结束" );
+		return msgContext;
+	}
+
+}

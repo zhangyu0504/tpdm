@@ -1,0 +1,104 @@
+package module.trans.sf2bankchl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import module.communication.ESBClientBase;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+/**
+ * 客户信息查询:M8010=对公客户信息查询;M7030=客户/账户状态效验
+ * @author 汪华
+ *
+ */
+public class QryKeyInvestinfoClient extends ESBClientBase{
+	
+	protected Context doHandle(Context context,Map<String,Object>msg)throws SFException{
+		Context msgContext=null;
+		String invType=SFUtil.getDataValue(context, SFConst.PUBLIC_INV_TYPE);// 客户类型
+		if(SFConst.INV_TYPE_RETAIL.equals(invType)){// 零售
+			msgContext=this.setInvestorStatus(context,msg);
+		}else if(SFConst.INV_TYPE_CORP.equals(invType)){// 对公
+			msgContext=this.qryCorpInvestor(context,msg);
+		}
+		return msgContext;
+	}
+	
+	
+	/**
+	 * 11002000034.12 M7030 客户/账户状态效验
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	public Context setInvestorStatus(Context context,Map<String,Object>msg)throws SFException{
+		SFLogger.info(context, "上主机客户/账户状态效验[M7030]-开始");
+		KeyedCollection appKcoll = null;
+		try {
+			if( context.containsKey( "APP_HEAD" ) ) {
+				appKcoll = SFUtil.getDataElement( context, "APP_HEAD" );
+				appKcoll = (KeyedCollection)appKcoll.clone();
+			} else {
+				appKcoll = SFUtil.getTemplateKColl( context, "APP_HEAD" );
+				appKcoll = (KeyedCollection)appKcoll.clone();
+				SFUtil.addDataElement( context, appKcoll );
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		Map<String,Object> tmpMsg=new HashMap<String,Object>();
+		KeyedCollection keyColl = new KeyedCollection("MSG_I");
+		SFUtil.addDataField(context, keyColl, "ACCT_ID",msg.get("ACCT_ID"));//账号ACCT_NO
+		SFUtil.addDataField(context, keyColl, "CHECK_TYPE", "A");// 账号ACCT_NO
+		SFUtil.addDataField(context, keyColl, "DR_CR_FLAG", "D");// 账号ACCT_NO
+		SFUtil.addDataField(context, keyColl, "FUNCTION_TYPE", "R");// 账号ACCT_NO
+		tmpMsg.put("MSG_I", keyColl);	
+		if (SFUtil.isNotEmpty(appKcoll))
+			tmpMsg.put("APP_HEAD",appKcoll);
+		//发送报文
+		Context msgContext=super.send(context,tmpMsg,"M7030","11002000034_12");
+		SFLogger.info(context, "上主机客户/账户状态效验[M7030]-结束");
+	    return msgContext;
+	}
+
+	/**
+	 * 11003040004.65 M8010 对公客户信息查询
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	public Context qryCorpInvestor(Context context,Map<String,Object>msg)throws SFException{
+		SFLogger.info(context, "上主机对公客户信息查询[M8010]-开始");
+		KeyedCollection appKcoll = null;
+		try {
+			if( context.containsKey( "APP_HEAD" ) ) {
+				appKcoll = SFUtil.getDataElement( context, "APP_HEAD" );
+				appKcoll = (KeyedCollection)appKcoll.clone();
+			} else {
+				appKcoll = SFUtil.getTemplateKColl( context, "APP_HEAD" );
+				appKcoll = (KeyedCollection)appKcoll.clone();
+				SFUtil.addDataElement( context, appKcoll );
+			}
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		}
+		Map<String,Object> tmpMsg=new HashMap<String,Object>();
+		KeyedCollection keyColl = new KeyedCollection("MSG_I");
+		SFUtil.addDataField(context, keyColl, "ACCT_ID",msg.get("ACCT_ID"));//账号ACCT_NO
+		tmpMsg.put("MSG_I", keyColl);	
+		if (SFUtil.isNotEmpty(appKcoll))
+			tmpMsg.put("APP_HEAD",appKcoll);
+		//发送报文
+		Context msgContext=super.send(context,tmpMsg,"M8010","11003040004_65");
+		SFLogger.info(context, "上主机对公客户信息查询[M8010]-结束");
+	    return msgContext;
+	}
+}

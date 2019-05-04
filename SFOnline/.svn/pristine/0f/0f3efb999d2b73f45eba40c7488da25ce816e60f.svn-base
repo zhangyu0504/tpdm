@@ -1,0 +1,100 @@
+package module.trans.sf2bankchl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import module.communication.ESBClientBase;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+/**
+ * 卡状态字维护：R3042 账户分账户信息维护;C3048=对公账户状态字维护查询
+ * @author 汪华
+ *
+ */
+public class SetCardStatusWordClient extends ESBClientBase{
+	
+	protected Context doHandle(Context context,Map<String,Object>msg)throws SFException{
+		Context msgContext=null;
+		if(SFUtil.isNotEmpty(msg.get( "BIZ_SEQ_NO" ))){
+			SFUtil.setDataValue( context, SFConst.PUBLIC_MSG_SEQ_NO, msg.get( "BIZ_SEQ_NO" ) );
+		}
+		String invType=SFUtil.getDataValue(context, SFConst.PUBLIC_INV_TYPE);// 客户类型
+		if(SFConst.INV_TYPE_RETAIL.equals(invType)){// 零售
+			msgContext=this.setRetailSubAcct(context,msg);
+		}else if(SFConst.INV_TYPE_CORP.equals(invType)){// 对公
+			msgContext=this.qryCorpCardStatus(context,msg);
+		}		
+	    return msgContext;
+	}
+	
+	
+	/**
+	 * 11002000022.17 R3042 账户分账户信息维护
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	public Context setRetailSubAcct(Context context,Map<String,Object>msg)throws SFException{
+		SFLogger.info(context, "上主机账户分账户信息维护-开始");
+		
+		KeyedCollection keyColl = new KeyedCollection("MSG_I");
+		SFUtil.addDataField(context, keyColl, "ACCT_ID", msg.get("ACCT_ID"));// 账号
+		SFUtil.addDataField(context, keyColl, "FLAG", "Y"); // 标志
+
+		IndexedCollection iColl1 = new IndexedCollection("MSG_I_ICOLL1");
+		KeyedCollection keyColl1 = new KeyedCollection("MSG_I_ICOLL1");
+		SFUtil.addDataField(context, keyColl1, "CUR_CODE",SFConst.CUR_CODE_RMB);// 币种
+		iColl1.add(keyColl1);
+		IndexedCollection iColl2 = new IndexedCollection("MSG_I_ICOLL1_ICOLL");
+		KeyedCollection keyColl2 = new KeyedCollection("MSG_I_ICOLL1_ICOLL");
+		SFUtil.addDataField(context, keyColl2, "ACCT_STATUS", "50");// 账户状态
+		SFUtil.addDataField(context, keyColl2, "FLAG",msg.get("FUNCTION_CODE"));// 标志
+		iColl2.add(keyColl2);
+
+		Map<String,Object> tmpMsg=new HashMap<String,Object>();
+		tmpMsg.put("MSG_I", keyColl);
+		tmpMsg.put("MSG_I_ICOLL1", iColl1);
+		tmpMsg.put("MSG_I_ICOLL1_ICOLL", iColl2);
+		
+		//发送报文
+		Context msgContext=super.send(context,tmpMsg,"R3042","11002000022_17");
+		SFLogger.info(context, "上主机账户分账户信息维护-结束");
+	    return msgContext;
+	}
+	
+	
+	/**
+	 * 11003000038.81 C3048 对公账户状态字维护查询
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	public Context qryCorpCardStatus(Context context,Map<String,Object>msg)throws SFException{
+		SFLogger.info(context, "上主机对公账户状态字维护查询-开始");
+		
+		// 构建请求报文
+		KeyedCollection keyColl = new KeyedCollection("MSG_I");
+		SFUtil.addDataField(context, keyColl, "ACCT_ID", msg.get("ACCT_ID"));// 账号ACCT_NO
+		SFUtil.addDataField(context, keyColl, "FUNCTION_CODE",msg.get("FUNCTION_CODE"));// 功能码
+		SFUtil.addDataField(context, keyColl, "STATUS_WORD_CODE","DGZH20");
+		SFUtil.addDataField(context, keyColl, "BUSS_TYPE", "");// 业务类型
+		
+		Map<String,Object> tmpMsg=new HashMap<String,Object>();
+		tmpMsg.put("MSG_I", keyColl);
+		
+		//发送报文
+		Context msgContext=super.send(context,tmpMsg,"C3048","11003000038_81");
+		SFLogger.info(context, "上主机对公账户状态字维护查询-结束");
+		return msgContext;
+	    
+		
+	}
+}

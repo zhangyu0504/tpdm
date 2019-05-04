@@ -1,0 +1,95 @@
+package core.communication.access.stzsecu;
+
+/**
+ * 深证通通信参数配置
+ * @author 汪华
+ *
+ */
+public class SZTAccessParam {
+	//轮训报文配置
+	private String recvApp = "app2";//A股深证通应用标识
+	private String userId;//A股深证通用户号
+	private String pwd = "1";//A股客户端密码
+	private String localApp;//A股存管应用标识
+	private String mrIp = "10.14.50.170";//A股接入客户端消息路由器的IP地址
+	private short mrPort = 7176;//A股接入客户端消息路由器的连接端口
+	private String mrIpBak = "10.14.50.170";//A股备用消息路由器的IP 地址
+	private short mrPortBak = 7176;//A股备用消息路由器的连接端口
+	private String localDestUserId = "B_SDB03";//A股存管用户号
+	private String dllPath;//A股深证通动态链接库路径
+	//发送报文配置
+	private String sendApp;//A股目标应用的应用标识
+	//private String m_ssDestUserID = "";
+	//private String m_ssDestAppID = "";
+	//private String m_ssUserData1 = "UserData1";
+	//private String m_ssUserData2 = "UserData1";
+	//private byte m_ucFlag = 0;
+	//private byte m_ucBizType = 0;
+	public String getRecvApp() {
+		return recvApp;
+	}
+	public void setRecvApp(String recvApp) {
+		this.recvApp = recvApp;
+	}
+	public String getUserId() {
+		return userId;
+	}
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+	public String getPwd() {
+		return pwd;
+	}
+	public void setPwd(String pwd) {
+		this.pwd = pwd;
+	}
+	public String getLocalApp() {
+		return localApp;
+	}
+	public void setLocalApp(String localApp) {
+		this.localApp = localApp;
+	}
+	public String getMrIp() {
+		return mrIp;
+	}
+	public void setMrIp(String mrIp) {
+		this.mrIp = mrIp;
+	}
+	public short getMrPort() {
+		return mrPort;
+	}
+	public void setMrPort(short mrPort) {
+		this.mrPort = mrPort;
+	}
+	public String getMrIpBak() {
+		return mrIpBak;
+	}
+	public void setMrIpBak(String mrIpBak) {
+		this.mrIpBak = mrIpBak;
+	}
+	public short getMrPortBak() {
+		return mrPortBak;
+	}
+	public void setMrPortBak(short mrPortBak) {
+		this.mrPortBak = mrPortBak;
+	}
+	public String getLocalDestUserId() {
+		return localDestUserId;
+	}
+	public void setLocalDestUserId(String localDestUserId) {
+		this.localDestUserId = localDestUserId;
+	}
+	public String getDllPath() {
+		return dllPath;
+	}
+	public void setDllPath(String dllPath) {
+		this.dllPath = dllPath;
+	}
+	public String getSendApp() {
+		return sendApp;
+	}
+	public void setSendApp(String sendApp) {
+		this.sendApp = sendApp;
+	}
+	
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+
+<empDataTypeDef.xml>
+	<Currency id="Currency" name="余额数据" max="54000" precision="19" min="100" scale="2"/>
+	<Byte id="Byte" name="字节数据" max="40" min="10"/>
+	<Byte id="Itemstatus" name="功能状态" max="99" min="0"/>
+	<Byte id="Userstatus" name="柜员状态" max="99" min="0"/>
+	<Byte id="Userlevel" name="柜员级别" max="99" min="0"/>
+	<String id="char4" name="定长4位字符" type="string" length="4" padChar=" " align="left"/>
+	<Date id="FBSDate" name="FBS8位日期" inputFormat="yyyy-MM-dd" type="DateType" valueFormat="yyyyMMdd" keepStringValue="true"/>
+</empDataTypeDef.xml>

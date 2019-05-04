@@ -1,0 +1,15 @@
+package core.emp.servlet;
+
+import com.ecc.emp.util.StartupListener;
+import common.util.BizUtil;
+/**
+ * 服务启动监听
+ * @author 汪华
+ *
+ */
+public class SFStartupListener extends StartupListener{
+	public SFStartupListener(){
+		super();
+		System.setProperty("SF.LOGPATH",BizUtil.getLogPath());
+	}
+}

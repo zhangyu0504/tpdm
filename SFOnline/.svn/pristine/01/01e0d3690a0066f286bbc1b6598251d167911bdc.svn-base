@@ -1,0 +1,476 @@
+package module.dao;
+
+import java.sql.Connection;
+
+import module.bean.AcctJour;
+import module.bean.InvestData;
+import module.bean.LocalInfo;
+import module.bean.SecCompData;
+import module.bean.SignAccountData;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DaoBase;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+/**
+ * 交易流水Dao
+ * @author 申双江
+ *
+ */
+public class AcctJourDao extends DaoBase { 
+	private static final String CTX_PUBLIC_TAB_ACCTJOUR_ZB = "TRDACCTJOUR";
+	private static final String CTX_PUBLIC_TAB_ACCTJOUR_FB = "TRDACCTJOUR_FB";
+	/**
+	 * 保存交易流水
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public int saveAcctJour(Context context,Connection connection,AcctJour bean)throws SFException {
+		int count = 0;
+		String tableName = null;
+		try {
+			SFUtil.chkCond(context, SFUtil.isEmpty(bean.getTxDate()), "ST4895", "必要参数[TXDATE]没有提供");
+			SFUtil.chkCond(context, SFUtil.isEmpty(bean.getSubTxSeqId()), "ST4895", "必要参数[SUBTXSEQID]没有提供");
+			
+			//是否清算时间段标识
+			String workMode = SFUtil.getDataValue(context, SFConst.PUBLIC_WORKMODE);
+			
+			//清算时间段操作副表
+			if(SFConst.WORKMODE_724CLEAR.equals(workMode)){
+				tableName = CTX_PUBLIC_TAB_ACCTJOUR_FB;
+			}else{//其他时间段操作主表
+				tableName = CTX_PUBLIC_TAB_ACCTJOUR_ZB;
+			}
+			count = super.save(context, connection, bean.getSaveAcctJourSQLStruct(tableName));
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally {
+			if(null!=bean){
+				bean.resetChangedFlag();	
+			}
+			
+		}
+		return count;
+	}
+	
+	public int updAcctJour(Context context,Connection connection,String workMode,String secAcct,int secAcctSeq,String capAcct,String secCompCode)throws SFException {
+		int count = 0;
+		String tableName = null;
+		try {
+			if(SFConst.WORKMODE_724CLEAR.equals(workMode)){
+				tableName = CTX_PUBLIC_TAB_ACCTJOUR_FB;
+			}else{
+				tableName = CTX_PUBLIC_TAB_ACCTJOUR_ZB;
+			}
+			String sql = "UPDATE "+ tableName + " SET SECACCT = ?,SECACCTSEQ = ? WHERE CAPACCT = ? AND SECCOMPCODE = ?";
+		
+			count = super.save( context, connection, sql, secAcct, secAcctSeq, capAcct, secCompCode);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} 
+		return count;
+	}
+	
+	private StringBuffer getQryAcctJourSqlStruct(Context context)throws SFException{
+		String tableName = null;
+		StringBuffer buffer = null;
+		try {
+			//是否清算时间段标识
+			String workMode = SFUtil.getDataValue(context, SFConst.PUBLIC_WORKMODE);
+			//清算时间段操作副表
+			if(SFConst.WORKMODE_724CLEAR.equals(workMode)){
+				tableName = CTX_PUBLIC_TAB_ACCTJOUR_FB;
+			}else{//交易时间段操作主表
+				tableName = CTX_PUBLIC_TAB_ACCTJOUR_ZB;
+			}
+			
+			buffer = new StringBuffer();
+			buffer.append("SELECT O.TXDATE,O.INITSIDE,O.USERID,O.TXSEQID,O.REVTXSEQID,O.SECSEQID,O.SUBTXSEQID,O.INVTYPE,O.INVNAME,O.IDTYPE,O.INVIDCODE,O.OLDINVNAME,O.OLDIDTYPE,");
+			buffer.append("O.OLDINVIDCODE,O.SECACCT,O.SECACCTSEQ,O.SECCOMPCODE,O.CAPACCT,O.ACCTID,O.SAVACCT,O.OPENDEPID,O.OPENBRANCHID,O.OLDACCTID,O.CURCODE,O.DCFLAG,O.TXAMOUNT,");
+			buffer.append("O.ACCTBAL,O.ABSTRACT abst,O.ABSTRACTSTR,O.JOURFLAG,O.TXCODE,O.BUSITYPE,O.TXTIME,O.DEPID,O.BRANCHID,O.UNITTELLERID,O.CASHREMITFLAG,O.ACCTDEALID,O.ACCTHOSTSEQID,");
+			buffer.append("O.PRESEQID,O.ACCTDEALDATE,O.BANKSEQID,O.PRODUCTTYPE,O.COLFLAG,O.ABORTFLAG,O.ABNDEALTIMES,O.ABNDEALTXTIME,O.MEMO,O.RESPCODE,O.RESPMSG,O.TRANSEQID,O.BUSISEQID,");
+			buffer.append("O.CHLSEQID,O.CHLTRANSEQID,O.UMID,O.YBSTATUS");
+			buffer.append(" FROM " + tableName + " O ");
+		} catch (SFException e){
+			throw  e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		return buffer;
+		
+	}
+
+	/**
+	 * 查询交易流水
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public AcctJour qryAcctJour(Context context,Connection connection,String subTxSeqId,String txDate,String UserId,String TxSeqId)throws SFException {
+		AcctJour acctJour = null;
+		try {
+
+			StringBuffer buffer = getQryAcctJourSqlStruct(context);
+			buffer.append(" WHERE O.TXDATE=?");
+			
+			if(SFUtil.isNotEmpty(subTxSeqId)){
+				buffer.append(" AND O.SUBTXSEQID="+subTxSeqId);
+			}
+			if(SFUtil.isNotEmpty(UserId)){
+				buffer.append(" AND O.USERID="+UserId);
+			}
+			if(SFUtil.isNotEmpty(TxSeqId)){
+				buffer.append(" AND O.TXSEQID="+TxSeqId);
+			}
+			acctJour = super.query(context, connection, buffer.toString(), AcctJour.class, txDate);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}finally{
+			if(acctJour!=null){
+				acctJour.resetChangedFlag();
+			}
+		}
+		return acctJour;
+	}
+	
+//	/**
+//	 * 查询同一券商的客户做过成功查询券商余额、券商预指定、券商发起银证转的交易流水，9点前才需要判断
+//	 * @param context
+//	 * @param connection
+//	 * @param bean
+//	 * @return
+//	 * @throws SFException
+//	 */
+//	public AcctJour qrySpecialAcctJour(Context context,Connection connection)
+//			throws SFException {		
+//		AcctJour bean = null;		
+//		try {
+//			StringBuffer buffer = new StringBuffer();			
+//			buffer.append("SELECT O.TXDATE,O.INITSIDE,O.USERID,O.TXSEQID,O.REVTXSEQID,O.SECSEQID,O.SUBTXSEQID,O.INVTYPE,O.INVNAME,O.IDTYPE,O.INVIDCODE,O.OLDINVNAME,O.OLDIDTYPE,");
+//			buffer.append("O.OLDINVIDCODE,O.SECACCT,O.SECACCTSEQ,O.SECCOMPCODE,O.CAPACCT,O.ACCTID,O.SAVACCT,O.OPENDEPID,O.OPENBRANCHID,O.OLDACCTID,O.CURCODE,O.DCFLAG,O.TXAMOUNT,");
+//			buffer.append("O.ACCTBAL,O.ABSTRACT,O.ABSTRACTSTR,O.JOURFLAG,O.TXCODE,O.BUSITYPE,O.TXTIME,O.DEPID,O.BRANCHID,O.UNITTELLERID,O.CASHREMITFLAG,O.ACCTDEALID,O.ACCTHOSTSEQID,");
+//			buffer.append("O.PRESEQID,O.ACCTDEALDATE,O.BANKSEQID,O.PRODUCTTYPE,O.COLFLAG,O.ABORTFLAG,O.ABNDEALTIMES,O.ABNDEALTXTIME,O.MEMO,O.RESPCODE,O.RESPMSG,O.TRANSEQID,O.BUSISEQID,");
+//			buffer.append("O.CHLSEQID,O.CHLTRANSEQID,O.UMID,O.YBSTATUS");
+//			buffer.append("  FROM TRDACCTJOUR O");
+//			buffer.append(" WHERE TXDATE = ?");
+//			buffer.append("   AND SECCOMPCODE = ?");
+//			buffer.append("   AND ((INITSIDE IN ('B', 'A', 'D', 'E', 'T', 'M', 'C') AND");
+//			buffer.append("       BUSITYPE IN ('52', '22', '02', '25')) OR");
+//			buffer.append("       (INITSIDE = 'S' AND BUSITYPE IN ('01', '02', '21')))");
+//			buffer.append("   AND JOURFLAG = '00'");
+//			buffer.append("   AND ROWNUM = 1");
+//			
+//			String txDate = SFUtil.getDataValue(context, "TX_DATE");
+//			String secCompCode = SFUtil.getDataValue(context, "SEC_COMP_CODE");
+//			
+//			SFUtil.chkCond(context, SFUtil.isEmpty(txDate), "ST4895", "必要参数[TX_DATE]没有提供");
+//			SFUtil.chkCond(context, SFUtil.isEmpty(secCompCode), "ST4895", "必要参数[SEC_COMP_CODE]没有提供");
+//			
+//			bean = super.query(context, connection, buffer.toString(), AcctJour.class);
+//		} catch (Exception e) {
+//			SFUtil.chkCond(context, "ST4895", e.getMessage());
+//		} finally {
+//			new AcctJour().resetChangedFlag();
+//		}
+//		return bean;
+//	}
+	
+	/**
+	 * 检查是否存在重复流水
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public AcctJour qryAcctJourByJourFlag(Context context,Connection connection,String secSeqId,String secCompCode,String acctId,String jourFlag)throws SFException {
+		AcctJour acctJour = null;
+		try {
+			Object[] param = new Object[4];
+			param[0] = secSeqId;
+			param[1] = secCompCode;
+			param[2] = acctId;
+			param[3] = jourFlag;
+			
+			StringBuffer buffer = getQryAcctJourSqlStruct(context);
+			buffer.append(" WHERE O.SECSEQID=? AND O.SECCOMPCODE=? AND O.ACCTID=? AND O.JOURFLAG =?");
+			acctJour = super.query(context, connection,buffer.toString(),AcctJour.class,param);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally{
+			if(acctJour!=null){
+				acctJour.resetChangedFlag();
+			}
+		}
+		return acctJour;
+	}
+	
+	/**
+	 * 根据发起方流水号查询交易流水
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public AcctJour qryAcctJourByTxSeqId(Context context,Connection connection,String txSeqId)throws SFException {
+		AcctJour acctJour = null;
+		try {
+			
+			StringBuffer buffer = getQryAcctJourSqlStruct(context);
+			buffer.append(" WHERE O.TXSEQID=? AND　ROWNUM=1");
+			acctJour = super.query(context, connection,buffer.toString(),AcctJour.class,txSeqId);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally{
+			if(acctJour!=null){
+				acctJour.resetChangedFlag();
+			}
+		}
+		return acctJour;
+	}
+	
+	/**
+	 * 根据TXCODE组装SQL进行查询
+	 * 针对查询当天是否发生过转账交易
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @param txCode 交易码
+	 * @return
+	 * @throws SFException
+	 */
+	public AcctJour qryAcctJourByTxCode(Context context,Connection connection) throws SFException{
+		Object txCode = SFUtil.getDataValue(context,SFConst.PUBLIC_TX_CODE);// 从上下文中获取交易码
+		AcctJour acctJour = null;
+		
+		try {
+			
+			SignAccountData signAccountData = SFUtil.getDataValue(context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA); 
+			
+			StringBuffer buffer = getQryAcctJourSqlStruct(context);
+			buffer.append(" WHERE　O.CURCODE='RMB' AND ROWNUM=1 ");
+			if("300102".equals(txCode)){// (合作行发起)变更结算账号
+				buffer.append(" AND O.SECACCT=? AND O.TXDATE=?  AND O.SECCOMPCODE=? AND O.CAPACCT=? AND O.BUSITYPE IN ('01','02','03','04','05','06','07','22')");
+				//所有参数值从Context中取出
+				String secAcct = SFUtil.objectToString(((InvestData)SFUtil.getDataValue(context, SFConst.PUBLIC_INVEST_DATA)).getSecAcct());//从投资人信息对象取出secAcct
+				String secCompCode = signAccountData.getSecCompCode();//券商代码
+				String capAcct = signAccountData.getCapAcct();//证券资金账号
+				String txDate=((LocalInfo)(SFUtil.getDataValue(context,SFConst.PUBLIC_LOCAL_INFO))).getWorkdate();//交易日期
+				acctJour = super.query(context, connection, buffer.toString(), AcctJour.class, secAcct,txDate,secCompCode,capAcct);
+			}else if("200102".equals(txCode)){// (银行端发起)变更结算帐号
+				buffer.append(" AND (O.ACCTID=? OR O.ACCTID=? OR O.CAPACCT=?) AND O.TXDATE=?  AND O.BUSITYPE IN ('01','02','03','04','05','06','07','22')");
+				//所有参数值从Context中取出
+				String acctId=SFUtil.getReqDataValue(context, "ACCT_ID");//新帐号
+				String oldAcctId=SFUtil.getReqDataValue(context, "OLD_ACCT_ID");//旧帐号
+				String capAcct=SFUtil.getReqDataValue(context, "CAP_ACCT");//证券资金账号
+				String txDate=SFUtil.getDataValue(context, "TRAN_DATE");//交易日期
+				acctJour = super.query(context, connection, buffer.toString(), AcctJour.class, acctId,oldAcctId,capAcct,txDate);
+			}else if("100101".equals(txCode)){// (券商端发起) 撤销签约关系
+				String secAcct = signAccountData.getSecAcct();//保证金管理账号
+				String capAcct = signAccountData.getCapAcct();//证券资金账号
+				String txDate=SFUtil.getDataValue(context, "TRAN_DATE");//交易日期
+				buffer.append(" AND O.SECACCT=? AND O.CAPACCT=? AND O.TXDATE=?  AND O.BUSITYPE IN ('01','02','03','04','05','06','07')");
+				acctJour = super.query(context, connection, buffer.toString(), AcctJour.class, secAcct,capAcct,txDate);
+			}else if("100105".equals(txCode)){// (券商端发起) 销户结息
+				SecCompData secCompData = SFUtil.getDataValue(context, SFConst.PUBLIC_SECU);
+				String userId = secCompData.getUserId();
+				String secAcct = signAccountData.getSecAcct();//保证金管理账号
+				String capAcct = signAccountData.getCapAcct();//证券资金账号
+				String txDate=SFUtil.getDataValue(context, "TRAN_DATE");//交易日期
+				String secCompCode = signAccountData.getSecCompCode();
+				buffer.append(" AND O.SECACCT=? AND O.CAPACCT=? AND O.TXDATE=?  AND O.SECCOMPCODE=? AND O.USERID = ? AND TXCODE='6045' AND JOURFLAG = '00'");
+				acctJour = super.query(context, connection, buffer.toString(), AcctJour.class, secAcct,capAcct,txDate,secCompCode,userId);
+			}
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally{
+			if(acctJour!=null){
+				acctJour.resetChangedFlag();
+			}
+		}
+		return acctJour;
+	}
+	
+	/**
+	 * 根据SECCOMPCODE   TXCODE  TXDATE查询九点前是否有流水记录
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public AcctJour qryAcctJourByTxCodeAndSecCompCode(Context context,Connection connection,String secCompCode,String txCode,String txDate) throws SFException{
+		AcctJour acctJour = null;
+		try {
+			
+			StringBuffer buffer = getQryAcctJourSqlStruct(context);
+			
+			buffer.append(" WHERE O.SECCOMPCODE=? AND O.TXCODE=? AND O.TXDATE=? ROWNUM=1");
+			acctJour = super.query(context, connection,buffer.toString(),AcctJour.class,secCompCode,txCode,txDate);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}finally{
+			if(acctJour!=null){
+				acctJour.resetChangedFlag();
+			}
+		}
+		return acctJour;
+	}
+
+	/**
+	 * 银转证交易
+	 * 9点前 同一券商必须有客户做过成功查询券商余额或券商预指定或券商发起银证转账交易
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public AcctJour qryB2SAcctJour(Context context,Connection connection,String txDate,String secCompCode)throws SFException {		
+		AcctJour acctJour = null;
+		try {
+			
+			StringBuffer buffer = getQryAcctJourSqlStruct(context);
+			
+			buffer.append(" WHERE O.TXDATE = ? AND O.SECCOMPCODE = ?");
+			buffer.append("   AND ((O.INITSIDE IN ('B','A','D','E','T','M','C','F') AND O.BUSITYPE IN ('52','22','02','25') AND O.JOURFLAG = '00')");
+			buffer.append("   OR (O.INITSIDE = 'S' AND O.BUSITYPE IN ('01','02','21') AND O.JOURFLAG = '00')) ");
+			buffer.append("   AND ROWNUM = 1");
+			
+			acctJour = super.query(context, connection, buffer.toString(), AcctJour.class, txDate, secCompCode);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally{
+			if(acctJour!=null){
+				acctJour.resetChangedFlag();
+			}
+		}
+		return acctJour;
+	}
+	
+	/**
+	 * 修改流水表状态
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @throws SFException
+	 */
+	public int updAcctJourDataByJourFlag(Context context,Connection connection,String JourFlag,String secSeqId,String respMsg,String txDate,String subTxSeqId)throws SFException{
+		int count = 0;
+		try {	
+			//是否清算时间段标识
+			String workMode = SFUtil.getDataValue(context, SFConst.PUBLIC_WORKMODE);
+			StringBuffer buffer = new StringBuffer("UPDATE ");
+			//清算时间段操作副表
+			if(SFConst.WORKMODE_724CLEAR.equals(workMode)){
+				buffer.append(CTX_PUBLIC_TAB_ACCTJOUR_FB);
+			}else{//交易时间段操作主表
+				buffer.append(CTX_PUBLIC_TAB_ACCTJOUR_ZB);
+			}
+		
+			buffer.append(" SET JOURFLAG = '"+JourFlag+"'");
+				buffer.append(",SECSEQID = '"+secSeqId+"'");
+			if(SFUtil.isNotEmpty(respMsg)){
+				buffer.append(",RESPMSG = '"+respMsg+"'");	
+			}
+			buffer.append(" WHERE TXDATE=? AND SUBTXSEQID=?");
+			count = super.save(context, connection, buffer.toString(), txDate,subTxSeqId);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		return count;
+	}
+	
+	/**
+	 * 冲正时，修改流水
+	 * @param context
+	 * @param connection
+	 * @param workMode
+	 * @param revTxSeqId
+	 * @param txDate
+	 * @param userId
+	 * @param TxSeqId
+	 * @return
+	 * @throws SFException
+	 */
+	public int updAcctJourByReverseJourFlag(Context context,Connection connection,String workMode,String revTxSeqId,String txDate,String userId,String TxSeqId)throws SFException {
+		int count = 0;
+		String tableName = null;
+		try {
+			if(SFConst.WORKMODE_724CLEAR.equals(workMode)){
+				tableName = CTX_PUBLIC_TAB_ACCTJOUR_FB;
+			}else{
+				tableName = CTX_PUBLIC_TAB_ACCTJOUR_ZB;
+			}
+			String sql = "UPDATE "+ tableName + " SET REVTXSEQID = ?,JOURFLAG = '30' WHERE TXDATE = ? AND USERID = ? AND TXSEQID = ?";
+		
+			count = super.save( context, connection, sql, revTxSeqId, txDate, userId, TxSeqId);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} 
+		return count;
+	}
+	
+	/**
+	 * 修改流水表返回的错误信息
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @throws SFException
+	 */
+	public int updAcctJourDataByErr(Context context,Connection connection,String respCode,String respMsg,String txDate,String txCode,String subTxSeqId)throws SFException{
+		int count = 0;
+		try {	
+			//是否清算时间段标识
+			String workMode = SFUtil.getDataValue(context, SFConst.PUBLIC_WORKMODE);
+			StringBuffer buffer = new StringBuffer("UPDATE ");
+			//清算时间段操作副表
+			if(SFConst.WORKMODE_724CLEAR.equals(workMode)){
+				buffer.append(CTX_PUBLIC_TAB_ACCTJOUR_FB);
+			}else{//交易时间段操作主表
+				buffer.append(CTX_PUBLIC_TAB_ACCTJOUR_ZB);
+			}
+		
+			buffer.append(" SET RESPCODE = ?");
+			buffer.append(",RESPMSG = ?");
+		 
+			buffer.append(" WHERE TXDATE=? AND TXCODE = ? AND SUBTXSEQID=?");
+			count = super.save(context, connection, buffer.toString(), respCode,respMsg,txDate,txCode,subTxSeqId);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		return count;
+	}
+	
+	
+}

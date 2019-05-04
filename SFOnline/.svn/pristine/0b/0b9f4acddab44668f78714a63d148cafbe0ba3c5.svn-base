@@ -1,0 +1,88 @@
+package module.dao;
+
+import java.sql.Connection;
+import java.util.List;
+
+import module.bean.Reverse;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DaoBase;
+/**
+ * 冲正信息DAO
+ * @author 汪华
+ *
+ */
+public class ReverseDao  extends DaoBase{
+	/**
+	 * 新增冲正信息
+	 * @param context
+	 * @param connection
+	 * @param reverse
+	 * @return
+	 * @throws SFException
+	 */
+	public int saveReverse(Context context,Connection connection,Reverse reverse)throws SFException{
+		StringBuffer sql=new StringBuffer();
+		sql.append("INSERT INTO TRDREVERSE(SEQID,TXDATE,TXSEQID,TYPE,TXCODE,INITSIDE,DEPID,UMID,AMT,HOSTTYPE,");
+		sql.append("REVERSESEQID,REVERSENUM,STATUS,RESPCODE,RESPMSG,REVERSESEQ,CREATEDATETIME,UPDATEDATETIME,MEMO)");
+		sql.append("VALUES(?,?,?,?,?, ?,?,?,?,?, ?,?,?,?,?, ?,?,?,?)");
+		Object[] params={reverse.getSeqId(),reverse.getTxDate(),reverse.getTxSeqId(),reverse.getType(),reverse.getTxCode(),
+				reverse.getInitside(),reverse.getDepId(),reverse.getUmId(),reverse.getAmt(),reverse.getHostType(),
+				reverse.getReverseSeqId(),reverse.getReverseNum(),reverse.getStatus(),reverse.getRespCode(),reverse.getRespMsg(),
+				reverse.getReverseSeq(),reverse.getCreateDatetime(),reverse.getUpdateDatetime(),reverse.getMemo()};
+		return super.save(context, connection, sql.toString(),params);
+	}
+	
+	/**
+	 * 冲正完成后回写冲正信息
+	 * @param context
+	 * @param connection
+	 * @param reverse
+	 * @return
+	 * @throws SFException
+	 */
+	public int updateForRes(Context context,Connection connection,Reverse reverse)throws SFException{
+		StringBuffer sql=new StringBuffer();
+		sql.append("UPDATE TRDREVERSE SET REVERSENUM=REVERSENUM+1,STATUS=?,RESPCODE=?,RESPMSG=?,UPDATEDATETIME=? WHERE TXDATE=?, TXSEQID=?, SEQID=?");
+		Object[] params={reverse.getStatus(),reverse.getRespCode(),reverse.getRespMsg(),reverse.getUpdateDatetime(),reverse.getTxDate(),
+				reverse.getTxSeqId(),reverse.getSeqId()};
+		return super.save(context, connection, sql.toString(),params);
+	}
+	
+	/**
+	 * 冲正开始时锁定冲正任务
+	 * @param context
+	 * @param connection
+	 * @param reverse
+	 * @return
+	 * @throws SFException
+	 */
+	public int updateForLock(Context context,Connection connection,Reverse reverse)throws SFException{
+		StringBuffer sql=new StringBuffer();
+		sql.append("UPDATE TRDREVERSE SET STATUS='9' WHERE TXDATE=?, TXSEQID=?, SEQID=?");
+		Object[] params={reverse.getTxDate(),reverse.getTxSeqId(),reverse.getSeqId()};
+		return super.save(context, connection, sql.toString(),params);
+	}
+	
+
+	/***
+	 * 查询待处理的冲正记录
+	 * @param context
+	 * @param connection
+	 * @param defaulTimes 默认冲正次数
+	 * @param serverType 当前应用服务名称
+	 * @return
+	 * @throws SFException
+	 */
+	public List<Reverse> queryReverses(Context context,Connection connection,int defaulTimes,String serverType)throws SFException{
+		StringBuffer sql=new StringBuffer();
+		sql.append("SELECT SEQID,TXDATE,TXSEQID,TYPE,TXCODE,INITSIDE,DEPID,UMID,AMT,HOSTTYPE,REVERSESEQID,");
+		sql.append("REVERSENUM,STATUS,RESPCODE,RESPMSG,REVERSESEQ,CREATEDATETIME,UPDATEDATETIME,MEMO ");
+		sql.append("FROM TRDREVERSE WHERE STATUS IN('0','2') AND REVERSENUM<=? AND TYPE=?");
+		Object[] params={defaulTimes,serverType};
+		return super.queryForOList(context, connection, sql.toString(),params,Reverse.class);
+	}
+	
+	
+}

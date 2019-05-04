@@ -1,0 +1,106 @@
+package core.schedule.job.biz;
+
+import java.sql.Connection;
+
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+
+import com.ecc.emp.component.factory.EMPFlowComponentFactory;
+import com.ecc.emp.core.Context;
+import com.ecc.emp.log.EMPLog;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.SFConst;
+
+import core.schedule.SFCompLocalMachineIpAction;
+import core.schedule.bean.ScheduleParam;
+import core.schedule.dao.ScheduleDao;
+import core.schedule.job.AbstractScheduleAction;
+
+/**
+ * 调度实现类
+ * 无状态任务，即调度任务之间互不影响
+ * 其中一个调度任务僵死后不影响其他任务
+ */
+//调度假死后续动作不执行问题方案,将StatefulJob替换为Job
+public class ScheduleJobTaskAction implements Job {
+	private ScheduleDao scheduleDao=new ScheduleDao();//任务调度dao
+
+	public void execute(JobExecutionContext jobContext) throws JobExecutionException {
+		String scheduleId = jobContext.getTrigger().getName();
+		Connection connection=null;
+		Context context = null, rootContext = null;
+		SFCompLocalMachineIpAction macAction = new SFCompLocalMachineIpAction();//服务器Action
+		
+		try {			
+			/*
+			 * 构建交易上下文（交易上下文是从根上下文克隆来）
+			 */
+			EMPFlowComponentFactory factory =(EMPFlowComponentFactory) EMPFlowComponentFactory.getComponentFactory(SFConst.SYS_SYSNAME);
+			rootContext = factory.getContextNamed(factory.getRootContextName());
+			context = (Context) rootContext.clone();
+			/*
+			 * 查询批量任务
+			 */
+			connection=DBHandler.getConnection(context);//获取数据库连接
+			DBHandler.beginTransaction(context, connection);//开启事务
+			ScheduleParam scheduleInfo=scheduleDao.qryScheduleParam(context, connection, scheduleId, SFConst.SYS_SYSNAME);
+			if(scheduleInfo==null){
+				return ;
+			}			
+			/*
+			 * IP检验
+			 */
+			macAction.setIpAddress(scheduleInfo.getIp());
+			String result = macAction.execute(context);
+			if("0".equals(result)){
+				/*
+				 * 最大记录数检查
+				 */
+				int maxCount=scheduleInfo.getMaxCount();
+				int currIndex=scheduleInfo.getCurrIndex();
+				if(maxCount<=0){
+					maxCount=1;
+				}
+				if(maxCount<=currIndex){
+					return;
+				}
+				
+				/*
+				 * 任务执行前记录活动数（加1）
+				 */
+				scheduleDao.updateForIndex(rootContext, connection, scheduleId, SFConst.SYS_SYSNAME, 1);
+				DBHandler.commitTransaction(rootContext, connection);
+				DBHandler.releaseConnection(context, connection);//批量调度中数据库连接即用即释放
+				try{
+					AbstractScheduleAction action=new ScheduleTaskAction();
+					/*
+					 * 执行具体任务
+					 */
+					action.doJob(jobContext,context,scheduleId);					
+				}catch (Exception e){
+					EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "execute schedule error:" + e.getMessage(), e);
+				}
+				/*
+				 * 任务执行后记录活动数（减1）
+				 */
+				connection=DBHandler.getConnection(context);//获取数据库连接
+				DBHandler.beginTransaction(context, connection);//开启事务
+				scheduleDao.updateForIndex(rootContext, connection, scheduleId, SFConst.SYS_SYSNAME, -1);
+				DBHandler.commitTransaction(rootContext, connection);
+			}
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "execute schedule error:" + e.getMessage(), e);
+		}finally {
+			if(context != null){
+				try {
+					DBHandler.releaseConnection(context, connection);//批量调度中数据库连接即用即释放
+				} catch (SFException e) {
+					EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "execute schedule error:" + e.getMessage(), e);
+				}
+				context.terminate();
+			}
+		}
+	}
+}

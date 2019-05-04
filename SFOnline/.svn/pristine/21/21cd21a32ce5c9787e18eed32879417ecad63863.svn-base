@@ -1,0 +1,56 @@
+package module.trans.sf2cobank;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+
+import common.exception.SFException;
+import common.util.BizUtil;
+import common.util.SFUtil;
+import core.log.SFLogger;
+
+import module.communication.CoBankClientBase;
+/**
+ * 810021 撤销签约关系的请求报文体，代理平台发起
+ * @author 汪华
+ *
+ */
+public class T810021Client extends CoBankClientBase{
+
+	@Override
+	protected Context doHandle(Context context, Map<String, Object> msg,
+			String bankNo) throws SFException {
+		SFLogger.info(context, "上合作行撤销签约关系-开始");
+		//证件类型转换
+		Object idType=msg.get("ID_TYPE");
+		if(SFUtil.isNotEmpty(idType)){
+			idType=BizUtil.convSF2CoBank4IdType(context,idType.toString());
+			msg.put("ID_TYPE", idType);
+		}	
+		//构建请求报文
+		KeyedCollection inKeyColl = new KeyedCollection("810021_I");
+		SFUtil.addDataField(context, inKeyColl, "SEC_COMP_CODE",msg.get("SEC_COMP_CODE"));//券商代码SecCode
+		SFUtil.addDataField(context, inKeyColl, "CAP_ACCT",msg.get("CAP_ACCT"));//证券资金台账号CapAcct
+		SFUtil.addDataField(context, inKeyColl, "INV_NAME",msg.get("INV_NAME"));//客户名称InvName
+		SFUtil.addDataField(context, inKeyColl, "ID_TYPE",msg.get("ID_TYPE"));//证件类型IdType
+		SFUtil.addDataField(context, inKeyColl, "INV_ID_CODE",msg.get("INV_ID_CODE"));//证件号码InvIdCode
+		SFUtil.addDataField(context, inKeyColl, "ACCT_ID",msg.get("ACCT_ID"));//银行账号account_no
+		SFUtil.addDataField(context, inKeyColl, "CUR_CODE",msg.get("CUR_CODE"));//币种CurCode
+		SFUtil.addDataField(context, inKeyColl, "REMARK","撤销签约");//备注Memo
+		SFUtil.addDataElement(context,inKeyColl);
+		
+//		KeyedCollection outKeyColl = new KeyedCollection("810021_O");
+//		SFUtil.addDataField(context, outKeyColl, "REMARK","");//备注Memo
+//		SFUtil.addDataElement(context,outKeyColl);	
+		//发送报文
+		Map<String,Object> tmpMsg = new HashMap<String,Object>();
+		tmpMsg.put("810021_I", inKeyColl);
+		//发送报文
+		Context msgContext=super.send(context,tmpMsg,"810021",bankNo);
+		SFLogger.info(context, "上合作行撤销签约关系-结束");
+	    return msgContext;
+	}
+
+}

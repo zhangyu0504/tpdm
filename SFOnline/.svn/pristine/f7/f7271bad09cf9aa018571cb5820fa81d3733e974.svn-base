@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+
+<dsesrvce.XML>
+	<!-- 注册数据源与事物管理器-->
+	<DataSourceTransactionManager id="transactionManager" implClass="com.ecc.emp.transaction.DataSourceTransactionManager"/>
+	<TableService id="tableService" implClass="com.ecc.emp.jdbc.table.TableService"/>
+	<PooledJDBCDriverDataSource id="tbpmdatasource0" driverName="oracle.jdbc.driver.OracleDriver" checkInterval="7200000" dbURL="jdbc:oracle:thin:@10.14.207.178:1555:templatedb" idleTimeOut="7200000" implClass="core.jdbc.PooledDataSource" userName="sdbfront" connectionTimeOut="7200000" password="SFtpdm123" size="50"/>
+	<!-- <JNDIDataSource id="tbpmdatasource0" implClass="com.ecc.emp.jdbc.JNDIDataSource" jndiName="jndi/SFOnline"/>-->
+	<!-- 注册服务 -->
+	<SqlExecService id="sfsqlexecservice0" implClass="common.services.SqlExecService">
+	</SqlExecService>
+	<GenContextBySql id="sfgencontextbysql0" implClass="common.services.GenContextBySql">
+	</GenContextBySql>
+	<ExpressCalculateService id="sfexpresscalculate0" implClass="common.services.ExpressCalculateService">
+	</ExpressCalculateService>
+	<ProcedureAccessService id="sfprocedureaccessservice0" implClass="core.jdbc.procedure.ProcedureAccessService" opClass="ccore.jdbc.procedure.ProcedureOpForOracle">
+	</ProcedureAccessService>
+	<!-- 缓存管理期 -->
+	<CacheManagerService id="cacheManagerService" implClass="core.cache.CacheManagerService">
+		<CacheHandler id="transCache" implClass="module.cache.TransCache"/>
+		<CacheHandler id="errorMapCache" implClass="module.cache.ErrorMapCache"/>
+		<CacheHandler id="paramCache" implClass="module.cache.ParamCache"/>
+		<CacheHandler id="bankUnitCache" implClass="module.cache.BankUnitCache"/>
+		<CacheHandler id="productInfoCache" implClass="module.cache.ProductInfoCache"/>
+		<CacheHandler id="secTruAcctCache" implClass="module.cache.SecTruAcctCache"/>
+		<CacheHandler id="cacheSetting" implClass="module.cache.CacheSetting"/>
+		<!-- 缓存结果映射-配置在SERVICES最后 -->
+	</CacheManagerService>
+	<!-- FTP服务 -->
+	<FtpFileService id="ftpFileService" implClass="common.services.FtpFileService"/>
+	<PublicService id="publicservice0" implClass="common.services.PublicService">
+	</PublicService>
+</dsesrvce.XML>

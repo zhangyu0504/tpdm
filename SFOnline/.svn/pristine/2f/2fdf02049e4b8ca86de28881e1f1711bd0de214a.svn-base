@@ -1,0 +1,9 @@
+package core.schedule;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+
+public interface ScheduleActionInterface {
+	public boolean init(Context context) throws SFException;
+	public void execute(Context context) throws SFException;
+}

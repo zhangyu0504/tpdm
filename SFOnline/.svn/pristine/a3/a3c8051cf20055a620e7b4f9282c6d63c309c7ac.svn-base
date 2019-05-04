@@ -1,0 +1,73 @@
+package common.util;
+
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Properties;
+
+/** 
+ * 配置文件读取,单例初始化后到内存
+ * @author   
+ * @date 
+ * @version V 1.0 
+ */
+
+public class ReadProperty { 
+	
+	private static ReadProperty SERVICE = new ReadProperty();
+	
+	private Properties pro = new Properties();
+
+	public static ReadProperty getInstance() {
+		return SERVICE;
+	}
+	
+	private ReadProperty() {
+		//本来可以考虑加载整个目录下的所有properties文件的,但有些文件不想加载,所以只好指定文件加载
+		try {
+			pro.load(getClass().getClassLoader().getResourceAsStream("SZTSecu.properties"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	/**   
+	 *   获取配置文件属性   
+	 *   @param   key   
+	 *   @return   
+	 * @throws UnsupportedEncodingException 
+	 */
+	public String getProperties(String key)
+			throws UnsupportedEncodingException {
+		
+		String value = pro.getProperty(key);
+		if (value == null)
+			return null;
+		return value;
+	}
+	
+	public static String getValue(String key)
+			 {
+		ReadProperty errCode = ReadProperty.getInstance();
+		String value ="";
+		try {
+			value = errCode.getProperties(key);
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return value;
+	}
+	
+	/**
+	 * @param args
+	 */
+	
+	public static void main(String[] args) throws UnsupportedEncodingException{
+		// TODO Auto-generated method stub
+		
+		System.out.println(ReadProperty.getValue("11008_O"));
+
+	}
+
+}

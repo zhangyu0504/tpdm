@@ -1,0 +1,41 @@
+package module.batch;
+
+import java.util.Map;
+
+import module.bean.Trans;
+import module.cache.TransCache;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+import core.schedule.ScheduleActionInterface;
+/**
+ * 日志备份
+ * @author 汪华
+ *
+ */
+public class T800050 implements ScheduleActionInterface{
+	
+	@Override
+	public boolean init(Context context) throws SFException {
+		return true;
+	}
+
+	@Override
+	public void execute(Context context) throws SFException {
+		Map<String,Trans> mapTran=TransCache.getAllValue();
+		String trCode=SFUtil.getDataValue(context, SFConst.PUBLIC_TX_CODE);//获取当前交易码
+		
+		//获取交易配置生成新日志
+		if(mapTran!=null){
+			for(Trans tran:mapTran.values()){
+				SFUtil.setDataValue(context, SFConst.PUBLIC_TX_CODE, tran.getTxCode());
+				SFLogger.info(context, "^_^  美好的一天开始了，撸起袖子加油干吧！  ^_^");
+			}
+		}
+		SFUtil.setDataValue(context, SFConst.PUBLIC_TX_CODE, trCode);//回置当前交易码
+	}
+}

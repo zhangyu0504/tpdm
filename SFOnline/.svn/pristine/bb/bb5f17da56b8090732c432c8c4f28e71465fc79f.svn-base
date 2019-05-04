@@ -1,0 +1,543 @@
+package common.services;
+
+import java.io.StringReader;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.List;
+
+import com.ecc.emp.accesscontrol.AccessInfo;
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPConstance;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.data.DataElement;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.data.ObjectNotFoundException;
+import com.ecc.emp.jdbc.EMPJDBCException;
+import com.ecc.emp.jdbc.JDBCMBean;
+import com.ecc.emp.jdbc.RecordNotFoundException;
+import com.ecc.emp.jdbc.sql.SQLParameterCollection;
+import com.ecc.emp.jmx.support.EMPJMXManager;
+import com.ecc.emp.log.EMPLog;
+import com.ecc.emp.service.EMPService;
+import common.util.SFConst;
+
+import core.jdbc.sql.SQLParameter;
+import core.log.SFLogger;
+
+/**
+*
+* <b>功能描述：</b><br>
+* 数据库SQL语句执行Service类，实现在一个事务中顺序执行多条SQL语句的操作。<br>
+* 
+* <b>配置示例：</b><br>
+* &lt;JDBCSQLExecService id=" JDBCSQLExecService "&gt;<br>
+* &nbsp;&lt;!--SQL语句定义的有序枚举:即可以定义多个JDBCSQLDef--&gt; <br>
+* &nbsp;&nbsp;&lt;JDBCSQLDef id=" JDBCSQLDef0"<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;SQLStr="Select table0.column1, table0. column2, table0. column3 From table0 Where Select table0.column0= ? " <br>
+* &nbsp;&nbsp;&nbsp;&nbsp;sqlType="select" <br>
+* &nbsp;&nbsp;&nbsp;&nbsp;iCollName="indexedCollection0"<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;maxRecords="10"&gt;<br>
+* &nbsp;&nbsp;&lt;!--输入数据集定义--&gt; <br>
+* &nbsp;&nbsp;&lt;input&gt;<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;&lt;!--输入数据有序列举--&gt;<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;&lt;param idx="1" dataName="data0" dataType="VARCHAR"/&gt;<br>
+* &nbsp;&nbsp;&lt;/input&gt;<br>
+* &nbsp;&nbsp;&lt;!--输出数据集定义--&gt; <br>
+* &nbsp;&nbsp;&lt;output&gt;<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;&lt;!--输出数据有序列举--&gt;<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;&lt;param idx="1" dataName="data1" dataType="VARCHAR"/&gt;<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;&lt;param idx="2" dataName="data2" dataType="VARCHAR"/&gt;<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;&lt;param idx="3" dataName="data3" dataType="VARCHAR"/&gt;<br>
+* &nbsp;&nbsp;&lt;/output&gt;<br>
+* &nbsp;&nbsp;&lt;/JDBCSQLDef&gt;<br>
+* &nbsp;&nbsp;&lt;JDBCSQLDef id=" JDBCSQLDef1 "<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;SQLStr="Select table0.column1, table0. column2, table0. column3 From table0 Where Select table0.column0= ? " <br>
+* &nbsp;&nbsp;&nbsp;&nbsp;sqlType="select" <br>
+* &nbsp;&nbsp;&nbsp;&nbsp;iCollName="indexedCollection1"&gt;<br>
+* &nbsp;&nbsp;&lt;input&gt;<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;&lt;param idx="1" dataName="data0" dataType="VARCHAR"/&gt;<br>
+* &nbsp;&nbsp;&lt;/input&gt;<br>
+* &nbsp;&nbsp;&lt;output&gt;<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;&lt;param idx="1" dataName="data1" dataType="VARCHAR"/&gt;<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;&lt;param idx="2" dataName="data2" dataType="VARCHAR"/&gt;<br>
+* &nbsp;&nbsp;&nbsp;&nbsp;&lt;param idx="3" dataName="data3" dataType="VARCHAR"/&gt;<br>
+* &nbsp;&nbsp;&lt;/output&gt;<br>
+* &nbsp;&nbsp;&lt;/JDBCSQLDef&gt;<br>
+* &lt;/JDBCSQLExecService&gt;<br>
+* 
+* <b>参数说明:</b><br>
+* &nbsp;&nbsp;SQLStr--待执行的SQL语句<br>
+* &nbsp;&nbsp;sqlType--SQL语句的操作类型<br>
+* &nbsp;&nbsp;iCollName--输出数据集所对应的IndexedCollection名称<br>
+* &nbsp;&nbsp;maxRecords--返回数据集合的最大数量限制<br>
+* &nbsp;&nbsp;input--输入数据集定义<br>
+* &nbsp;&nbsp;output--输出数据集定义<br>
+* &nbsp;&nbsp;param--数据项定义<br>
+*
+*  @创建时间 2010-01-02
+*  @version 1.0
+*  @modifier 
+*
+*/
+
+public class SqlExecService extends EMPService {
+
+	static long alarmResponseTime=1000;
+	AccessInfo accessInfo=new AccessInfo();
+	boolean alarmOpened=true;
+	
+	Object syncObj=new Object();
+	
+	/**
+	 * 顺序执行sqlDefs 列表中的多个SQL语句
+	 * 
+	 * @param JDBCSQLDef sqlDefInfo                     JDBCSQLDef数据库SQL语句定义
+	 * @param Context context                           当前context
+	 * @param Connection connection                     当前数据库连接
+     * @throws RecordNotFoundException
+	 * @throws EMPJDBCException
+	 */	
+	public void executeSQLDef(SQLDefine sqlDefInfo, Context context,
+			Connection connection) throws RecordNotFoundException, EMPJDBCException {
+		SFLogger logger=SFLogger.getLogger(context);
+		
+		if (connection == null) {
+			logger.error("Database connection not established!");
+			//EMPLog.log(EMPConstance.EMP_JDBC,EMPLog.ERROR,0,"Database connection not established!");
+			throw new EMPJDBCException(
+					"Database connection not established! ");
+		}		
+		
+		if (sqlDefInfo.getSqlType() < 0) {
+			throw new EMPJDBCException("This execute SQL[" + sqlDefInfo.getName() + "]'s sqlType is error[" + sqlDefInfo.getSqlType() + "]!");
+		}
+		//增加一个选项paraBind，如果不绑定变量，则使用变量替换方式生成终极SQL执行，对一部分语句有优化效果
+		if ((sqlDefInfo.getSqlType() == SQLDefine.SQL_SELECT) && !sqlDefInfo.isParaBind()) {
+			sqlDefInfo = genNoBindSql(sqlDefInfo, context);
+		}
+
+		synchronized (syncObj) {
+			this.accessInfo.newAccess();
+		}
+		long beginTime=System.currentTimeMillis();
+		List inParams = sqlDefInfo.getInParamaters();
+		List outParams = sqlDefInfo.getOutParamaters();
+		String SQLStr = sqlDefInfo.getSQLStr();
+		String SqlName = sqlDefInfo.getName();
+		IndexedCollection iColl = null;
+		KeyedCollection kColl = null;
+
+		if (sqlDefInfo.isParaBind()){
+			//EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.DEBUG, 0, "Execute SQL : "+SqlName+" :"+SQLStr, null);
+			logger.debug("Execute SQL : "+SqlName+" :"+SQLStr);
+		}
+		else{
+			//EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.INFO, 0, "Execute No Bind SQL : "+SqlName+" :"+SQLStr, null);
+			logger.info("Execute No Bind SQL : "+SqlName+" :"+SQLStr);
+		}
+		String iCollName = sqlDefInfo.getICollName();
+		int maxRecords = sqlDefInfo.getMaxRecords();
+
+		PreparedStatement pState = null;
+		try {
+			pState = connection.prepareStatement(SQLStr);
+			int iCollFlag = 0;
+			DataElement dataElement = null;
+			if (iCollName != null)
+			{
+				dataElement = context.getDataElement(iCollName);
+				if (KeyedCollection.class.isAssignableFrom(dataElement.getClass()))
+					iCollFlag = 1;  //KCOLL标志，如果为1表示是KCOLL,否则表示ICOLL或者没有定义名称
+			}
+
+			if (sqlDefInfo.getSqlType() == SQLDefine.SQL_SELECT) //a enquiry statement
+			{
+				//循环绑定输入变量
+				if (sqlDefInfo.isParaBind()) {
+					for (int i = 0; i < inParams.size(); i++) {
+						String value = null;
+						
+						SQLParameter aParam = (SQLParameter) inParams.get(i);
+						if (aParam.paramIdx <= 0)
+							continue;
+						value = (String) context.getDataValue(aParam.dataName);
+						if(!aParam.validateType(value)){
+							throw new EMPException("Data type is not identical:paramIdx="+aParam.paramIdx+",dataName="+aParam.dataName+",dataValue="+value);
+						}
+						if (value != null)
+						{
+							if (aParam.dataType == Types.CHAR)
+								pState.setString(0-aParam.paramIdx, value);
+							else
+								pState.setObject(aParam.paramIdx, value);
+						}
+						else
+							pState.setNull(aParam.paramIdx, aParam.dataType);
+						//EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.INFO, 0, "The column ["+aParam.paramIdx+"]:"+aParam.dataName+" = ["+value+"]", null);
+						logger.info("The column ["+aParam.paramIdx+"]:"+aParam.dataName+" = ["+value+"]");
+					}
+				}
+
+				//执行SQL语句
+				ResultSet rs = pState.executeQuery();
+
+				//处理执行结果
+				if (iCollName != null && iCollFlag == 0) // it's a result enquiry
+				{
+
+					iColl = (IndexedCollection) context.getDataElement(iCollName);
+					
+					boolean isAppend = sqlDefInfo.getIsAppend();
+					if (!isAppend) //如果不追加记录，则删除原来所有记录
+						iColl.removeAll();
+
+					kColl = (KeyedCollection) iColl.getDataElement();
+					int idx = 0;
+					while (rs.next()) {
+						kColl = (KeyedCollection) kColl.clone();
+						iColl.addDataElement(kColl);
+
+						idx++;
+						for (int i = 0; i < outParams.size(); i++) {
+							String value = null;
+							SQLParameter aParam = (SQLParameter) outParams.get(i);
+							if (aParam.paramIdx <= 0)
+								continue;
+
+							if (aParam.dataType == Types.CHAR || 
+								aParam.dataType == Types.VARCHAR ||
+								aParam.dataType == Types.VARCHAR)
+							{
+								value = rs.getString(aParam.paramIdx);
+							}
+							else
+							{
+								Object returnObj = null;
+								returnObj = rs.getObject(aParam.paramIdx);
+								if (returnObj != null)
+									value = returnObj.toString();
+							}
+							
+							if (value != null) {
+								if (aParam.trim)
+									value = value.trim();
+							}
+							kColl.setDataValue(aParam.dataName, value);
+							logger.debug("The row [" + idx + "]'s column ["+aParam.paramIdx+"]:"+aParam.dataName+" = "+value);
+							//EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.DEBUG, 0, "The row [" + idx + "]'s column ["+aParam.paramIdx+"]:"+aParam.dataName+" = "+value, null);
+						}
+
+						if (maxRecords > 0 && idx >= maxRecords)
+							break;
+					}
+
+					rs.close();
+					pState.close();
+					pState = null;
+
+					if (idx == 0) // no record found
+					{
+						throw new RecordNotFoundException(
+								"No record found in execute SQL[" + SqlName + "][" + SQLStr + "]!");
+					}
+
+				} else // only retrive the first result
+				{
+					if (rs.next()) {
+						for (int i = 0; i < outParams.size(); i++) {
+							String value = null;
+							SQLParameter aParam = (SQLParameter) outParams.get(i);
+							if (aParam.paramIdx <= 0)
+								continue;
+
+							if (aParam.dataType == Types.CHAR || 
+								aParam.dataType == Types.VARCHAR ||
+								aParam.dataType == Types.VARCHAR)
+							{
+								value = rs.getString(aParam.paramIdx);
+							}
+							else
+							{
+								Object returnObj = null;
+								returnObj = rs.getObject(aParam.paramIdx);
+								if (returnObj != null)
+									value = returnObj.toString();
+							}
+							
+							if (value != null) {
+								if (aParam.trim)
+									value = value.trim();
+							}
+							if (iCollFlag == 1) // it's a KeyedCollection
+								context.setDataValue(iCollName + "." + aParam.dataName, value);
+							else
+								context.setDataValue(aParam.dataName, value);
+						}
+						rs.close();
+					} else // no record found
+					{
+						rs.close();
+						pState.close();
+						pState = null;
+						throw new RecordNotFoundException(
+								"No record found in execute SQL[" + SqlName + "][" + SQLStr + "]!");
+					}
+
+				}				
+			} else {
+				//sql语句执行影响记录数
+				int effectRows = 0;
+
+				if (iCollName != null && iCollFlag == 0) // it's a IColl and circle to executeUpdate
+				{
+					iColl = (IndexedCollection) context.getDataElement(iCollName);
+					
+					for (int j = 0; j < iColl.size(); j++) {
+						kColl = (KeyedCollection) iColl.getElementAt(j);
+
+						//循环绑定输入变量
+						for (int i = 0; i < inParams.size(); i++) {
+							String value = null;
+							
+							SQLParameter aParam = (SQLParameter) inParams.get(i);
+							if (aParam.paramIdx <= 0)
+								continue;
+
+							value = (String) kColl.getDataValue(aParam.dataName);
+							//pengjizhou add by 2007-04-07
+							if(!aParam.validateType(value)){
+								throw new EMPException("Data type is not identical:paramIdx="+aParam.paramIdx+",dataName="+aParam.dataName+",dataValue="+value);
+							}
+							if (value != null)
+							{
+								if (aParam.dataType == Types.CHAR)
+									pState.setString(0-aParam.paramIdx, value);
+								else
+									pState.setObject(aParam.paramIdx, value);
+							}
+							else
+								pState.setNull(aParam.paramIdx, aParam.dataType);
+							//EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.INFO, 0, "The column ["+aParam.paramIdx+"]:"+aParam.dataName+" = ["+value+"]", null);
+							logger.info("The column ["+aParam.paramIdx+"]:"+aParam.dataName+" = ["+value+"]");
+						}
+
+						effectRows += pState.executeUpdate();
+					}
+				}
+				else // KColl OR have no KCOLL 
+				{
+					//循环绑定输入变量
+					for (int i = 0; i < inParams.size(); i++) {
+						String value = null;
+						
+						SQLParameter aParam = (SQLParameter) inParams.get(i);
+						if (aParam.paramIdx <= 0)
+							continue;
+
+						if (iCollFlag == 1) //a KColl
+							value = (String) context.getDataValue(iCollName+"."+aParam.dataName);
+						else
+							value = (String) context.getDataValue(aParam.dataName);
+						//pengjizhou add by 2007-04-07
+						if(!aParam.validateType(value)){
+							throw new EMPException("Data type is not identical:paramIdx="+aParam.paramIdx+",dataName="+aParam.dataName+",dataValue="+value);
+						}
+						if (value != null)
+						{
+							if (aParam.dataType == Types.CHAR)
+								pState.setString(0-aParam.paramIdx, value);
+							else if (aParam.dataType == Types.LONGVARCHAR)
+								pState.setCharacterStream(aParam.paramIdx, new StringReader(value), value.length()); 
+							else
+								pState.setObject(aParam.paramIdx, value);
+						}
+						else
+							pState.setNull(aParam.paramIdx, aParam.dataType);
+						
+						logger.info("The column ["+aParam.paramIdx+"]:"+aParam.dataName+" = ["+value+"]");
+//						EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.INFO, 0, "The column ["+aParam.paramIdx+"]:"+aParam.dataName+" = ["+value+"]", null);
+					}
+
+					effectRows = pState.executeUpdate();
+				}
+				
+				if (sqlDefInfo.getRowsDataName() != null)
+				{
+//					context.setDataValue(sqlDefInfo.getRowsDataName(), Integer.toString(effectRows));
+					if(context.containsKey(sqlDefInfo.getRowsDataName())){
+						context.setDataValue(sqlDefInfo.getRowsDataName(), Integer.toString(effectRows));
+					}else{
+						context.addDataField(sqlDefInfo.getRowsDataName(), Integer.toString(effectRows));
+					}
+				}
+				else {
+					if (context.containsKey(SFConst.SQLCA_SQLNROWS))	{
+						context.setDataValue(SFConst.SQLCA_SQLNROWS, Integer.toString(effectRows));
+					}
+					else {
+						context.addDataField(SFConst.SQLCA_SQLNROWS, Integer.toString(effectRows));
+					}
+				}
+
+				EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.INFO, 0, "Effected record is  ["+effectRows+"]");
+				if (effectRows == 0) {
+					throw new RecordNotFoundException(
+							"No record is effected in execute SQL[" + SqlName + "][" + SQLStr + "]!");
+				}
+			}				
+		}catch(RecordNotFoundException re){
+			throw re;
+		}catch (SQLException se) {
+			//EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.ERROR, 0, "JDBCSQLExecService[" + getName() + "].executeSQL", se);
+			setErrorInfo(context, sqlDefInfo.getErrorCode(), sqlDefInfo.getErrorMessage());
+			throw new EMPJDBCException("Failed to execute SQL[" + SqlName + "][" + se.getErrorCode() + "][" + se.getMessage() + "]!", se);
+		} catch (Exception e) {
+			//EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.ERROR, 0, "JDBCSQLExecService[" + getName() + "].executeSQL", e);
+			setErrorInfo(context, sqlDefInfo.getErrorCode(), sqlDefInfo.getErrorMessage());
+			throw new EMPJDBCException("JDBCSQLExecService[" + getName()
+					+ "].execute", e);
+		} finally {
+			if (pState != null) {
+				try {
+					pState.close();
+					pState = null;
+				} catch (Exception e) {
+				}
+			}
+			long endTime=System.currentTimeMillis()-beginTime;
+			if(endTime>alarmResponseTime&&alarmOpened==true){
+				StringBuffer buf=new StringBuffer("Warning!!! Sql execute time="+endTime+" over(>) "+alarmResponseTime);
+				buf.append("\nSFSqlDefineID=");
+				buf.append(sqlDefInfo.getName());
+				buf.append(" sqlType=");
+				buf.append(sqlDefInfo.getSqlType());
+				try{
+					EMPJMXManager.sendLogNotification(this, JDBCMBean.JDBC_MBEAN_ID, "WARNING", buf.toString());
+				}catch(Exception ee){
+					
+				}
+			}
+			synchronized (syncObj) {
+				this.accessInfo.endAccess(endTime);
+			}
+		}
+	}
+	
+	private SQLDefine genNoBindSql(SQLDefine sqlDefInfo, Context context) throws EMPJDBCException{
+		SFLogger logger=SFLogger.getLogger(context);
+		SQLDefine tmpSqlDefine = new SQLDefine();
+		
+		String tmpSqlStr = sqlDefInfo.getSQLStr();
+		
+		List inParams = sqlDefInfo.getInParamaters();
+		try {
+			for (int i = 0; i < inParams.size(); i++) {
+				String value = null;
+				
+				SQLParameter aParam = (SQLParameter) inParams.get(i);
+				if (aParam.paramIdx <= 0)
+					continue;
+				value = (String) context.getDataValue(aParam.dataName);
+				//pengjizhou add by 2007-04-07
+				if(!aParam.validateType(value)){
+					throw new EMPJDBCException("Data type is not identical:paramIdx="+aParam.paramIdx+",dataName="+aParam.dataName+",dataValue="+value);
+				}
+				if (value != null)
+				{
+					if (aParam.dataType == Types.CHAR || aParam.dataType == Types.VARCHAR) {
+						tmpSqlStr = tmpSqlStr.replaceFirst("\\?", "'" + value + "'");
+					}
+					else if (aParam.dataType == Types.INTEGER || 
+							 aParam.dataType == Types.DECIMAL ||
+							 aParam.dataType == Types.NUMERIC ||
+							 aParam.dataType == Types.REAL ||
+							 aParam.dataType == Types.FLOAT ||
+							 aParam.dataType == Types.DOUBLE){
+						tmpSqlStr = tmpSqlStr.replaceFirst("\\?", value);
+					}
+					else {
+						throw new EMPJDBCException("Data type is not supported for NO BIND:paramIdx="+aParam.paramIdx+",dataName="+aParam.dataName+",dataValue="+value);
+					}
+				}
+				else
+					tmpSqlStr = tmpSqlStr.replaceFirst("\\?", "NULL");
+				
+				logger.info("The column ["+aParam.paramIdx+"]:"+aParam.dataName+" = ["+value+"]");
+				EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.INFO, 0, "The column ["+aParam.paramIdx+"]:"+aParam.dataName+" = ["+value+"]", null);
+			}
+		
+			
+			tmpSqlDefine.setId(sqlDefInfo.getId());					//设置ID
+			if (sqlDefInfo.getSqlType() == SQLDefine.SQL_SELECT) {
+				tmpSqlDefine.setSqlType("SELECT");					//设置查询类型
+			}
+			else {
+				throw new EMPJDBCException("Sql type is not supported for NO BIND:" + sqlDefInfo.getId() + ", type:" + sqlDefInfo.getSqlType());
+			}
+			
+			tmpSqlDefine.setSQLStr(tmpSqlStr);												//设置sql
+			tmpSqlDefine.setInput(new SQLParameterCollection());							//设置输入参数为空
+			tmpSqlDefine.setOutput((SQLParameterCollection)sqlDefInfo.getOutParamaters());	//设置输出参数
+			tmpSqlDefine.setICollName(sqlDefInfo.getICollName());
+			tmpSqlDefine.setRowsDataName(sqlDefInfo.getRowsDataName());
+			tmpSqlDefine.setSqlHint(sqlDefInfo.getSqlHint());
+			tmpSqlDefine.setParaBind(sqlDefInfo.isParaBind());
+			tmpSqlDefine.setMaxRecords(sqlDefInfo.getMaxRecords());
+			tmpSqlDefine.setErrorCode(sqlDefInfo.getErrorCode());
+			tmpSqlDefine.setErrorMessage(sqlDefInfo.getErrorMessage());
+			tmpSqlDefine.setIsAppend(String.valueOf(sqlDefInfo.getIsAppend()));
+		} catch (Exception e) {
+			logger.error("JDBCSQLExecService[" + getName() + "].executeSQL");
+			EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.ERROR, 0, "JDBCSQLExecService[" + getName() + "].executeSQL", e);
+			throw new EMPJDBCException("JDBCSQLExecService[" + getName() + "].execute", e);
+		}
+
+		return tmpSqlDefine;
+	}
+	
+	private void setErrorInfo(Context context, String errorCode, String errorMsg) {
+		try {
+			if (errorCode != null && errorCode.trim().length() != 0)
+				try {
+					context.setDataValue("errorCode", errorCode);
+				} catch (ObjectNotFoundException e) {
+					context.addDataField("errorCode", errorCode);
+				}
+			if (errorMsg != null && errorCode.trim().length() != 0)
+				try {
+					context.setDataValue("errorMsg", errorMsg);
+				} catch (ObjectNotFoundException e) {
+					context.addDataField("errorMsg", errorMsg);
+				}
+		} catch (Exception e) {
+		}
+	}
+
+	public boolean isAlarmOpened() {
+		return alarmOpened;
+	}
+
+	public void setAlarmOpened(boolean notifyDo) {
+		this.alarmOpened = notifyDo;
+	}
+
+	public static long getAlarmResponseTime() {
+		return alarmResponseTime;
+	}
+
+	public static void setAlarmResponseTime(long notifyInterval) {
+		alarmResponseTime = notifyInterval;
+	}
+	
+	public void initialize(){
+		
+	}
+	
+	public AccessInfo getAccessInfo(){
+		return this.accessInfo;
+	}
+}

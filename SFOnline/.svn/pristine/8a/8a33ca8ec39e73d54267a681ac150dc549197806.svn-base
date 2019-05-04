@@ -1,0 +1,72 @@
+package core.communication.access.stzsecu;
+
+import java.io.UnsupportedEncodingException;
+
+import com.ecc.emp.core.EMPException;
+import com.sscc.fdep.mrapi;
+import com.sun.java_cup.internal.Main;
+
+import common.util.SFConst;
+
+import core.log.SFLogger;
+
+/**
+ * 深证通轮训服务
+ * @author ex_xxkjb_wh
+ *
+ */
+public class SZTSocketPolling implements Runnable {
+	SFLogger logger=SFLogger.getLogger(SFConst.DEFAULT_TRXCODE);
+	public void run(){
+        try {
+			while(true)
+		    {
+				byte[] respData = null;
+				//Mr2Receive1的第一个参数为本应用的应标识 
+				respData = receive();
+				String result = new String(respData);
+
+	            if(result.length()>9)
+	            { 
+	            	SFLogger.info(SFConst.DEFAULT_TRXCODE, null, "STZSocketPolling recv data:" + result+"^");
+	            	//处理请求数据
+	            	SZTRequestHandler handler = new SZTRequestHandler();
+	            	handler.handleRequest(respData);
+//	            	handler.handleResponse(reqContext);
+	            }
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					logger.error(e.getMessage());
+				}
+		    }
+			
+		} catch (EMPException e1) {
+			e1.printStackTrace();
+			logger.error(e1.getMessage());
+		}
+	}
+	/**
+	 * 
+	 * @return
+	 * @throws EMPException
+	 */
+	public byte[] receive() throws EMPException{
+		byte[] respData = mrapi.Mr2Receive1("app2", "", "", "", "", "","<EMPTY>", "", "", 2000);
+		return respData;
+	}
+	
+	public static void main(String[] args) {
+		String str = "<Pwd>牾呛I</Pwd>";
+		
+		try {
+			System.out.println(new String(str.getBytes(),"gb2312"));
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+}

@@ -1,0 +1,666 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+<formats.xml>
+	<fmtDef id="A_REQUEST_HEAD" len="243">
+		<record>
+			<FixedLenFormat len="6" dataName="serviceId" aligment="left">
+				<nullCheck />
+			</FixedLenFormat>
+			<FixedLenFormat len="6" dataName="RESPCODE" aligment="left" />
+			<FixedLenFormat len="150" dataName="RESPMSG" aligment="left" />
+			<FixedLenFormat len="8" dataName="TRANSDATE" aligment="left" />
+			<FixedLenFormat len="8" dataName="TRANSTIME" aligment="left" />
+			<FixedLenFormat len="20" dataName="CHANNELSERIALNO"
+				aligment="left" />
+			<FixedLenFormat len="8" dataName="BUSINESSDATE"
+				aligment="left" />
+			<FixedLenFormat len="4" dataName="BANKNO" aligment="left" />
+			<FixedLenFormat len="33" dataName="RESERVE" aligment="left" />
+		</record>
+	</fmtDef>
+
+
+	<fmtDef id="A_RESPONSE_HEAD" maxLen="243">
+		<record>
+			<FixedLenFormat len="6" dataName="serviceId" aligment="left">
+				<nullCheck />
+			</FixedLenFormat>
+			<FixedLenFormat len="6" dataName="RESPCODE" aligment="left" />
+			<FixedLenFormat len="150" dataName="RESPMSG" aligment="left" />
+			<FixedLenFormat len="8" dataName="TRANSDATE" aligment="left" />
+			<FixedLenFormat len="8" dataName="TRANSTIME" aligment="left" />
+			<FixedLenFormat len="20" dataName="CHANNELSERIALNO"
+				aligment="left" />
+			<FixedLenFormat len="8" dataName="BUSINESSDATE"
+				aligment="left" />
+			<FixedLenFormat len="4" dataName="BANKNO" aligment="left" />
+			<FixedLenFormat len="33" dataName="RESERVE" aligment="left" />
+		</record> 
+	</fmtDef>
+	
+	
+	<!-- ******************************************************************************************************* -->
+	<!-- *************************                     合作行接口                                               ****************************** -->
+	<!-- ******************************************************************************************************* -->
+	<fmtDef id="810007_I" >
+		<record>
+			<record dataName="300100_I">
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="2" dataName="ID_TYPE" label="证件类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="INV_ID_CODE" label="证件号码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="6" dataName="ZIP" label="邮政编码"/>
+				<FixedLenFormat len="128" dataName="ADDR" label="联系地址"/>
+				<FixedLenFormat len="40" dataName="EMAIL_ADDR" label="电子邮件地址"/>
+				<FixedLenFormat len="16" dataName="PHONE" label="联系电话"/>
+				<FixedLenFormat len="16" dataName="MOBILE" label="移动电话"/>
+				<FixedLenFormat len="16" dataName="FAX" label="传真"/>
+				<FixedLenFormat len="20" dataName="TRN_NAME" label="经办人姓名"/>
+				<FixedLenFormat len="2" dataName="TRN_ID_TYPE" label="经办人证件类型"/>
+				<FixedLenFormat len="18" dataName="TRN_ID_CODE" label="经办人证件号码"/>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="16" dataName="CAP_ACCT_PWD" label="券商证券资金密码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="1" dataName="INV_TYPE" label="客户类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="4" dataName="OPEN_BRANCH_ID" label="开户机构"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="40" dataName="REMARK" label="备注"/>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810007_O" >
+		<record>
+			<record dataName="300100_O">
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="2" dataName="ID_TYPE" label="证件类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="INV_ID_CODE" label="证件号码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="SEC_COMP_NAME" label="券商名称"/>
+				<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"/>
+				<FixedLenFormat len="80" dataName="REMARK" label="备注"/>
+				<FixedLenFormat len="8" dataName="MAC" label="报文校验"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810004_I" >
+		<record>
+			<record dataName="300102_I">
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="16" dataName="CAP_ACCT_PWD" label="券商证券资金密码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="2" dataName="ID_TYPE" label="证件类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="INV_ID_CODE" label="证件号码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="OLD_ACCT_ID" label="旧银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="NEW_ACCT_ID" label="新银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="1" dataName="INV_TYPE" label="客户类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="40" dataName="REMARK" label="备注"/>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810004_O" >
+		<record>
+			<record dataName="300102_O">
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="OLD_ACCT_ID" label="旧银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="NEW_ACCT_ID" label="新银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="MAC" label="报文校验"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810006_I" >
+		<record>
+			<record dataName="300104_I">
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="2" dataName="ID_TYPE" label="证件类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="INV_ID_CODE" label="证件号码"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810006_O" >
+		<record>
+			<record dataName="300104_O">
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="2" dataName="ID_TYPE" label="证件类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="INV_ID_CODE" label="证件号码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="MAC" label="报文校验"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810009_I" >
+		<record>
+			<record dataName="300120_I">
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="4" dataName="OPEN_BRANCH_ID" label="所属机构"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810009_O" >
+		<record>
+			<record dataName="300120_O">
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="4" dataName="OPEN_BRANCH_ID" label="所属机构"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="MAC" label="报文校验"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810021_I" >
+		<record>
+			<record dataName="810021_I">
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="2" dataName="ID_TYPE" label="证件类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="INV_ID_CODE" label="证件号码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="40" dataName="REMARK" label="备注"/>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810021_O" >
+		<record>
+			<record dataName="810021_O">
+				<FixedLenFormat len="40" dataName="REMARK" label="备注"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810026_I" >
+		<record>
+			<record dataName="810026_I">
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="券商端客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="2" dataName="ID_TYPE" label="券商端证件类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="INV_ID_CODE" label="券商端证件号码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="40" dataName="REMARK" label="备注"/>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810026_O" >
+		<record>
+			<record dataName="810026_O">
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账户"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="银行端客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="2" dataName="ID_TYPE" label="银行端证件类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="INV_ID_CODE" label="银行端证件号码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="1" dataName="STATUS" label="账户状态"><nullCheck/></FixedLenFormat>
+				<!--<FixedLenFormat len="4" dataName="BRANCH_ID" label="分行号"/>
+				<FixedLenFormat len="4" dataName="BANK_ID" label="合作行号"/>
+				--><FixedLenFormat len="40" dataName="REMARK" label="备注"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810010_I" >
+		<record>
+			<record dataName="300200_I">
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="1" dataName="INV_TYPE" label="客户类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="13" dataName="TX_AMOUNT" label="金额"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810010_O" >
+		<record>
+			<record dataName="300200_O">
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="13" dataName="TX_AMOUNT" label="金额"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="SEC_COMP_NAME" label="券商名称"/>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="20" dataName="PICS_LOG_NO" label="流水号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="MAC" label="报文校验"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810002_I" >
+		<record>
+			<record dataName="300201_I">
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="16" dataName="CAP_ACCT_PWD" label="券商证券资金密码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="1" dataName="INV_TYPE" label="客户类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="13" dataName="TX_AMOUNT" label="金额"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="12" dataName="BOOK_NO" label="券商预约号"/>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810002_O" >
+		<record>
+			<record dataName="300201_O">
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="13" dataName="TX_AMOUNT" label="金额"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="SEC_COMP_NAME" label="券商名称"/>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="20" dataName="PICS_LOG_NO" label="流水号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="MAC" label="报文校验"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810016_I" >
+		<record>
+			<record dataName="810016_I">
+				<FixedLenFormat len="8" dataName="CHECK_DATE" label="对帐日期"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810016_O" >
+		<record>
+			<record dataName="810016_O">
+				<FixedLenFormat len="18" dataName="FILE_NAME" label="文件名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="10" dataName="FILE_SIZE" label="文件大小"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810017_I" >
+		<record>
+			<record dataName="810017_I">
+				<FixedLenFormat len="18" dataName="CHECK_DATE" label="对帐日期"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810017_O" >
+		<record>
+			<record dataName="810017_O">
+				<FixedLenFormat len="10" dataName="FILE_NAME" label="文件名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="10" dataName="FILE_SIZE" label="文件大小"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810022_I" >
+		<record>
+			<record dataName="810022_I">
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行帐号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="13" dataName="TX_AMOUNT" label="划转金额"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="1" dataName="TRADE_TYPE" label="资金类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="MAC" label="报文校验"></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810022_O" >
+		<record>
+			<record dataName="810022_O">
+				<FixedLenFormat len="20" dataName="AGENT_LOG_NO" label="联网行流水号"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810023_I" >
+		<record>
+			<record dataName="810023_I">
+				<FixedLenFormat len="20" dataName="PICS_LOG_NO" label="原平台流水号"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810023_O" >
+		<record>
+			<record dataName="810023_O">
+				<FixedLenFormat len="20" dataName="AGENT_LOG_NO" label="联网行流水号"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810024_I" >
+		<record>
+			<record dataName="810024_I">
+				<FixedLenFormat len="32" dataName="BANK_ACCT" label="联网行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="15" dataName="ACCT_BAL" label="账号余额"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="15" dataName="TOTAL_LIMIT" label="总额度"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="15" dataName="USED_LIMIT" label="已用额度"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="15" dataName="AVAIL_LIMIT" label="可用额度"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="1" dataName="WARN_FLAG" label="预警类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="15" dataName="WARN_MONEY" label="预警金额"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810024_O" >
+		<record>
+			<record dataName="810024_O">
+				<FixedLenFormat len="20" dataName="AGENT_LOG_NO" label="联网行流水号"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810011_I" >
+		<record>
+			<record dataName="300204_I">
+				<FixedLenFormat len="1" dataName="WARN_FLAG" label="预警类型"/>
+				<FixedLenFormat len="15" dataName="WARN_MONEY" label="预警金额"/>
+				<FixedLenFormat len="1" dataName="FLAG" label="操作类型"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810011_O" >
+		<record>
+			<record dataName="300204_O">
+				<FixedLenFormat len="1" dataName="WARN_FLAG" label="预警类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="15" dataName="WARN_MONEY" label="预警金额"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810001_I" >
+		<record>
+			<record dataName="300301_I">
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="16" dataName="CAP_ACCT_PWD" label="券商证券资金密码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="1" dataName="INV_TYPE" label="客户类型"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810001_O" >
+		<record>
+			<record dataName="300301_O">
+				<FixedLenFormat len="8" dataName="QUERY_DATE" label="查询日期"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户姓名"/>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"/>
+				<FixedLenFormat len="13" dataName="ACCT_BAL" label="人民币可用余额"/>
+				<FixedLenFormat len="13" dataName="RMB_AVAIL_WITHDRAW_BAL" label="人民币可提余额"/>
+				<FixedLenFormat len="13" dataName="RMB_TRU_BAL" label="人民币管理账号余额"/>
+				<FixedLenFormat len="13" dataName="USD_ACCT_BAL" label="美元可用余额"/>
+				<FixedLenFormat len="13" dataName="USD_AVAIL_WITHDRAW_BAL" label="美元可提余额"/>
+				<FixedLenFormat len="13" dataName="USD_TRU_BAL" label="美元管理账号余额"/>
+				<FixedLenFormat len="13" dataName="HKD_ACCT_BAL" label="港币可用余额"/>
+				<FixedLenFormat len="13" dataName="HKD_AVAIL_WITHDRAW_BAL" label="港币可提余额"/>
+				<FixedLenFormat len="13" dataName="HKD_TRU_BAL" label="港币管理账号余额"/>
+				<FixedLenFormat len="8" dataName="MAC" label="报文校验"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810003_I" >
+		<record>
+			<record dataName="300302_I">
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="START_DATE" label="开始日期"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="END_DATE" label="结束日期"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="2" dataName="PAGE_NUM" label="包序号"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810003_O" >
+		<record>
+			<record dataName="300302_O">
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="1" dataName="END_FLAG" label="结束标志"><nullCheck/></FixedLenFormat>
+				<!--<FixedLenFormat len="2" dataName="TOTAL_REC" label="返回条数"><nullCheck/></FixedLenFormat>
+			--></record>
+			<iColl dataName="300302_O_ICOLL" countLen="2">
+				<record>
+					<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+					<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"><nullCheck/></FixedLenFormat>
+					<FixedLenFormat len="13" dataName="TX_AMOUNT" aligment='right' padChar='0' label="交易金额"><nullCheck/></FixedLenFormat>
+					<FixedLenFormat len="8" dataName="TX_DATE" label="交易日期"><nullCheck/></FixedLenFormat>
+					<FixedLenFormat len="20" dataName="TRADE_TYPE" label="交易类型"><nullCheck/></FixedLenFormat>
+					<FixedLenFormat len="20" dataName="INIT_SIDE" label="交易渠道"><nullCheck/></FixedLenFormat>
+				</record>
+			</iColl>
+			<record dataName="300302_O">
+			<FixedLenFormat len="8" dataName="MAC" label="报文校验"></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810005_I" >
+		<record>
+			<record dataName="300300_I">
+				<FixedLenFormat len="1" dataName="SEARCH_FLAG" label="检索条件"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="SEARCH_NUM" label="检索关键字"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810005_O" >
+		<record>
+<!--			<record dataName="300300_O">-->
+<!--				<FixedLenFormat len="2" dataName="RECORD_NUM" label="签约条数"><nullCheck/></FixedLenFormat>-->
+<!--			</record>-->
+			<iColl dataName="300300_O_ICOLL" countLen="2">
+				<record>
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="70" dataName="SEC_COMP_NAME" label="券商名称"/>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户名称"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="2" dataName="ID_TYPE" label="证件类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="INV_ID_CODE" label="证件号码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="1" dataName="INV_TYPE" label="客户类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="16" dataName="PHONE" label="联系电话"/>
+				<FixedLenFormat len="16" dataName="MOBILE" label="移动电话"/>
+				<FixedLenFormat len="128" dataName="ADDR" label="联系地址"/>
+				<FixedLenFormat len="6" dataName="ZIP" label="邮政编码"/>
+				<FixedLenFormat len="40" dataName="EMAIL_ADDR" label="电子邮件地址"/>
+				<FixedLenFormat len="80" dataName="SIGN_FLAG" label="签约状态"><nullCheck/></FixedLenFormat>
+				</record>
+			</iColl>
+			<record dataName="300300_O">
+			<FixedLenFormat len="8" dataName="MAC" label="报文校验"></FixedLenFormat>
+			</record>
+			
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810008_I" >
+		<record>
+			<record dataName="300304_I">
+				<FixedLenFormat len="20" dataName="PICS_LOG_NO" label="流水号"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810008_O" >
+		<record>
+			<record dataName="300304_O">
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"/>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户姓名"/>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"/>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"/>
+				<FixedLenFormat len="13" dataName="TX_AMOUNT" label="交易金额"/>
+				<FixedLenFormat len="1" dataName="TX_STATUS" label="交易状态"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="MAC" label="报文校验"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="810025_I" >
+		<record>
+			<record dataName="810025_I">
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="810025_O" >
+		<record>
+			<record dataName="810025_O">
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"/>
+				<FixedLenFormat len="70" dataName="INV_NAME" label="客户姓名"/>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"/>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"/>
+				<FixedLenFormat len="13" dataName="ACCT_BAL" label="账户余额"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	<!-- 812431：查询合作行信息 -->
+	<fmtDef id="812431_I" >
+			<record>
+				<record dataName="300310_I">
+					<FixedLenFormat len="4" dataName="BANK_ID" label="银行号"/>
+				</record>
+			</record>
+		</fmtDef>
+		<fmtDef id="812431_O" >
+		<record>
+			<iColl dataName="300310_O_ICOLL" countLen="2">
+				<record>
+					<FixedLenFormat len="4" dataName="BANK_ID" label="银行号"/>
+					<FixedLenFormat len="60" dataName="BRANCH_NAME" label="合作行名称"/>
+					<FixedLenFormat len="4" dataName="BRANCH_CODE" label="合作行号"/>
+					<FixedLenFormat len="16" dataName="BANK_ACCT" label="合作行帐号"/>
+					<FixedLenFormat len="1" dataName="STATUS" label="状态"/>
+					<FixedLenFormat len="8" dataName="OPEN_DATE" label="开立日期"/>
+				</record>	
+			</iColl>									
+		</record>
+	</fmtDef>	
+
+	<!-- 812432：查询下级机构信息 -->
+	<fmtDef id="812432_I" >
+			<record>
+				<record dataName="300311_I">
+					<FixedLenFormat len="4" dataName="BANK_ID" label="银行号" ><nullCheck/></FixedLenFormat>
+					<FixedLenFormat len="4" dataName="BRANCH_ID" label="机构号"><nullCheck/></FixedLenFormat>
+				</record>
+			</record>
+		</fmtDef>
+		<fmtDef id="812432_O" >
+		<record>
+			<iColl dataName="300311_O_ICOLL" countLen="2">
+				<record>
+					<FixedLenFormat len="4" dataName="BANK_ID" label="银行号"/>
+					<FixedLenFormat len="4" dataName="BRANCH_ID" label="机构号"/>
+					<FixedLenFormat len="60" dataName="BRANCH_NAME" label="机构名称"/>
+					<FixedLenFormat len="4" dataName="FATHER_BRANCH" label="上级机构号"/>
+					<FixedLenFormat len="1" dataName="STATUS" label="状态"/>
+					<FixedLenFormat len="8" dataName="OPEN_DATE" label="开立日期"/>
+				</record>
+			</iColl>										
+		</record>
+	</fmtDef>
+
+	<!-- 812434：查询流水处理情况交易 -->
+	<fmtDef id="812434_I" >
+		<record>
+			<record dataName="300312_I">
+				<FixedLenFormat len="20" dataName="PICS_LOG_NO" label="流水号"><nullCheck/></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="812434_O" >
+		<record>
+			<record dataName="300312_O">
+				<FixedLenFormat len="4" dataName="BANK_ID" label="银行号"/>
+				<FixedLenFormat len="4" dataName="OPEN_BRANCH" label="开户网点"/>
+				<FixedLenFormat len="1" dataName="TRAN_TYPE" label="交易类型"/>
+				<FixedLenFormat len="14" dataName="PICS_LOG_NO" label="系统流水号"/>
+				<FixedLenFormat len="14" dataName="FRONT_LOG_NO" label="前置机流水号"/>
+				<FixedLenFormat len="20" dataName="AGENT_LOG_NO" label="合作行流水号"/>								
+				<FixedLenFormat len="32" dataName="ACCT_ID" label="银行账号"/>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="券商代码"/>
+				<FixedLenFormat len="22" dataName="CAP_ACCT" label="证券资金台账号"/>
+				<FixedLenFormat len="16" dataName="BANK_ACCT" label="合作行账号"/>
+				<FixedLenFormat len="16" dataName="COMP_ACCT" label="券商账号"/>
+				<FixedLenFormat len="3" dataName="CUR_CODE" label="币种"/>
+				<FixedLenFormat len="13" dataName="TX_AMOUNT" label="交易金额"/>
+				<FixedLenFormat len="14" dataName="THIRD_TIME" label="第三方时间"/> 
+				<FixedLenFormat len="1" dataName="VOID_FLAG" label="冲正标志"/>   
+				<FixedLenFormat len="6" dataName="TRAN_RESULT" label="交易结果"/>
+				<FixedLenFormat len="1" dataName="HOST_CHECK" label="对账标志"/>
+				<FixedLenFormat len="7" dataName="HOST_LOG_NO" label="主机流水号"/>			
+			</record>
+		</record>
+	</fmtDef>
+
+	<!-- 812346：行E通发起增删改查合作行信息 -->
+	<fmtDef id="812436_I" >
+		<record>
+			<record dataName="300313_I">
+				<FixedLenFormat len="1" dataName="TRAN_TYPE" label="交易类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="60" dataName="BANK_NAME" label="银行名称"></FixedLenFormat>
+				<FixedLenFormat len="4" dataName="BRANCH_CODE" label="分行号"></FixedLenFormat>
+				<FixedLenFormat len="16" dataName="BANK_ACCT" label="银行账号"></FixedLenFormat>
+				<FixedLenFormat len="20" dataName="BANK_IP" label="银行IP地址"></FixedLenFormat>
+				<FixedLenFormat len="6" dataName="BANK_PORT" label="银行端口"></FixedLenFormat>
+				<FixedLenFormat len="20" dataName="FS_IP" label="服务器IP地址"></FixedLenFormat>
+				<FixedLenFormat len="6" dataName="FS_PORT" label="服务器端口"></FixedLenFormat>
+				<FixedLenFormat len="30" dataName="FTP_USER" label="FTP用户名"></FixedLenFormat>
+				<FixedLenFormat len="14" dataName="FTP_PASS" label="FTP密码"></FixedLenFormat>
+				<FixedLenFormat len="100" dataName="FTP_PATH" label="FTP路径"></FixedLenFormat>
+				<FixedLenFormat len="1" dataName="STATUS" label="状态"></FixedLenFormat>
+				
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="812436_O" >
+		<record>
+			<record dataName="300313_O">
+				<FixedLenFormat len="1" dataName="TRAN_TYPE" label="交易类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="32" dataName="BANK_ID" label="银行号"/>
+				<FixedLenFormat len="60" dataName="BANK_NAME" label="银行名称"/>
+				<FixedLenFormat len="4" dataName="BRANCH_CODE" label="分行号"/>
+				<FixedLenFormat len="16" dataName="BANK_ACCT" label="银行账号"/>
+				<FixedLenFormat len="20" dataName="BANK_IP" label="银行IP地址"/>
+				<FixedLenFormat len="6" dataName="BANK_PORT" label="银行端口"/>
+				<FixedLenFormat len="20" dataName="FS_IP" label="服务器IP地址"/>
+				<FixedLenFormat len="6" dataName="FS_PORT" label="服务器端口"/>
+				<FixedLenFormat len="30" dataName="FTP_USER" label="FTP用户名"/>
+				<FixedLenFormat len="14" dataName="FTP_PASS" label="FTP密码"/>
+				<FixedLenFormat len="100" dataName="FTP_PATH" label="FTP路径"/>
+				<FixedLenFormat len="1" dataName="STATUS" label="状态"/>
+				<FixedLenFormat len="8" dataName="OPEN_DATE" label="开立日期"/>
+			</record>
+		</record>
+	</fmtDef>
+	
+	
+	<!-- 888888：IOMoney临时测试使用-->
+	<fmtDef id="888888_I" >
+		<record>
+			<record dataName="888888_I">
+				<FixedLenFormat len="4" dataName="TX_AMOUNT" label="交易类型"><nullCheck/></FixedLenFormat>
+				<FixedLenFormat len="8" dataName="SEC_COMP_CODE" label="银行名称"></FixedLenFormat>
+				<FixedLenFormat len="16" dataName="CAP_ACCT" label="分行号"></FixedLenFormat>
+				<FixedLenFormat len="20" dataName="ACCT_ID" label="银行账号"></FixedLenFormat>
+				<FixedLenFormat len="16" dataName="TRU_ACCT_ID" label="银行IP地址"></FixedLenFormat>
+			</record>
+		</record>
+	</fmtDef>
+	<fmtDef id="888888_O" >
+		<record>
+			<record dataName="888888_O">
+			</record>
+		</record>
+	</fmtDef>
+
+</formats.xml>

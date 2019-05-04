@@ -1,0 +1,245 @@
+package module.trans.secu2sf;
+
+import module.bean.SecCompData;
+import module.bean.SecServStatus;
+import module.dao.SecServStatusDao;
+import module.trans.TranBase;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * A股券商端发起--签到/签退 交易
+ * 券商启动/停止第三方存管券商服务状态
+ * 
+ * 处理逻辑：
+ * 			1.接收券商交易 （<深>Sysm.001.01/10001(启动)、10002（停止），<直>6065/612209）
+ * 			2.检查请求包有效性,检查日期
+ * 			3.更新服务状态
+ * 			4.返回券商          （<深>Sysm.002.01/10001(启动)、10002（停止），<直>6065/612209）
+ * 
+ * tran code :100120
+ * @author 吕超鸿
+ *
+ */
+public class T100120 extends TranBase {
+
+	private String acctServFlag = null; // 账户类服务标志
+
+	private String productType = "03"; // 产品类型
+
+	private String intServFlag1 = null; // 单户结息服务标志
+
+	private String transServFlag1 = null; // 银行发起证转银
+
+	private String transServFlag2 = null; // 银行发起证转银
+
+	private String transServFlag3 = null; // 券商发起银转证
+
+	private String transServFlag4 = null; // 券商发起证转银
+
+	private String funcCode = null; // 功能码
+
+	private String txCode = null;// 交易码
+
+	// private String txDate = null;// 交易日期
+
+	private String secCompCode = null;// 券商代码
+
+	private String secSeqId = null;// 券商流水号
+
+	private String secuType = null;// 券商类型
+
+	// private String sysType = null; /*应用系统类型：0-第三方存管 3-融资融券， 用于返回深证通券商头部信息*/
+
+	@Override
+	protected void initialize( Context context ) throws SFException {
+		KeyedCollection kColl = null;
+		KeyedCollection senderKcoll = null;
+
+		try {
+
+			secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" );
+			if( SFUtil.isEmpty( secCompCode ) ) {
+				kColl = SFUtil.getDataElement( context, "MsgHdr" );
+				senderKcoll = SFUtil.getDataElement( context, kColl, "Sender" );
+				secCompCode = SFUtil.getDataValue( context, senderKcoll, "InstId" );// 券商代码
+			}
+
+			SFUtil.chkCond( context, SFUtil.isEmpty( secCompCode ), "ST4805", String.format( "此券商信息不存在" ) );
+			SecCompData secCompData = secCompDataDao.qrySecCompData( context, tranConnection, secCompCode );
+			SFUtil.chkCond( context, ( null == secCompData ), "ST4805", String.format( "此券商信息不存在" ) );
+
+			SFUtil.setDataValue( context, SFConst.PUBLIC_SECU_TYPE, secCompData.getSztFlag() );// 将券商类型放入上下文中
+			SFUtil.setDataValue( context, SFConst.PUBLIC_SECU, secCompData );
+
+			// 券商类型
+			secuType = SFUtil.getDataValue( context, SFConst.PUBLIC_SECU_TYPE );
+
+			SFUtil.chkCond( context, SFUtil.isEmpty( secuType ), "ST5701", String.format( "券商类型不能为空[%s]", secuType ) );
+
+			if( SFConst.SECU_ZL.equals( secuType ) ) { // 直联模式
+				funcCode = SFUtil.getDataValue( context, "ZLSECU_REQUEST_HEAD.FUNCCODE" );
+				secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" ); // 券商代码
+				secSeqId = SFUtil.getReqDataValue( context, "SEC_SEQ_ID" ); // 券商流水号
+
+			} else if( SFConst.SECU_SZT.equals( secuType ) ) { // 深证通模式
+
+				KeyedCollection refKcoll = SFUtil.getDataElement( context, kColl, "Ref" );
+
+				// sysType = SFUtil.getDataValue( context,kColl,"SysType");//应用系统类型
+				secCompCode = SFUtil.getDataValue( context, senderKcoll, "InstId" );// 券商代码
+				secSeqId = SFUtil.getDataValue( context, refKcoll, "Ref" );// 券商流水号
+				txCode = SFUtil.getDataValue( context, kColl, "InstrCd" );// 交易码
+
+				// 组装券商通用上下文
+				KeyedCollection keyColl = new KeyedCollection( "100120_I" );
+
+				SFUtil.addDataField( context, keyColl, "SEC_COMP_CODE", secCompCode );// 券商代码
+				SFUtil.addDataField( context, keyColl, "SEC_SEQ_ID", secSeqId );// 券商流水号
+
+				SFUtil.addDataElement( context, keyColl );
+			}
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+	}
+
+	@Override
+	public void doHandle( Context context ) throws SFException {
+
+		// 检查并更新服务状态表
+		updSecServStatus( context );
+
+		// 组包返回券商
+		doSecu( context );
+
+	}
+
+	public void updSecServStatus( Context context ) throws SFException {
+		SFLogger.info( context, "updSecServStatus()开始" );
+		try {
+
+			// 开启事务
+			DBHandler.beginTransaction( context, tranConnection );
+
+			/* 更新数据库表,沿用pics流程,不判断初始状态,直接更新 */
+			SecServStatus secServStatus = new SecServStatus();
+			secServStatus.setAcctServFlag( acctServFlag );
+			secServStatus.setIntServFlag( intServFlag1 );
+			secServStatus.setTransServFlag1( transServFlag1 );
+			secServStatus.setTransServFlag2( transServFlag2 );
+			secServStatus.setTransServFlag3( transServFlag3 );
+			secServStatus.setTransServFlag4( transServFlag4 );
+			secServStatus.setSecCompCode( secCompCode );
+			secServStatus.setProductType( productType );
+
+			SecServStatusDao secServStatusDao = new SecServStatusDao();
+			secServStatusDao.saveSecServStatus( context, tranConnection, secServStatus );
+			DBHandler.commitTransaction( context, tranConnection );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFLogger.error( context, e.getMessage() );
+			SFUtil.chkCond( context, "ST4895", "更新券商服务状态失败" );
+		}
+		SFLogger.info( context, "updSecServStatus()结束" );
+	}
+
+	@Override
+	public void doHost( Context context ) throws SFException {
+
+	}
+
+	@Override
+	public void doSecu( Context context ) throws SFException {
+		SFLogger.info( context, "doSecu()开始" );
+		try {
+
+			// 交易成功-组包返回券商
+			if( SFConst.SECU_ZL.equals( secuType ) ) { // 直联模式
+				// 10200000单独处理????,公共头信息单独处理
+				// 组包
+				SFUtil.setResDataValue( context, "RESP_CODE", SFConst.RESPCODE_SUCCCODE );
+				SFUtil.setResDataValue( context, "RESP_MSG", "签到/签退交易成功" );
+				SFUtil.setResDataValue( context, "SEC_SEQ_ID", secSeqId );
+
+			} else if( SFConst.SECU_SZT.equals( secuType ) ) { // 深证通模式组包返回券商
+
+				KeyedCollection kColl = SFUtil.getDataElement( context, "Sysm00201" );
+
+				// 组<Rst>组件
+				KeyedCollection rstKcoll = SFUtil.getDataElement( context, kColl, "Rst" );
+				SFUtil.setDataValue( context, rstKcoll, "RESP_CODE", SFConst.RESPCODE_SUCCCODE );
+				SFUtil.setDataValue( context, rstKcoll, "RESP_MSG", "签到/签退交易成功" );
+
+			}
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		SFLogger.info( context, "doSecu()结束" );
+	}
+
+	@Override
+	protected void chkStart( Context context ) throws SFException {
+
+	}
+
+	@Override
+	protected void chkEnd( Context context ) throws SFException {
+		try {
+
+			// //新增营业日期和平台服务的判断
+			// LocalInfo localInfo = localInfoDao.qryLocalInfo(context, tranConnection);
+			// SFUtil.chkCond(context, (null == localInfo), "ST5700", String.format("平台服务未启动"));
+			//
+			// txDate = ((LocalInfo)SFUtil.getDataValue(context, SFConst.PUBLIC_LOCAL_INFO)).getWorkdate();//交易日期
+
+			// 直联券商使用 funcCode 区分启停，深证通券商使用 txCode区分启停
+			if( "000".equals( funcCode ) || "10001".equals( txCode ) ) {
+				// SFUtil.chkCond(context, !txDate.equals(localInfo.getWorkdate()), "ST1032", String.format("TxDate与BankDate日期不一致"));
+				// 启动
+				acctServFlag = "1";
+				intServFlag1 = "1";
+				transServFlag1 = "1";
+				transServFlag2 = "1";
+				transServFlag3 = "1";
+				transServFlag4 = "1";
+
+				// 停止
+			} else if( "001".equals( funcCode ) || "10002".equals( txCode ) ) {
+
+				acctServFlag = "0";
+				intServFlag1 = "0";
+				transServFlag1 = "0";
+				transServFlag2 = "0";
+				transServFlag3 = "0";
+				transServFlag4 = "0";
+
+			} else {
+				SFUtil.chkCond( context, "ST5702", String.format( "[交易码或功能码]非法" ) );
+			}
+
+			/* 检查服务状态表 */
+			SecServStatus secServStatus = SFUtil.getDataValue( context, SFConst.PUBLIC_SEC_SERV_STATUS );// 券商签到表
+			SFUtil.chkCond( context, ( null == secServStatus ), "ST4036", String.format( "券商代码错误" ) );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+	}
+}

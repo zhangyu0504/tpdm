@@ -1,0 +1,28 @@
+package core.schedule;
+
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+import org.quartz.StatefulJob;
+
+import com.ecc.emp.log.EMPLog;
+import common.util.SFConst;
+
+/**
+ * 调度实现类
+ * 有态任务，即调度任务之间按队列执行，前一任务没结束之前后一任务不能开始
+ * 注意：其中一个调度任务僵死后影响其他任务
+ */
+//调度假死后续动作不执行问题方案,将StatefulJob替换为Job
+public class ScheduleStatefulJobTaskAction extends ScheduleAction implements StatefulJob {
+
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        try {
+            JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
+            doTaskJob(jobDataMap, context);
+        } catch (Exception e) {
+            EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "execute schedule error:" + e.getMessage(), e);
+        }
+    }
+
+}

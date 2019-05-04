@@ -1,0 +1,52 @@
+package core.schedule;
+
+import java.util.HashMap;
+
+import org.apache.log4j.Logger;
+
+/**
+ * 参数信息类
+ *
+ * 获取参数信息
+ * modify by wt 2012-6-16
+ * 增加统计参数使用次数
+ * FX_PARAM增加TIMES整型字段
+ * update FX_PARAM  set times = 0  归零所有参数使用次数
+ * 生产线考虑关闭统计功能
+ */
+
+public class ParameterInfo {
+    private static Logger logger = Logger.getLogger(ParameterInfo.class.getName());
+    
+    public static HashMap<String , Object> paramContain = new HashMap<String , Object>();
+    
+    /**
+       * 获取参数缓存标示
+       * Serial NO: FINWARE_V3.5_TFS_2013120003 代码重构
+       * Date 2013-2-21
+       * @author wangtao
+       * @version 1.0
+       * @param paramName
+       * @return
+       */
+    public static boolean hasParam(String paramName){
+    	if(paramContain.containsKey(paramName)){
+    		String value = paramContain.get(paramName).toString();
+        	if(value==null||value.equals("")||value.equals("N")){
+        		return false;
+        	}else {
+        		return true;
+        	}
+    	}else {
+    		return false;
+    	}
+    }
+    
+ 
+    
+    
+  
+    
+    
+        
+}

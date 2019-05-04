@@ -1,0 +1,152 @@
+package common.services;
+
+import java.sql.Connection;
+import java.util.Map;
+
+import module.cache.ParamCache;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.format.FormatElement;
+import com.ecc.emp.service.EMPService;
+import common.action.db.SqlExecAction;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.sql.dao.DaoBase;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.cache.CacheMap;
+import core.communication.access.tcpip.BBCPCommClient;
+import core.communication.format.KeyedFormat;
+import core.log.SFLogger;
+
+/**
+ * 
+ * <b>功能描述：</b><br>
+ * FBS公共服务对象，提供各种存管系统的基本公共函数<br>
+ * <b>函数列表：</b><br>
+ * &lt;name="getSQLExecAction"&gt;&lt;function="获取Sql语句执行的Action"&gt;<br>
+ * @version 1.0
+ * @modifier
+ * 
+ */
+
+public class PublicService extends EMPService {
+
+	/**
+	 * 新产生一个公共的SQL语句执行对象.
+	 * 
+	 * @param context
+	 * @throws EMPException
+	 */
+	public SqlExecAction getSQLExecAction(Context context)
+			throws EMPException {
+		SqlExecAction sqlExecAction = null;
+
+		sqlExecAction = new SqlExecAction();
+		sqlExecAction.setDataSource((String) context
+				.getDataValue(SFConst.SERVICE_DATASOURCE));
+		sqlExecAction.setSqlService((String) context
+				.getDataValue(SFConst.SERVICE_SQL));
+
+		return sqlExecAction;
+	}
+	
+	
+	
+	public String baffle(Context context,String type,String serverId,String receiveNo,int timeOut)throws SFException{
+		
+		String isOn= ParamCache.getValue2("BAFFLE","ON-OFF");//挡板地址
+		if(!"1".equals(isOn)){
+			return null;
+		}
+		
+		SFLogger.info(context, "报文挡版检查开始。");
+		DaoBase db = new DaoBase();
+		String sql = "SELECT count(1) as num FROM trdbaffle t where t.trancode = ? and t.type = ?  and t.serverid = ? and (? is null or t.receiveno = ?) and t.condition = '1'";
+		Connection connection = SFUtil.getDataValue(context, SFConst.PUBLIC_TRAN_CONNECTION);
+		if(connection==null){
+			connection = DBHandler.getConnection(context);
+		}
+		String tranCode = SFUtil.getDataValue(context, SFConst.PUBLIC_TX_CODE);
+			
+		Map<String, Object> map = db.queryMap(context, connection, sql, tranCode,type,serverId,receiveNo,receiveNo);
+		if(map!=null){
+			int num = Integer.parseInt(map.get("num").toString());
+			
+			if(num>0){
+//				SFLogger.info(context, "存在报文挡板，挡板内容为："+msgText);
+				SFLogger.info(context, "存在报文挡板。");
+				
+				
+				String ESBIp=ParamCache.getValue2("BAFFLE","BAFFLE_IP");//挡板地址
+				String ESBPort=ParamCache.getValue2("BAFFLE","BAFFLE_PORT");//挡板端口
+				receiveNo=(("".equals(receiveNo)||receiveNo==null)?" ":receiveNo);
+				
+				tranCode = (tranCode+"                   ").substring(0,20);
+				serverId = (serverId+"                   ").substring(0,20);
+				receiveNo = (receiveNo+"                   ").substring(0,20);
+				
+				String time = (timeOut+"                   ").substring(0,6);
+				
+				int len = (tranCode+serverId+type+receiveNo+time).getBytes().length;
+				byte[] toSendMessage = new byte[len];
+				toSendMessage = (tranCode+serverId+type+receiveNo+time).getBytes();
+				
+//				toSendMessage = 
+				BBCPCommClient client =  new BBCPCommClient(ESBIp,ESBPort,timeOut,0);				
+				SFLogger.info(context, "开始请求挡板服务......");
+				String ret = client.SendCMD(context,toSendMessage);
+				
+				if(!"0".equals(ret)){
+					SFUtil.setDataValue(context,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);//手工设置超时
+					if("1".equals(type)){  //esb
+						IndexedCollection iColl=SFUtil.getDataElement(context,"RET");
+						KeyedCollection kColl=(KeyedCollection)iColl.getElementAt(0);
+						SFUtil.setDataValue(context,kColl,"RET_CODE", SFConst.RESPCODE_TIMEOUT_ESB);
+						SFUtil.setDataValue(context,kColl,"RET_MSG","主机响应报文失败");
+					}
+//					else if("2".equals(type)){  //合作行
+//						SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPCODE", SFConst.RESPCODE_TIMEOUT_COBANK);
+//						SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPMSG", "合作行响应报文失败");
+//					}else if("3".equals(type)){ //直联
+//						String outputName = serverId + "_O";
+//						FormatElement outputFormat = context.getFormat(outputName);
+//						KeyedFormat tranCodeO = (KeyedFormat)outputFormat.getFormatElement();
+//						String outKcollName = tranCodeO.getKcollName();
+//						SFUtil.setDataValue(context,outKcollName+".RESP_CODE", SFConst.RESPCODE_TIMEOUT_ZLSECU);
+//						SFUtil.setDataValue(context,outKcollName+".RESP_MSG","券商响应报文失败");
+//					}else if("4".equals(type)){    //深证通
+//						Map<String,Map<String,String>> tcpipServiceMap =  CacheMap.getCache("SZT_TCPIPSERVICE");
+//						Map<String,String> tcpipService = tcpipServiceMap.get(serverId);		
+//						String outKcollName = tcpipService.get("formatOutput");// ReadProperty.getValue(msgCode+ "_O");		
+//						outKcollName = outKcollName.replaceAll("\\.", "");
+//						KeyedCollection outKcoll = SFUtil.getDataElement(context,outKcollName);		
+//						KeyedCollection rstKcoll = SFUtil.getDataElement(context,outKcoll, "Rst");
+//						SFUtil.setDataValue(context,rstKcoll,"RESP_CODE", SFConst.RESPCODE_TIMEOUT_SZTSECU);
+//						SFUtil.setDataValue(context,rstKcoll,"RESP_MSG","深证通响应报文超时");
+//					}
+					throw new SFException("YYPTERROR9999","BBCPTCPIPDynamicAccessAction通讯错误："+ret);	
+				}
+				
+				String msgText = client.getResult();
+				SFLogger.info(context, "挡板返回报文内容为："+msgText);
+				SFLogger.info(context, "报文挡版检查结束。");
+				return msgText;
+			}
+		}
+		
+		
+		SFLogger.info(context, "不存在报文挡板。");
+		SFLogger.info(context, "报文挡版检查结束。");
+		return null;
+		
+	}
+	
+	
+	
+	
+}

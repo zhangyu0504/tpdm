@@ -1,0 +1,66 @@
+package module.dao;
+
+import java.sql.Connection;
+
+import module.bean.SecServStatus;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DaoBase;
+import common.util.SFUtil;
+
+public class SecServStatusDao extends DaoBase {
+		
+	/**
+	 * 查询券商服务状态
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public SecServStatus qrySecServStatus(Context context,Connection connection,String secCompCode,String proDuctType) throws SFException{
+		SecServStatus secServStatus = null;
+		try {
+			
+			StringBuffer buffer = new StringBuffer();
+			
+			buffer.append("SELECT SECCOMPCODE,PRODUCTTYPE,SECCOMPNAME,ACCTSERVFLAG,INTSERVFLAG,");
+			buffer.append("TRANSSERVFLAG1,TRANSSERVFLAG2,TRANSSERVFLAG3,TRANSSERVFLAG4");
+			buffer.append(" FROM TRDSECSERVSTATUS WHERE SECCOMPCODE=? AND PRODUCTTYPE=?");
+			
+			secServStatus = super.qry(context, connection, buffer.toString(), SecServStatus.class, secCompCode,proDuctType);
+
+		} catch (SFException e){
+			throw new SFException(e);
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally {
+			if(secServStatus != null){
+				secServStatus.resetChangedFlag();
+			}
+		}
+		return secServStatus;
+	}
+	
+	public int saveSecServStatus(Context context,Connection connection,SecServStatus bean)throws SFException{
+		int count = 0;
+		try {
+			SFUtil.chkCond( context, SFUtil.isEmpty( bean.getSecCompCode() ), "ST4895", "必要参数[SECCOMPCODE]没有提供" );
+			SFUtil.chkCond( context, SFUtil.isEmpty( bean.getProductType() ), "ST4895", "必要参数[CAPACCT]没有提供" );
+		
+			count = super.save( context, connection, bean.getSaveSecServStatusSQLStruct() );
+
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally {
+			if(bean != null){
+				bean.resetChangedFlag();
+			}
+		}
+		return count;
+		
+	}
+}

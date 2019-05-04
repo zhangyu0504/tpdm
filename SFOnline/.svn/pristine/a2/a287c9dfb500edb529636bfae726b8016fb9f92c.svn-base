@@ -1,0 +1,586 @@
+package core.communication.access.zlsecu;
+
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+
+import module.bean.LocalInfo;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.data.InvalidArgumentException;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.data.ObjectNotFoundException;
+import com.ecc.emp.flow.reversal.HostAccessAction;
+import com.ecc.emp.format.FormatElement;
+import com.ecc.emp.log.EMPLog;
+import common.util.BizUtil;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.communication.format.KeyedFormat;
+import core.communication.util.AccessConstance;
+import core.log.SFLogger;
+
+
+/**
+ * 【类名】动态TCPIP主机通讯扩展。  
+ * <p>
+ * 类功能说明：
+ * <pre>
+ * 动态TCPIP主机通讯扩展类。
+ * 扩展TCPIP主机通讯功能，使用时配置动态IP和动态端口。
+ * 访问TCPIP主机的操作步骤，通过访问TCPIP主机服务（TCPIPService），实现TCP/IP协议的通讯功能。
+ * </pre> 
+ * 使用说明： 
+ * <pre>
+ * 
+ * </pre>
+ * 其他说明：
+ *<pre>
+ * 返回状态：<br>
+ * 0，成功；2，得到TCPIPService服务错误；3，主机通讯异常；4，超时异常
+ *</pre>
+ * 参数说明：
+ *<pre>
+ * 类成员变量说明 
+ * serviceName：TCPIP通讯服务ID<br>
+ * timeOut：通讯超时时间(ms)<br>
+ * SendFormatName：发送报文格式定义名称，默认为sendHostFormat<br>
+ * ReceiveFormatName：接收报文格式定义名称，默认为receiveFormatName<br>
+ * encoding：字符编码
+ * hostIP: 主机IP地址
+ * hostPort: 主机端口
+ *</pre>
+ * @author hzf
+ * @since  1.0 2011-04-16
+ * @version 1.0
+ * 修改说明：修改了通讯实现类，原emp实现的在压力测试高并发下无法承受压力 
+ * 该组件目前支持6位或4位或0位报文长度的通讯协议 如果需要支持其他长度协议则需要作相应修改 by zhanglm@hundsun
+ */
+public class TCPIPSendAction extends HostAccessAction {
+
+
+//	/**
+//	 * 发送报文格式定义名称
+//	 */
+//	private String sendFormatName = "sendHostFormat";
+//	
+//	/**
+//	 * 接收报文格式定义名称
+//	 */
+//	private String receiveFormatName = "receiveFormatName";
+//	
+	/**
+	 * 超时时间
+	 */
+	private int timeOut = 40000;
+	
+	/**
+	 * 报文鉴别对象所在数据域
+	 */
+//	private String identityField;
+	
+	/**
+	 * 字符编码
+	 */
+	private String encoding;
+	
+	/**
+	 * 主机IP
+	 */
+	private String hostIP;
+	
+	/**
+	 * 主机端口
+	 */
+	private String hostPort;
+	
+
+	/**
+	 * 报文长度字段的长度
+	 */
+//	private String lengthHeadLen;
+	/**
+	 * MAC标识
+	 */
+	private String mac;
+	/**
+	 * 券商编号
+	 */
+	private String secCompCode;
+	/**
+	 * 服务代码
+	 */
+	private String svrCode;
+	
+	
+	/**
+	 * 客户编号
+	 */
+	private String userId;
+	
+	public TCPIPSendAction() {
+		super();
+	}
+	
+	
+	
+	/**
+	 * 函数功能说明：
+	 * <pre>
+	 * HostAccessAction的执行入口。调用TCPIPService进行通讯处理。
+	 * </pre>
+	 *  修改记录说明： 
+	 * <pre>
+	 * 
+	 * </pre>
+	 * @param context 交易上下文
+	 * @return 0，成功；2，得到TCPIPService服务错误；3，主机通讯异常; 4, 超时
+	 * @throws EMPException
+	 * 
+	 */
+	public String doExecute(Context context) throws EMPException {
+		long beginTime=System.currentTimeMillis();
+		SFLogger.info(context, "BBCPTCPIPDynamicAccessAction执行开始时间:["+beginTime+"]");
+		
+		String hostIP = (String)getParamValue(context,"hostIP",this.hostIP,true);
+		String hostPort = (String)getParamValue(context,"hostPort",this.hostPort,true);	
+//		String hostSendFormatName=(String)getParamValue(context,"sendFormatName",this.sendFormatName,true);	
+//		String hostReceiveFormatName=(String)getParamValue(context,"receiveFormatName",this.receiveFormatName,true);
+//		String hostReceiveHandName=(String)getParamValue(context,"receiveHandName",this.receiveHandName,true);
+//		String hostReceiveHandLength=(String)getParamValue(context,"receiveHandLength",this.receiveHandLength,true);
+		
+		
+		
+		
+		String secCompCode = null , svrCode = null;
+		
+		secCompCode = getParamValue(context,"secCompCode",this.secCompCode,true).toString();
+		svrCode = getParamValue(context,"svrCode",this.svrCode,true).toString();
+		
+//		if(mac.equals("1")){
+//			bankNo = getParamValue(context,"bankNo",this.bankNo,true).toString();
+//			svrCode = getParamValue(context,"svrCode",this.svrCode,true).toString();
+//		}
+
+		try {
+			
+			
+//			byte[] repMsg = null;
+			
+			SFLogger.info(context, 
+					"通讯连接方向： [/"+InetAddress.getLocalHost().getHostAddress()+"<-->/"+hostIP+"]");
+
+			BBCPCommClient client = null;
+//			byte[] toSendMessage = null;
+			byte[] repMsg = null;
+			
+			
+			repMsg = getRequestMsg(context);
+			
+			client = new BBCPCommClient(hostIP,hostPort,timeOut,4);
+//			String len = "0000"+repMsg.length;
+//			toSendMessage = new byte[4+repMsg.length];
+//			System.arraycopy((len.substring(len.length()-4, len.length())).getBytes(), 0, toSendMessage, 0, 4);
+//			System.arraycopy(repMsg, 0, toSendMessage, 4, repMsg.length);				
+			String ret = client.SendCMD(repMsg);
+			if(!"0".equals(ret)){
+				
+//				String serverId = SFUtil.getDataValue(context, SFConst.PUBLIC_SERVER_ID);
+				
+				
+				String outputName = svrCode + "_O";
+				FormatElement outputFormat = context.getFormat(outputName);
+				KeyedFormat tranCodeO = (KeyedFormat)outputFormat.getFormatElement();
+				tranCodeO.addFormatToContext(context);
+				
+				String outKcollName = tranCodeO.getKcollName();
+				SFUtil.setDataValue(context,outKcollName+".RESP_CODE", SFConst.RESPCODE_TIMEOUT_ZLSECU);
+				
+				throw new EMPException("YYPTERROR9999","BBCPTCPIPDynamicAccessAction通讯错误："+ret);	
+			}
+			byte[] toReciveMessage = null;
+			toReciveMessage = client.getResult().getBytes();//接收下来的全部报文
+			if(toReciveMessage == null || toReciveMessage.length == 0){
+//				throw new EMPException("YYPTERROR9999","BBCPTCPIPDynamicAccessAction通讯错误：接收返回数据为空.");	
+				SFLogger.info(context, "BBCPTCPIPDynamicAccessAction通讯错误：接收返回数据为空。当做超时返回处理，返回超时4" );
+				return "4";
+			}
+			handleResponse(context,toReciveMessage);
+			
+		} catch (Exception tempE) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "通讯发生异常："+tempE.getMessage(),  tempE );
+			if("receiveTimeOut".equals(tempE.getMessage())){
+				String tranCode = SFUtil.getDataValue(context, SFConst.PUBLIC_TX_CODE);
+				SFUtil.setDataValue(context,tranCode + "_O"+".RESP_CODE", SFConst.RESPCODE_TIMEOUT_ZLSECU);
+				return "4";						//扩展，如果BBCPComm返回接受超时
+			}
+			return "3";
+		}finally{
+			long endTime=System.currentTimeMillis();
+			SFLogger.info(context, "BBCPTCPIPDynamicAccessAction执行结束时间:["+endTime+"],总耗时： "+(endTime-beginTime)+"(ms)" );
+			//EMPTimerRecorder.addThreadValue(EMPTimerRecorder.TYPE_COMM, timeCost);
+		}
+		
+		return "0";
+	}
+	
+	
+	//处理返回数据
+	private void handleResponse(Context context,byte[] responseMsg) throws Exception {
+		KeyedCollection kColl = new KeyedCollection(AccessConstance.B_RESPONSE_HEAD);
+		kColl.setAppend( true );
+		FormatElement responseHeadFormat = context.getFormat(AccessConstance.B_RESPONSE_HEAD);
+		if( responseHeadFormat.isBin() )
+			responseHeadFormat.unFormat(responseMsg, kColl );
+		else
+			responseHeadFormat.unFormat(new String(responseMsg), kColl );
+		
+		if(kColl != null){
+			//去掉空格
+		    for(int i=0;i<kColl.size();i++){
+		    	String value = (String) kColl.getDataValue(kColl.getDataElement(i).getName());
+		    	
+		    	value = value.trim();
+		    	int t = value.length();
+		    	//char m = '.';
+		    	while(t>0){
+		    		char m = value.charAt(t-1);
+		    		if(m=='.'){
+		    			value = value.substring(0, t-1);
+		    			value = value.trim();
+		    			t = value.length();
+		    		}else{
+		    			break;
+		    		}
+		    	}
+		    	
+		    	kColl.setDataValue(kColl.getDataElement(i).getName(), value.trim());
+		    }
+		}
+
+		if(context.containsKey(AccessConstance.B_RESPONSE_HEAD)){
+			context.removeDataElement(AccessConstance.B_RESPONSE_HEAD);
+		}
+		context.addDataElement(kColl);
+
+		
+		
+		KeyedFormat fixHeadFormat = (KeyedFormat)responseHeadFormat.getFormatElement();
+		
+		int headLen = fixHeadFormat.getHeadLen();
+		
+		
+		byte[] buf = null;
+		if( headLen > 0 )
+		{
+			int length = responseMsg.length - headLen;
+			buf = new byte[length ];
+			System.arraycopy(responseMsg, headLen, buf, 0, length);
+			//request.setAttribute("reqData", buf);
+		}
+		
+		
+		byte[] responXmlMsg = buf;
+		
+		//处理head信息
+		FormatElement headFormat = context.getFormat(AccessConstance.ZLSECU_RESPONSE_HEAD);
+		if (headFormat == null){
+			throw new EMPException("The format:["+ AccessConstance.ZLSECU_RESPONSE_HEAD + "] not defined in context, please check the SFOnlineFormats.xml and settings.xml");
+		}
+		
+		if( headFormat.isBin() )
+			headFormat.unFormat(responXmlMsg, context );
+		else
+			headFormat.unFormat(new String(responXmlMsg), context );
+		
+		
+		
+		//处理body信息
+		FormatElement msgFormat = context.getFormat(this.svrCode + "_O");
+		if (msgFormat == null){
+			throw new EMPException("The format:["+ this.svrCode + "_O" + "] not defined in context, please check the SFOnlineFormats.xml and settings.xml");
+		}
+		
+		//上下文增加输出
+		KeyedFormat tranCodeO = (KeyedFormat)msgFormat.getFormatElement();
+		tranCodeO.addFormatToContext(context);
+		
+	
+		if( msgFormat.isBin() )
+			msgFormat.unFormat(responXmlMsg, context );
+		else
+			msgFormat.unFormat(new String(responXmlMsg), context );
+		
+		
+		//根据报文头的返回码来判断是否需要加入报文体内容，只有返回"000000"成功时才返回报文体，这里涉及到MAC校验上送的消息块
+        if(!SFConst.RESPCODE_SUCCCODE.equals(SFUtil.getDataValue(context,this.svrCode + "_O"+".RESPCODE"))){
+        	return;
+        }
+	}
+	
+	
+
+
+	public byte[] getRequestMsg(Context context) throws EMPException, UnsupportedEncodingException {
+		// TODO Auto-generated method stub
+		
+		initHeadKcoll(context);
+        FormatElement rootHeadFormat = context.getFormat(AccessConstance.ZLSECU_REQUEST_HEAD);
+		
+		String responseHeadData = (String)rootHeadFormat.format(context);
+        
+		FormatElement msgFormat = context.getFormat(this.svrCode + "_I");
+		
+		String responseData = (String)msgFormat.format(context);
+//		String responseData = (String)msgFormat.format(outColl);
+		
+		//int len = headData.length()+responseData.length();
+		
+		String resData = "<?xml version=\"1.0\"?>\r\n<Root>\r\n"+responseHeadData+"\r\n"+responseData+"\r\n</Root>";//String.valueOf(len)+
+		int len = resData.length();
+		KeyedCollection headColl = SFUtil.getDataElement(context,AccessConstance.B_REQUEST_HEAD);
+		headColl.setDataValue("MSGDATALEN", String.valueOf(len));
+		FormatElement headFormat = context.getFormat(AccessConstance.B_REQUEST_HEAD);
+		String headData = (String)headFormat.format(headColl);
+		
+		resData = headData+resData;
+		
+		if (encoding != null)
+			return resData.getBytes(encoding);
+		else
+			return resData.getBytes();
+	
+	
+		
+	}
+	
+	
+	
+	public void initHeadKcoll(Context context) throws EMPException {
+		
+		LocalInfo localInfo = SFUtil.getDataValue(context,SFConst.PUBLIC_LOCAL_INFO);//营业时间信息
+		String txDate = localInfo.getWorkdate();//营业日期
+		
+		
+		KeyedCollection headColl = null;
+		if(context.containsKey(AccessConstance.B_REQUEST_HEAD)){
+			headColl = SFUtil.getDataElement(context,AccessConstance.B_REQUEST_HEAD);
+			headColl.setDataValue("VERSION", "01");
+			headColl.setDataValue("PACKTYPE", "");
+			headColl.setDataValue("TXCODE", this.svrCode);
+			headColl.setDataValue("FUNCCODE", "000");
+			headColl.setDataValue("COMMMODE", "M");
+			headColl.setDataValue("TOTALBLOCK", "");
+			headColl.setDataValue("CURBLOCK", "");
+			headColl.setDataValue("MSGDATALEN", "");
+			headColl.setDataValue("MSGEXTLEN", "");
+			headColl.setDataValue("ENCRYPTMODE", "N");
+			headColl.setDataValue("NOUSE", "");
+		}else{
+			headColl = new KeyedCollection(AccessConstance.B_REQUEST_HEAD);
+			headColl.addDataField("VERSION", "01");
+			headColl.addDataField("PACKTYPE", "");
+			headColl.addDataField("TXCODE", this.svrCode);
+			headColl.addDataField("FUNCCODE", "000");
+			headColl.addDataField("COMMMODE", "M");
+			headColl.addDataField("TOTALBLOCK", "");
+			headColl.addDataField("CURBLOCK", "");
+			headColl.addDataField("MSGDATALEN", "");
+			headColl.addDataField("MSGEXTLEN", "");
+			headColl.addDataField("ENCRYPTMODE", "N");
+			headColl.addDataField("NOUSE", "");
+			
+			context.addDataElement(headColl);
+			
+		}
+		
+		
+
+		
+		KeyedCollection rootHeadColl = null;
+		if(context.containsKey(AccessConstance.ZLSECU_REQUEST_HEAD)){
+			rootHeadColl = SFUtil.getDataElement(context,AccessConstance.ZLSECU_REQUEST_HEAD);
+			rootHeadColl.setDataValue("VERSION", "01");
+			rootHeadColl.setDataValue("TXCODE", this.svrCode);
+			rootHeadColl.setDataValue("FUNCCODE", "000");
+			
+//			rootHeadColl.setDataValue("CHANNEL", "0002");
+			
+			handleKcollValue(rootHeadColl,"CHANNEL", "0002");
+			
+			rootHeadColl.setDataValue("SUBCENTERID", "0110");
+			rootHeadColl.setDataValue("NODEID", this.userId);
+			rootHeadColl.setDataValue("TELLERID", "000000");
+			
+			String txSeqId = (String) rootHeadColl.getDataValue("TXSEQID");
+			if(SFUtil.isEmpty(txSeqId)){
+				txSeqId = SFUtil.getDataValue(context, SFConst.PUBLIC_MSG_SEQ_NO);
+				if(SFUtil.isEmpty(txSeqId)){
+					txSeqId = BizUtil.getTxSeqId(SFConst.SEQ_ID_LEN_8,BizUtil.getInitSeqId(context));
+				}
+				
+			}
+			
+			rootHeadColl.setDataValue("TXSEQID", txSeqId);
+			rootHeadColl.setDataValue("TXDATE", txDate);
+			rootHeadColl.setDataValue("TXTIME", DateUtil.getMacTime());
+			rootHeadColl.setDataValue("USERID", this.userId);
+			
+		}else{
+			rootHeadColl = new KeyedCollection(AccessConstance.ZLSECU_REQUEST_HEAD);
+			rootHeadColl.addDataField("VERSION", "01");
+			rootHeadColl.addDataField("TXCODE", this.svrCode);
+			rootHeadColl.addDataField("FUNCCODE", "000");
+			rootHeadColl.addDataField("CHANNEL", "0002");
+			rootHeadColl.addDataField("SUBCENTERID", "0110");
+			rootHeadColl.addDataField("NODEID", this.userId);
+			rootHeadColl.addDataField("TELLERID", "000000");
+			
+			
+			String txSeqId = SFUtil.getDataValue(context, SFConst.PUBLIC_MSG_SEQ_NO);
+			if(SFUtil.isEmpty(txSeqId)){
+				txSeqId = BizUtil.getTxSeqId(SFConst.SEQ_ID_LEN_8,BizUtil.getInitSeqId(context));
+			}
+			
+			rootHeadColl.addDataField("TXSEQID", txSeqId);
+			rootHeadColl.addDataField("TXDATE", txDate);
+			rootHeadColl.addDataField("TXTIME", DateUtil.getMacTime());
+			rootHeadColl.addDataField("USERID", this.userId);
+			context.addDataElement(rootHeadColl);
+		}
+		
+
+		
+	}
+
+	
+	public void handleKcollValue(KeyedCollection kcoll,String key,String value){
+		
+		String oldValue = null;
+		try {
+			oldValue = (String) kcoll.getDataValue(key);
+			if(SFUtil.isEmpty(oldValue)){
+				kcoll.setDataValue(key, value);
+			}
+			
+		} catch (ObjectNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvalidArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	
+	
+	/**
+	 * 给报文加上mac串
+	 * @param msg 不带mac的报文
+	 * @param bankNo 
+	 * @param svrCode
+	 * @return  带mac的报文
+	 * @throws EMPException 
+	 */
+	/*private byte[] getMessageByMac(byte[] message,String bankNo,String svrCode) throws EMPException{
+		String tmpMsg = new String(message);
+		String mac = MacUtil.genMac(StringTool.FillString(tmpMsg, ' ', 1, message.length+8).getBytes(), getMacKey(bankNo, svrCode));
+		
+		return (tmpMsg+mac).getBytes();	
+	}*/
+	
+	/*private String getMacKey(String bankNo,String svrCode)  throws EMPException{
+		BankInfo bankInfo = SysParamCache.getSysCPIPMap().get(bankNo+svrCode);
+
+		if(bankInfo == null){
+			EMPLog.log(SFConst.SF_SYS_TRXCODE, EMPLog.ERROR, 0,
+					"BBCPTCPIPDynamicAccessByMacAction:参数表未配置，取合作行服务对应的联机信息为空：bankno=["+bankNo+"],svrcode=["+svrCode+"]");
+			throw new EMPException("999999","取合作行服务对应的联机信息为空：bankno=["+bankNo+"],svrcode=["+svrCode+"]");			
+		}
+		
+		return bankInfo.getMacKey();
+	}*/
+	
+
+
+
+	/**
+	 * 设置通讯超时时间。
+	 * 
+	 * @param timeOut 通讯超时时间
+	 * @emp:isAttribute true
+	 * @emp:name 超时时间
+	 * @emp:desc 通讯超时时间
+	 */
+	public void setTimeOut(int timeOut) {
+		this.timeOut = timeOut;
+	}
+
+	/**
+	 * 设置字符编码。
+	 * 
+	 * @param encoding 字符编码
+	 * @emp:isAttribute true
+	 * @emp:name 字符编码
+	 * @emp:desc 报文转换为字节流所使用的字符编码
+	 */
+	public void setEncoding(String encoding) {
+		this.encoding = encoding;
+	}
+
+	/**
+	 * 设置报文鉴别对象所在数据域。
+	 * 会将该数据域中存放的对象传给TCPIPService，在接收到响应报文后根据该对象判断是否为需要报文。
+	 * 
+	 * @param identityField 报文鉴别对象所在数据域
+	 * @emp:isAttribute true
+	 * @emp:name 报文鉴别对象数据域
+	 * @emp:desc 会将该数据域中存放的对象传给TCPIPService，在接收到响应报文后根据该对象判断是否为需要报文
+	 * @emp:editClass com.ecc.ide.editor.transaction.DataNamePropertyEditor
+	 */
+//	public void setIdentityField(String identityField) {
+//		this.identityField = identityField;
+//	}
+
+	public void setHostIP(String hostIP) {
+		this.hostIP = hostIP;
+	}
+
+	public void setHostPort(String hostPort) {
+		this.hostPort = hostPort;
+	}
+	
+	/**
+	 * @param mac the mac to set
+	 */
+	public void setMac(String mac) {
+		this.mac = mac;
+	}
+
+
+	/**
+	 * @param svrCode the svrCode to set
+	 */
+	public void setSvrCode(String svrCode) {
+		this.svrCode = svrCode;
+	}
+
+
+	public void setSecCompCode(String secCompCode) {
+		this.secCompCode = secCompCode;
+	}
+
+
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+	}
+	
+	
+	
+	
+	
+}

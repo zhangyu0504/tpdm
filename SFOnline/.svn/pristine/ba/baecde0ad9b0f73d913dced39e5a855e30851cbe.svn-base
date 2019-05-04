@@ -1,0 +1,112 @@
+package module.dao;
+
+import java.sql.Connection;
+import java.util.List;
+
+import module.bean.AutoBecif;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DaoBase;
+import common.util.SFUtil;
+
+/**
+ *  轮询服务参数Dao
+ * @author 吕超鸿
+ *
+ */
+public class AutoBecifDao extends DaoBase {
+	
+	private StringBuffer getQryAutoBecifSQLStruct(){
+		StringBuffer buffer = new StringBuffer();
+		
+		buffer.append("SELECT TXDATE AS txDate,SUBTXSEQID AS subTxSeqId,TXTIME AS txTime,STATUS AS status,AGREEMENT_NO AS agreementNo,");
+		buffer.append("BECIF_NO AS becifNo,AGREEMENT_TYPE AS agreementType,AGREEMENT_SUB_TYPE AS agreementSubType,");
+		buffer.append("AGREEMENT_STATUS AS agreementStatus,PRODUCT_NO AS productNo,OPEN_DATE AS openDate,CLOSE_DATE AS closeDate,");
+		buffer.append("DEPT_NO AS deptNo,USER_ID AS userId,BUSINESS_SERIES_CD AS businessSeriesCD");
+		buffer.append(" FROM TRDAUTOBECIF WHERE 1=1");
+		
+		return buffer;
+	}
+
+	/**
+	 * 查询轮询服务参数
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public AutoBecif qryAutoBecif(Context context, Connection connection,String txDate,String subTxSeqId) throws SFException {
+		AutoBecif autoBecif = null;
+		try {
+			
+			StringBuffer buffer = getQryAutoBecifSQLStruct();
+			buffer.append(" AND TXDATE=? AND SUBTXSEQID=?");
+			
+			autoBecif = super.qry(context, connection, buffer.toString(), AutoBecif.class, txDate, subTxSeqId);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}finally{
+			if(autoBecif!=null){
+				autoBecif.resetChangedFlag();
+			}
+		}
+		return autoBecif;
+	}
+	
+	public List<AutoBecif> qryAutoBecifByStatus(Context context, Connection connection,String txDate,String status) throws SFException {
+		List<AutoBecif> list = null;
+		try {
+			
+			StringBuffer buffer = getQryAutoBecifSQLStruct();
+			
+			buffer.append(" AND TXDATE=? AND STATUS=?");
+			Object[] param = new Object[2];
+			param[0] = txDate;
+			param[1] = status;
+			
+			list = super.qryForOList(context, connection, buffer.toString(), param, AutoBecif.class);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}finally{
+			if(list!=null && list.size()>0){
+				for( AutoBecif autoBecif : list ) {
+					if(autoBecif!=null){
+						autoBecif.resetChangedFlag();
+					}
+				}
+			}
+		}
+		return list;
+	}
+	
+	/**
+	 * 保存轮询服务参数
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public int saveAutoBecif(Context context,Connection connection,AutoBecif bean)throws SFException{
+		int result = 0;
+		try{
+			SFUtil.chkCond(context, SFUtil.isEmpty(bean.getTxDate()), "ST4895", "必要参数[TXDATE]没有提供");
+			SFUtil.chkCond(context, SFUtil.isEmpty(bean.getSubTxSeqId()), "ST4895", "必要参数[SUBTXSEQID]没有提供");
+			
+			result = super.save(context, connection, bean.getSaveAutoBecifSQLStruct());
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally{
+			bean.resetChangedFlag();
+		}
+		return result;
+	}
+}

@@ -1,0 +1,285 @@
+package common.util;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+/**
+ * 日期工具类
+ *
+ */
+public class DateUtil {
+
+	/**
+	 * 获取系统当前日期
+	 * 格式：yyyyMMdd
+	 */
+	public static String getMacDate() {
+		return getMacDateStr("yyyyMMdd");
+	}
+	
+	/**
+	 * 获取系统当前日期
+	 * 格式：yyMMdd
+	 */
+	public static String getDateShort() {
+		return getMacDateStr("yyMMdd");
+	}
+	
+	/**
+	 * 获取系统当前时间
+	 * 格式：HH:mm:ss
+	 */
+	public static String getMacTimeFormat() {
+		return getMacDateStr("HH:mm:ss");
+	}
+	
+	/**
+	 * 获取系统当前时间
+	 * 格式：HHmmss
+	 */
+	public static String getMacTime() {
+		return getMacDateStr("HHmmss");
+	}
+	
+	/**
+	 * 获取系统当前时间
+	 * 格式: yyyyMMddHHmmss
+	 */
+	public static String getMacDateTimeShort(){
+		return getMacDateStr("yyyyMMddHHmmss");
+	}
+	
+	/**
+	 * 根据指定格式获取系统当前日期/时间
+	 * @param format 日期/时间格式
+	 * @return 日期/时间
+	 */
+	private static String getMacDateStr(String format) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+		return dateFormat.format(DateUtil.getDate());
+	}
+	
+	/**
+	 * 根据指定格式获取系统当前日期/时间
+	 * @param format 日期/时间格式
+	 * @return 日期/时间
+	 */
+	public static Date getDate() {
+		return new Date();
+	}
+
+	/**
+	 * 得到当前月 格式是2008-9-25 *
+	 * @param dateStr String
+	 * @return int
+	 */
+	public static int getCurrentMonth(String dateStr) {
+		String date[] = dateStr.split("-");
+		return Integer.parseInt(date[1], 10);
+	}
+
+	/**
+	 * 得到月的天数 *
+	 * 
+	 * @param year int
+	 * @param month int
+	 * @return int
+	 */
+	public static int getMonthDays(int year, int month) {
+		int days = 1;
+		boolean isrn = (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)) ? true : false;
+		switch (month) {
+		case 1:
+			days = 31;
+			break;
+		case 2:
+			if (isrn)
+				days = 29;
+			else
+				days = 28;
+			break;
+		case 3:
+			days = 31;
+			break;
+		case 4:
+			days = 30;
+			break;
+		case 5:
+			days = 31;
+			break;
+		case 6:
+			days = 30;
+			break;
+		case 7:
+			days = 31;
+			break;
+		case 8:
+			days = 31;
+			break;
+		case 9:
+			days = 30;
+			break;
+		case 10:
+			days = 31;
+			break;
+		case 11:
+			days = 30;
+			break;
+		case 12:
+			days = 31;
+			break;
+		}
+		return days;
+	}
+
+	/**
+	 * 得到月的天数，包括当前月过的天数
+	 * @param currDate String
+	 * @param year int
+	 * @param month int
+	 * @return int
+	 */
+	public static int getMonthDays(String currDate, int year, int month) {
+		int days = 1;
+		String date[] = currDate.split("-");
+		if (Integer.parseInt(date[0]) == year && Integer.parseInt(date[1]) == month) {
+			days = Integer.parseInt(date[2]);
+		} else {
+			days = getMonthDays(year, month);
+		}
+		return days;
+	}
+
+	/**
+	 * 得到当前年 格式是2017-08-25 *
+	 * @param dateStr String
+	 * @return int
+	 */
+	public static int getCurrentYear(String dateStr) {
+		String date[] = dateStr.split("-");
+		return Integer.parseInt(date[0], 10);
+	}
+
+	/**
+	 * 得到当前天数 格式是2017-08-25 *
+	 * @param dateStr String
+	 * @return int
+	 */
+	public static int getCurrentDay(String dateStr) {
+		String date[] = dateStr.split("-");
+		return Integer.parseInt(date[2], 10);
+	}
+
+	/**
+	 * 返回两个日期间隔的天数 *
+	 * @param beginDate String
+	 * @param endDate String
+	 * @return int
+	 */
+	public static int getBetweenDays(String beginDate, String endDate) {
+		int sum = 0;
+		if (beginDate == null) {
+			return 0;
+		}
+		int beginYear = getCurrentYear(beginDate);
+		int beginMonth = getCurrentMonth(beginDate);
+		int beginDay = getCurrentDay(beginDate);
+		int endYear = getCurrentYear(endDate);
+		int endMonth = getCurrentMonth(endDate);
+		int endDay = getCurrentDay(endDate);
+		String startDateStr = String.valueOf(beginYear) + bZero(beginMonth) + "01";
+		int sumMonth = (endYear - beginYear + 1) * 12 - (beginMonth) - (12 - endMonth);
+		if (sumMonth >= 0) {
+			for (int i = 0; i < sumMonth; i++) {
+				String dateStr = getDateStr(startDateStr, i);
+				sum = sum + getMonthDays(getCurrentYear(dateStr), getCurrentMonth(dateStr));
+			}
+			sum = sum - beginDay + endDay;
+		} else {
+			sum = -1;
+		}
+		return sum;
+	}
+	
+	/**
+	 * 返回日期经过若干月后的日期 *
+	 * @param dateStr String
+	 * @param hkm int
+	 * @return String
+	 */
+	public static String getDateStr(String dateStr, int hkm) {
+		String reDateStr = "";
+		int yy = Integer.parseInt(dateStr.substring(0, 4), 10);
+		int mm = Integer.parseInt(dateStr.substring(4, 6), 10);
+		int dd = Integer.parseInt(dateStr.substring(6, 8), 10);
+		int yy2 = 0, mm2 = 0, dd2 = dd;
+		if ((mm + hkm) % 12 == 0) {
+			yy2 = yy + (mm + hkm) / 12 - 1;
+			mm2 = 12;
+		} else {
+			if ((mm + hkm) % 12 == 1) {
+				yy2 = yy + (mm + hkm) / 12;
+				mm2 = 1;
+			} else {
+				yy2 = yy + (mm + hkm) / 12;
+				mm2 = (mm + hkm) % 12;
+			}
+		}
+		reDateStr = String.valueOf(yy2) + "-" + bZero(mm2) + "-" + bZero(dd2);
+		return reDateStr;
+	}
+
+	/**
+	 * 返回两位数据字串 *
+	 * @param sz int
+	 * @return String
+	 */
+	public static String bZero(int sz) {
+		return (sz < 10 ? ("0" + String.valueOf(sz)) : String.valueOf(sz));
+	}
+	
+	/**
+	 * 转化日期格式 
+	 * @param date   数据格式：yyyymmdd "to" yyyy-mm-dd
+	 * @return
+	 */
+	public static String formatToHyphenDate(String date){
+		String year = date.substring(0, 4) + "-";
+		String month = date.substring(4, 6) + "-"; 
+		String day = date.substring(6, 8);
+		String strDate = year + month + day;
+		return strDate;
+	}
+	
+	/**
+	 * 获取时间字符串
+	 * @param format
+	 * @return
+	 */
+	public static String getDateTime(String format) {
+		java.util.Calendar calendar = java.util.Calendar.getInstance();
+		java.util.Date date = calendar.getTime();
+		java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat(format);
+		return formatter.format(date);
+	}
+	
+	
+	
+	/**
+	 * 根据日期格式与日期字符串转换成日期类型
+	 * @param format 日期格式如：yyyyMMdd;yyyy/MM/dd;yyyy-MM-dd等
+	 * @param sDate 日期字符串
+	 * @return 
+	 */
+	public static Date strToDate(String format, String sDate) throws Exception{
+		SimpleDateFormat sdf = new SimpleDateFormat(format);
+		return sdf.parse(sDate);
+	}
+	
+	public static String dateToString(Date date,String format){
+		SimpleDateFormat sDF = new SimpleDateFormat(format);
+		String sDate = sDF.format(date);
+		return sDate;
+	}
+	
+}

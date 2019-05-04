@@ -1,0 +1,21 @@
+package core.schedule;
+
+import org.quartz.Job;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
+
+import com.ecc.emp.log.EMPLog;
+import common.util.SFConst;
+
+public class ScheduleJobAction extends ScheduleAction implements Job {
+
+	public void execute(JobExecutionContext context) throws JobExecutionException {
+		try {
+			JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
+			doClassJob(jobDataMap, context);
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "execute schedule error:" + e.getMessage(), e);
+		}
+	}
+}

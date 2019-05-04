@@ -1,0 +1,420 @@
+package core.communication.format.string;
+
+import com.ecc.emp.core.EMPConstance;
+import com.ecc.emp.data.DataField;
+import com.ecc.emp.format.EMPFormatException;
+import com.ecc.emp.format.FormatElement;
+import com.ecc.emp.log.EMPLog;
+
+import core.communication.format.FormatField;
+
+/**
+ * 
+ * <b>功能描述：</b><br>
+ * 固定长度的字符串格式<br>
+ * 可自定义长度、空白填充字符和对齐方式<br>
+ * 
+ * <b>配置示例：</b><br>
+ * &lt;fmtDef id="testID"&gt;<br>
+ * &nbsp;&nbsp;&lt;record&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;FixedLenFormat dataName="myName" len="10" padChar="*" aligment="Left"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;delim delimChar=";"/&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/FixedLenFormat&gt;<br>
+ * &nbsp;&nbsp;&lt;/record&gt;<br>
+ * &lt;/fmtDef&gt;<br>
+ * 
+ * <b>参数说明：</b><br>
+ * <b>dataName</b> EMP数据域名称<br>
+ * <b>len</b> 字符串长度<br>
+ * <b>padChar</b> 空白填充字符，默认为空格<br>
+ * <b>aligment</b> 对其方式，取值为none（默认），left，right，center：
+ * 格式化时none相当于left；反格式化时取值为none代表不去掉任何空白填充字符。
+ * 
+ * @author ZhongMingChang
+ * @modifier LiJia 2006-12-11
+ */
+public class FixedLenFormat extends FormatField {
+
+	private int len;
+
+	private char padChar = ' ';
+
+	private String aligment = "none";
+	
+	//Y只在前后自动添加padChar
+	private String padCharFlag = "N";
+	
+
+	/**
+	 * @roseuid 44FD3F20031C
+	 */
+	public FixedLenFormat() {
+		super();
+	}
+
+	public void setAligment(String aligment) {
+		this.aligment = aligment;
+	}
+
+	public void setLen(int len) {
+		this.len = len;
+	}
+
+	public void setPadChar(String padChar) {
+		this.padChar = padChar.charAt(0);
+	}
+
+	public int getLen() {
+		return this.len;
+	}
+	
+	public String getAligment() {
+		return aligment;
+	}
+
+	public char getPadChar() {
+		return padChar;
+	}
+	
+	
+	
+
+	public void setPadCharFlag(String padCharFlag) {
+		this.padCharFlag = padCharFlag;
+	}
+
+	public String getPadCharFlag() {
+		return padCharFlag;
+	}
+
+	/**
+	 * 将数据域转为固定长度格式字符串
+	 * 
+	 * @param DataField
+	 *            dataField //数据域
+	 * @returns Object //格式化后的字符串
+	 */
+	public Object format(DataField dataField) throws EMPFormatException {
+		
+		int len = getLen();
+		
+		if (len <= 0) {
+			EMPLog.log(EMPConstance.EMP_FORMAT, EMPLog.ERROR, 0, 
+					 "FixedLenFormat format failed! len should not be null or 0!", null);
+			throw new EMPFormatException("FixedLenFormat format failed! len should not be null or 0!");
+		}
+		
+		try {
+			if (this.isBinType()) { //以二进制方式处理
+				byte [] valueBytes = null;
+				Object value = null;
+				if (dataField == null) {
+					value = "";
+				}
+				else {
+					value = dataField.getValue();
+				}
+				
+				if (value == null)
+					value = "";
+				
+				if (value.getClass().isArray()) {
+					valueBytes = (byte []) value;
+				}
+				else {
+					valueBytes = ((String)value).getBytes(this.getEncoding());
+				}
+				
+				int realLen = valueBytes.length;
+				
+				byte[] retBytes = new byte[len];
+				if("Y".equals(padCharFlag)){
+					for (int i = 0; i < len; i++) {
+						if(i==0||i==len-1){
+							retBytes[i] = (byte) padChar;
+						}else{
+							retBytes[i] = (byte) ' ';
+						}
+					}
+				}else{
+					for (int i = 0; i < len; i++) {
+						retBytes[i] = (byte) padChar;
+					}
+				}
+						
+				
+				int b = 0;		//目标字节数组起始处
+				int b1 = 0;		//源字节数组起始处
+				if ("right".equalsIgnoreCase(this.aligment)) {
+					if (realLen > len) {
+						b1 = realLen - len;
+						realLen = len;		
+					}
+					b = len - realLen;
+				} else if ("center".equalsIgnoreCase(this.aligment)) {
+					if (realLen > len) {
+						b1 = realLen / 2 - len / 2;
+						realLen = len;
+					}
+					b = len / 2 - realLen / 2;
+				} else {
+					if (realLen > len) {				
+						realLen = len;
+					}
+				}
+
+				System.arraycopy(valueBytes, b1, retBytes, b, realLen);
+				return retBytes;
+			}
+			else { //以String方式处理
+				String valueStr = null;
+				Object value = null;
+				if (dataField == null) {
+					value = "";
+				}
+				else {
+					value = dataField.getValue();
+				}
+				
+				if (value == null)
+					value = "";
+
+				if (value.getClass().isArray()) {
+					valueStr = new String((byte [])value, this.getEncoding());
+				}
+				else {
+					valueStr = (String) value;
+				}
+	
+				StringBuffer buffer = new StringBuffer(len);
+				
+				if("Y".equals(padCharFlag)){
+					for (int i = 0; i < len; i++) {
+						if(i==0||i==len-1){
+							buffer.append(this.padChar);
+						}else{
+							buffer.append(' ');
+						}
+						
+					}
+				}else{
+					for (int i = 0; i < len; i++) {
+						buffer.append(this.padChar);
+					}
+				}
+				
+				int b = 0;
+				if(valueStr == null)
+					valueStr = "";
+				int realLen = valueStr.length();
+				if ("right".equalsIgnoreCase(this.aligment)) {
+					if (realLen > len) {
+						valueStr = valueStr.substring(realLen - len);
+						realLen = len;
+					}
+					b = len - realLen;
+				} else if ("center".equalsIgnoreCase(this.aligment)) {
+					if (realLen > len) {
+						b = realLen / 2 - len / 2;
+						valueStr = valueStr.substring(b, b + len);
+						realLen = len;
+					}
+					b = len / 2 - realLen / 2;
+				} else {
+					if (realLen > len) {
+						valueStr = valueStr.substring(0, len);
+						realLen = len;
+					}
+				}
+	
+				buffer.replace(b, b + realLen, valueStr);
+				return buffer.toString();
+			}
+		}
+		catch (Exception e) {
+			throw new EMPFormatException("FixedLenFormat format failed!", e);
+		}
+	}
+
+	/**
+	 * 对输入字符串中要处理的字串进行反格式化并将数据填回EMP数据域。
+	 * 
+	 * @param Object
+	 *            src //输入串
+	 * @param DataField
+	 *            dataField //数据域
+	 */
+	public void unformat(Object src, DataField dataField) throws EMPFormatException {
+		try {
+			if (this.isBinType()) { //以二进制方式处理
+				byte [] srcBytes = null;
+				if (src.getClass().isArray()) {
+					srcBytes = (byte []) src;
+				}
+				else {
+					srcBytes = ((String)src).getBytes(this.getEncoding());
+				}
+				
+				int realLen = srcBytes.length;
+				
+				int b = 0, e = realLen - 1;
+				if (aligment != null
+						&& ("left".equalsIgnoreCase(aligment) || "center"
+								.equalsIgnoreCase(aligment))) {
+					for (int i = realLen - 1; i >= 0; i--) {
+						if (srcBytes[i] != (byte) padChar) {
+							e = i;
+							break;
+						}
+					}
+				}
+				if (aligment != null
+						&& ("right".equalsIgnoreCase(aligment) || "center"
+								.equalsIgnoreCase(aligment))) {
+					for (int i = 0; i < realLen; i++) {
+						if (srcBytes[i] != (byte) padChar) {
+							b = i;
+							break;
+						}
+					}
+				}
+				
+				byte[] retBytes = new byte[e-b+1];
+				System.arraycopy(srcBytes, b, retBytes, 0, e-b+1);
+				
+				if (this.isBin()) { //保存为二进制格式
+					dataField.setValue(retBytes);
+				}
+				else {
+					dataField.setValue(new String(retBytes, this.getEncoding()));
+				}
+			}
+			else {
+				String mySrc = null;
+				if (src.getClass().isArray()) {
+					mySrc = new String((byte [])src, this.getEncoding());
+				}
+				else {
+					mySrc = (String) src;
+				}
+				
+				int realLen = mySrc.length();
+		
+				int b = 0, e = realLen - 1;
+				if (aligment != null
+						&& ("left".equalsIgnoreCase(aligment) || "center"
+								.equalsIgnoreCase(aligment))) {
+					for (int i = realLen - 1; i >= 0; i--) {
+						if (mySrc.charAt(i) != padChar) {
+							e = i;
+							break;
+						}
+					}
+				}
+				if (aligment != null
+						&& ("right".equalsIgnoreCase(aligment) || "center"
+								.equalsIgnoreCase(aligment))) {
+					for (int i = 0; i < realLen; i++) {
+						if (mySrc.charAt(i) != padChar) {
+							b = i;
+							break;
+						}
+					}
+				}
+				String value = mySrc.substring(b, e + 1);
+				
+				if (this.isBin()) { //保存为二进制格式
+					dataField.setValue(value.getBytes(this.getEncoding()));
+				}
+				else {
+					dataField.setValue(value);
+				}
+			}
+		}
+		catch (Exception e) {
+			throw new EMPFormatException("FixedLenFormat unformat failed: invalid charset code!", e);
+		}
+	}
+
+	/**
+	 * 得到本格式化元素需要的数据长度
+	 * 
+	 * @param String
+	 *            src //输入串
+	 * @param int
+	 *            offset //偏移量
+	 * @returns int //数据长度
+	 */
+	public int extract(Object src, int offset) throws EMPFormatException {
+		/*
+		int retLen = super.extract(src, offset);
+		if (retLen != -1)
+			return retLen;
+		else
+			return len;
+		 */	
+		int retLen = 0;
+		try {
+			if (this.isBinType()) { //以二进制方式处理
+				byte [] srcBytes = null;
+				if (src.getClass().isArray()) {
+					retLen = len;
+				}
+				else {
+					srcBytes = ((String)src).substring(offset).getBytes(this.getEncoding());
+					retLen = (new String(srcBytes, 0, len, this.getEncoding())).length();
+				}
+			}
+			else {
+				String mySrc = null;
+				if (src.getClass().isArray()) {
+					retLen = ((byte[])src).length - offset;
+					
+					mySrc = new String((byte[])src, offset, retLen, this.getEncoding());
+					mySrc = mySrc.substring(0, len);
+					retLen = (mySrc.getBytes(this.getEncoding()).length);
+				}
+				else {
+					retLen = len;
+				}
+			}
+
+			//增加修饰符的长度
+			retLen = retLen + super.extract(src, offset + retLen);
+			
+			return retLen;
+		}
+		catch (Exception e) {
+			throw new EMPFormatException("FixedLenFormat extract failed: invalid charset code!", e);
+		}
+	}
+
+	public String toString(int tabCount) {
+		StringBuffer buf = new StringBuffer();
+		for (int i = 0; i < tabCount; i++)
+			buf.append("\t");
+
+		buf.append("<FixedLenFormat dataName=\"");
+		buf.append(getDataName());
+		buf.append("\" len=\"").append(len).append("\" padChar=\"").append(
+				padChar);
+		buf.append("\" aligment=\"").append(aligment);
+		buf.append("\"/>\n");
+
+		for (int i = 0; i < this.getDecorators().size(); i++) {
+			FormatElement fmt = (FormatElement) getDecorators().get(i);
+			buf.append(fmt.toString(tabCount));
+			buf.append("\n");
+		}
+
+		return buf.toString();
+	}
+	
+	public static void main(String[] args) {
+		String a  = " ";
+		char c = ' ';
+		byte[] b = new byte[1];
+		b[0]=(byte) c;
+		System.out.println(new String(b));
+	}
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+
+<FuncGroup id="函数">
+	<Func id="SizeOfICollection" name="SizeOfICollection"
+		className="com.ecc.emp.processor.function.SizeOfICollection"
+		defineName="SizeOfICollection">
+		<document />
+	</Func>
+
+	<Func id="abc" name="abc"
+		className="com.ecc.emp.processor.function.SizeOfICollection"
+		defineName="abc">
+		<document />
+	</Func>
+</FuncGroup>

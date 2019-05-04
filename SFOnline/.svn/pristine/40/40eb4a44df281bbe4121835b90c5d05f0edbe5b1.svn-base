@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="GBK"?>
+<!-- ====================================================================== 
+     date:2011-09-13                                                 
+     project：银银平台
+     description：生成tar包用的Ant脚本
+	 Author：yudm@hundsun.com                                                                
+     ====================================================================== -->
+
+<project name="SFOnline" default="default">
+	<!-- 版本包存放目录 -->
+	<property name="RELEASE_DIR" value="./tar" />
+	
+	<!-- 版本包存放目录 -->
+	<property name="WEB_DIR" value="./WebContent" />
+	
+	<!-- 更新文件临时存放目录 -->
+	<property name="TEMP_DIR" value="./temp" />
+	
+	<!-- 应用名称 -->
+	<property name="appName" value="SFOnline"/>
+	
+	<!-- 源代码存放目录 -->	
+	<property name="src" value="src"/>
+
+	<!-- 编译文件存放目录 -->		
+	<property name="classes" value="${WEB_DIR}/WEB-INF/classes" />
+	<!-- ================================= 
+          target: 默认任务
+         ================================= -->
+	<target name="default" depends="packWebApp,clean" description="">
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: init 初始化
+         - - - - - - - - - - - - - - - - - -->
+	<target name="init">
+		<tstamp>
+			<format property="TODAY" pattern="yyyyMMdd" locale="cn" />
+		</tstamp>
+
+		<mkdir dir="${TEMP_DIR}" />
+
+		<!-- 复制所有文件到临时目录 -->
+		<!--
+		<copy todir="${TEMP_DIR}" overwrite="true">
+			<fileset dir="${WEB_DIR}" includesfile="updateFileList/trans_update_${TODAY}.txt" />
+		</copy>-->
+			
+		<copy todir="${TEMP_DIR}" overwrite="true" file="${WEB_DIR}/WEB-INF/temp/iscmqrecv.sh" />
+		<copy todir="${TEMP_DIR}" overwrite="true" file="${WEB_DIR}/WEB-INF/temp/iscmqrecv.sh" />
+
+		
+	</target>
+
+	<mkdir dir="${RELEASE_DIR}" />
+
+	<!--  生产部署tar 包  
+	<target name="packWebApp" depends="init">
+		<tar destfile="${RELEASE_DIR}/${appName}-${TODAY}_update.tar">
+			<tarfileset dir="${TEMP_DIR}">
+				<include name="**/*.*"/>
+			</tarfileset>		
+		</tar> 
+	</target>
+	-->
+	<!--  生产部署ZIP包  -->
+	<target name="packWebApp" depends="init">
+		<zip destfile="${RELEASE_DIR}/${appName}-${TODAY}_update.zip" duplicate="preserve">
+			<zipfileset dir="${TEMP_DIR}" includes="**/*.*" 
+				prefix="${appName}.war"/>
+
+		</zip>		
+	</target>
+	
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: clean 清理
+         - - - - - - - - - - - - - - - - - -->
+	<target name="clean">
+		<delete dir="${TEMP_DIR}" />
+	</target>
+	
+
+</project>

@@ -1,0 +1,177 @@
+package common.util;
+
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPException;
+
+import common.exception.SFException;
+
+/**
+ * 金额处理工具类
+ */
+public class AmtUtil {
+	/**
+	 * 千亿检查
+	 * 
+	 * @param context
+	 * @param txAmount
+	 * @throws SFException
+	 */
+	public static void chkMaxAmount( Context context, double txAmount ) throws SFException {
+		SFUtil.chkCond( context, txAmount > 100000000000d, "ST4516", "单笔交易金额超限" );
+	}
+
+	/**
+	 * 对金额小数位是否非法进行检查
+	 * @param context
+	 * @param txAmount
+	 * @throws SFException
+	 */
+	public static void chkAmtValid( Context context, String txAmount ) throws SFException {
+		BigDecimal BigDecAmt = new BigDecimal(txAmount);	//交易余额
+		if ( SFUtil.isNotEmpty(txAmount) && txAmount.contains(".")){//判断是否带小数位
+			DecimalFormat df = new DecimalFormat( "#.00" );
+			BigDecimal formatAmt = new BigDecimal(df.format(BigDecAmt));//转换成2位小数
+			SFUtil.chkCond( context, formatAmt.compareTo(BigDecAmt)!=0, "ST4895", String.format("交易金额小数位非法!txAmount=[%s]" , txAmount));
+		}
+	}
+	
+	/**
+	 * 合作行金额除100处理
+	 * 
+	 * @param context
+	 * @param txAmount
+	 *            金额
+	 * @return 元为单位金额
+	 * @throws SFException
+	 */
+	public static String conv2CoBankDivAmount( Context context, Object txAmount ) throws SFException {
+		if (SFUtil.isNotEmpty(txAmount)){
+			if( SFConst.INIT_SIDE_COBANK.equals( SFUtil.getDataValue( context, SFConst.PUBLIC_INIT_SIDE ) ) ) {
+				// 合作行金额除100处理
+				return SFUtil.div( txAmount );
+			} 
+			return SFUtil.objectToString( txAmount );
+		} 
+		return "0.00";
+	}
+	/**
+	 * 直联券商金额除100处理
+	 * 
+	 * @param context
+	 * @param txAmount
+	 *            金额
+	 * @return 元为单位金额
+	 * @throws SFException
+	 */
+	public static String conv2SecuDivAmount( Context context, Object txAmount ) throws SFException {
+		if (SFUtil.isNotEmpty(txAmount) ) {
+			if(  SFConst.SECU_ZL.equals( SFUtil.getDataValue( context, SFConst.PUBLIC_SECU_TYPE ) ) ) {
+				// 直联券商金额除100处理
+				return SFUtil.div( txAmount );
+			}
+			return SFUtil.objectToString( txAmount );
+		} 
+		return "0.00";
+	}
+
+	/**
+	 * 合作行金额乘100处理
+	 * 
+	 * @param context
+	 * @param txAmount
+	 *            金额
+	 * @return 已分为单位金额
+	 * @throws SFException
+	 */
+	public static String conv2CoBankMulAmount( Context context, Object txAmount ) throws SFException {
+		if(SFUtil.isNotEmpty(txAmount)){
+			if( SFConst.INIT_SIDE_COBANK.equals( SFUtil.getDataValue( context, SFConst.PUBLIC_INIT_SIDE ) ) ) {
+				// 合作行金额乘100处理
+				DecimalFormat df = new DecimalFormat( "###" );
+				return df.format( SFUtil.mul( txAmount, 100 ) );
+			} 
+			return SFUtil.double2String( txAmount, 2 );
+		}
+		return "0";
+	}
+
+	/**
+	 * 直联券商金额乘100处理
+	 * 
+	 * @param context
+	 * @param txAmount
+	 *            金额
+	 * @return 分为单位金额
+	 * @throws SFException
+	 */
+	public static String conv2SecuMulAmount( Context context, Object txAmount ) throws SFException {
+		if(SFUtil.isNotEmpty(txAmount)){
+			if( SFConst.SECU_ZL.equals( SFUtil.getDataValue( context, SFConst.PUBLIC_SECU_TYPE ) ) ) {
+				// 直联券商金额乘100处理
+				DecimalFormat df = new DecimalFormat( "###" );
+				return df.format( SFUtil.mul( txAmount, 100 ) );
+			} 
+			return SFUtil.double2String( txAmount, 2 );
+		}
+		return "0";
+	}
+	
+	/**
+	 * 转换主机返回的金额.
+	 * 
+	 * @param context
+	 * @param amount
+	 *            :需要转换的金额
+	 * @param transformFlag
+	 *            ：0表示我方到对方转换 1表示对方到我方转换
+	 * @throws EMPException
+	 */
+	public static String transferHostAmt( String amount, String transferFlag ) {
+		char theLastOne = '0';
+		String tmpAmt = null;
+
+		if( "0".equals( transferFlag ) ) {
+			theLastOne = amount.charAt( amount.length() - 1 );
+
+			if( amount.startsWith( "-" ) ) {
+				tmpAmt = amount.substring( 1, amount.length() - 1 );
+
+				if( theLastOne == '0' )
+					theLastOne = '}';
+				else if( theLastOne >= '1' && theLastOne <= '9' )
+					theLastOne = ( char )( theLastOne + 25 );
+
+				tmpAmt = tmpAmt + theLastOne;
+			} else {
+				tmpAmt = amount.substring( 0, amount.length() - 1 );
+
+				if( theLastOne == '0' )
+					theLastOne = '{';
+				else if( theLastOne >= '1' && theLastOne <= '9' )
+					theLastOne = ( char )( theLastOne + 16 );
+
+				tmpAmt = tmpAmt + theLastOne;
+			}
+		} else {
+			theLastOne = amount.charAt( amount.length() - 1 );
+			tmpAmt = amount.substring( 0, amount.length() - 1 );
+
+			if( theLastOne == '{' ) {
+				tmpAmt = tmpAmt + "0";
+			} else if( theLastOne == '}' ) {
+				tmpAmt = "-" + tmpAmt + "0";
+			} else if( theLastOne >= 'A' && theLastOne <= 'I' ) {
+				tmpAmt = tmpAmt + ( char )( theLastOne - 16 );
+			} else if( theLastOne >= 'J' && theLastOne <= 'R' ) {
+				tmpAmt = "-" + tmpAmt + ( char )( theLastOne - 25 );
+			} else {
+				tmpAmt = tmpAmt + theLastOne;
+			}
+		}
+
+		return tmpAmt;
+	}
+}

@@ -1,0 +1,1204 @@
+package core.schedule;
+
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+
+import org.apache.log4j.Logger;
+
+import com.ecc.emp.log.EMPLog;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+
+/**
+   * 日期工具类
+   * Serial NO: FINWARE_V3.5_TFS_2013120003 代码重构
+   * Date 2013-6-6 
+   * @author QF.wulei
+   * @version 1.0
+   */
+public class DateUtil {
+	static Logger logger = Logger.getLogger(DateUtil.class.getName());
+	
+	public static String getDataStringByFormat(Date date,String format){
+		SimpleDateFormat sDF = new SimpleDateFormat(format);
+		String sDate = sDF.format(date);
+		return sDate;
+	}
+	
+	public static Date getDateByFormat(String sDate,String format){
+		Date date = null;
+		try {
+			SimpleDateFormat sDF = new SimpleDateFormat(format);
+			date = sDF.parse(sDate);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return date;
+	}
+
+	/**
+	 * Method getDateTime.
+	 * 
+	 * @return String
+	 */
+
+	public static String getDateTime() {
+		Date date = new Date();
+		SimpleDateFormat sDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String sDate = sDF.format(date);
+		return sDate;
+	}
+	
+	public static String getDateTime(Date date) {
+	    if(date == null)
+	        return "";
+		SimpleDateFormat sDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String sDate = sDF.format(date);
+		return sDate;
+	}
+	
+	public static String getCurrTime() {
+		Date date = new Date();
+		SimpleDateFormat sDF = new SimpleDateFormat("HH:mm:ss");
+		String sDate = sDF.format(date);
+		return sDate;
+	}
+	
+	public static String getCurrTimeSix() {
+		Date date = new Date();
+		SimpleDateFormat sDF = new SimpleDateFormat("HHmmss");
+		String sDate = sDF.format(date);
+		return sDate;
+	}
+
+	public static String getDateTimeTen() {
+		Date date = new Date();
+		SimpleDateFormat sDF = new SimpleDateFormat("MMddHHmmss");
+		String sDate = sDF.format(date);
+		return sDate;
+	}
+	
+	public static String getDateTimeEleven(){
+		Date date = new Date();
+		SimpleDateFormat sDF = new SimpleDateFormat("HHmmssSSS");
+		String sDate = sDF.format(date);
+		return sDate;
+	}
+	
+	/**
+	 * 转化年月日格式
+	 * @return
+	 */
+	public  static String getLowTime() {
+		Date date = new Date();
+		SimpleDateFormat sDF = new SimpleDateFormat("HHmmss");
+		String lDate = sDF.format(date);
+		return lDate;
+	}
+	
+	public static String getTimeStamp() {
+		Timestamp ts = new Timestamp(System.currentTimeMillis());
+		return ts.toString();
+	}
+	
+	public static String getDateTimeSys() {
+		Date date = new Date();
+		SimpleDateFormat sDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String sDate = sDF.format(date);
+		return sDate;
+	}
+	
+	public static String getFBSSysdatetime() {
+		Date date = new Date();
+		SimpleDateFormat sDF = new SimpleDateFormat("yyyyMMdd HH:mm:ss");
+		String sDate = sDF.format(date);
+		return sDate;
+	}
+
+	public static String getSysDateTime() {
+		Date date = new Date();
+		SimpleDateFormat sDF = new SimpleDateFormat("yyyy-MM-dd");
+		String sDate = sDF.format(date);
+		return sDate;
+
+	}
+
+	public static String getCurrDateEight() {
+		Date date = new Date();
+		SimpleDateFormat sDF = new SimpleDateFormat("yyyyMMdd");
+		String lDate = sDF.format(date);
+		return lDate;
+	}
+
+	public static String getCurrDateSix() {
+		Date date = new Date();
+		SimpleDateFormat sDF = new SimpleDateFormat("yyMMdd");
+		String sDate = sDF.format(date);
+		return sDate;
+	}
+	
+	/**
+	 * Method getDateTime.
+	 * 
+	 * @param sepa
+	 * @return String
+	 */
+	public static String getDateTime(String sepa) {
+		Calendar calendar = new GregorianCalendar();
+		Date date = new Date();
+		calendar.setTime(date);
+		String sHour = null;
+		String sMinute = null;
+		String sSecond = null;
+		String sYear = null;
+		String sMonth = null;
+		String sDay = null;
+		int year = calendar.get(Calendar.YEAR);
+		int month = calendar.get(Calendar.MONTH) + 1;
+		int day = calendar.get(Calendar.DATE);
+		int hour = calendar.get(Calendar.HOUR_OF_DAY);
+		int minute = calendar.get(Calendar.MINUTE);
+		int second = calendar.get(Calendar.SECOND);
+		int milliSecond = calendar.get(Calendar.MILLISECOND);
+
+		sYear = String.valueOf(year);
+		if (month < 10) {
+			sMonth = "0" + month;
+		} else
+			sMonth = String.valueOf(month);
+		if (day < 10) {
+			sDay = "0" + day;
+		} else
+			sDay = String.valueOf(day);
+
+		if (hour < 10) {
+			sHour = "0" + hour;
+		} else {
+			sHour = String.valueOf(hour);
+		}
+
+		if (minute < 10) {
+			sMinute = "0" + minute;
+		} else {
+			sMinute = String.valueOf(minute);
+		}
+
+		if (second < 10) {
+			sSecond = "0" + second;
+		} else {
+			sSecond = String.valueOf(second);
+		}
+
+		return sYear + sepa + sMonth + sepa + sDay + sepa + sHour + sepa
+				+ sMinute + sepa + sSecond;
+
+	}
+
+	/*
+	 * sepa 为日期分隔 hsepa 为时间分隔
+	 */
+	public static String getDateTime(String sepa, String hsepa, boolean longflag) {
+		Calendar calendar = new GregorianCalendar();
+		Date date = new Date();
+		calendar.setTime(date);
+		String sHour = null;
+		String sMinute = null;
+		String sSecond = null;
+		String sYear = null;
+		String sMonth = null;
+		String sDay = null;
+		int year = calendar.get(Calendar.YEAR);
+		int month = calendar.get(Calendar.MONTH) + 1;
+		int day = calendar.get(Calendar.DATE);
+		int hour = calendar.get(Calendar.HOUR_OF_DAY);
+		int minute = calendar.get(Calendar.MINUTE);
+		int second = calendar.get(Calendar.SECOND);
+		int milliSecond = calendar.get(Calendar.MILLISECOND);
+
+		sYear = String.valueOf(year);
+		if (month < 10) {
+			sMonth = "0" + month;
+		} else
+			sMonth = String.valueOf(month);
+		if (day < 10) {
+			sDay = "0" + day;
+		} else
+			sDay = String.valueOf(day);
+
+		if (hour < 10) {
+			sHour = "0" + hour;
+		} else {
+			sHour = String.valueOf(hour);
+		}
+
+		if (minute < 10) {
+			sMinute = "0" + minute;
+		} else {
+			sMinute = String.valueOf(minute);
+		}
+
+		if (second < 10) {
+			sSecond = "0" + second;
+		} else {
+			sSecond = String.valueOf(second);
+		}
+		if (longflag)
+			return sYear + sepa + sMonth + sepa + sDay + sHour + hsepa
+					+ sMinute + hsepa + sSecond;
+		return sYear + sepa + sMonth + sepa + sDay;
+	}
+
+	public static String getCurrDateTen() {
+
+		String sepa = "-";
+		Calendar calendar = new GregorianCalendar();
+		Date date = new Date();
+		calendar.setTime(date);
+		String sYear = null;
+		String sMonth = null;
+		String sDay = null;
+		int year = calendar.get(Calendar.YEAR);
+		int month = calendar.get(Calendar.MONTH) + 1;
+		int day = calendar.get(Calendar.DATE);
+
+		sYear = String.valueOf(year);
+		if (month < 10) {
+			sMonth = "0" + month;
+		} else
+			sMonth = String.valueOf(month);
+		if (day < 10) {
+			sDay = "0" + day;
+		} else
+			sDay = String.valueOf(day);
+		return sYear + sepa + sMonth + sepa + sDay;
+
+	}
+
+	
+	//前一天的日期
+	public static String getPerDateTen() {
+	    Calendar calendar = Calendar.getInstance();//此时打印它获取的是系统当前时间
+        calendar.add(Calendar.DATE, -1);    //得到前一天
+        String  yestedayDate = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
+        return yestedayDate;
+	}
+	
+	//前n天日期
+	public static String getDateTenNago(int n) {
+	    Calendar calendar = Calendar.getInstance();//此时打印它获取的是系统当前时间
+        calendar.add(Calendar.DATE, -n);    //得到前一天
+        String  yestedayDate = new SimpleDateFormat("yyyy-MM-dd").format(calendar.getTime());
+        return yestedayDate;
+	}
+	
+	public static boolean checkLockTime(Date usingDate, int subM) {
+		Calendar calendar1 = new GregorianCalendar();
+		calendar1.setTime(new Date());
+		Calendar calendar2 = new GregorianCalendar();
+		calendar2.setTime(usingDate);
+		int year1 = calendar1.get(Calendar.YEAR);
+		int month1 = calendar1.get(Calendar.MONTH);
+		int day1 = calendar1.get(Calendar.DATE);
+		int hour1 = calendar1.get(Calendar.HOUR_OF_DAY);
+		int minute1 = calendar1.get(Calendar.MINUTE);
+		int year2 = calendar2.get(Calendar.YEAR);
+		int month2 = calendar2.get(Calendar.MONTH);
+		int day2 = calendar2.get(Calendar.DATE);
+		int hour2 = calendar2.get(Calendar.HOUR_OF_DAY);
+		int minute2 = calendar2.get(Calendar.MINUTE);
+		int nSubDay = 0;
+		if (day1 != day2)
+			nSubDay = 1;
+		long sub = (nSubDay * 24 + hour1 - hour2) * 60 + minute1 - minute2;
+		//System.out.print(sub);
+		if (sub > subM)
+			return true;
+		else
+			return false;
+	}
+
+	/**
+	 * Method getUnlockTime.
+	 * 
+	 * @param interval
+	 * @return String
+	 */
+
+	public static String getUnlockTime(int interval) {
+		//Calendar calendar = Calendar.getInstance();
+		Calendar calendar = new GregorianCalendar();
+		calendar.setTime(new Date());
+		String sHour = null;
+		String sMinute = null;
+		String sSecond = null;
+		String sYear = null;
+		String sMonth = null;
+		String sDay = null;
+		calendar.set(Calendar.HOUR_OF_DAY, calendar.get(Calendar.HOUR_OF_DAY)
+				- interval);
+		int year = calendar.get(Calendar.YEAR);
+		int month = calendar.get(Calendar.MONTH) + 1;
+		int day = calendar.get(Calendar.DATE);
+		int hour = calendar.get(Calendar.HOUR_OF_DAY);
+		int minute = calendar.get(Calendar.MINUTE);
+		int second = calendar.get(Calendar.SECOND);
+		int milliSecond = calendar.get(Calendar.MILLISECOND);
+
+		sYear = String.valueOf(year);
+		if (month < 10) {
+			sMonth = "0" + month;
+		} else
+			sMonth = String.valueOf(month);
+		if (day < 10) {
+			sDay = "0" + day;
+		} else
+			sDay = String.valueOf(day);
+
+		if (hour < 10) {
+			sHour = "0" + hour;
+		} else {
+			sHour = String.valueOf(hour);
+		}
+
+		if (minute < 10) {
+			sMinute = "0" + minute;
+		} else {
+			sMinute = String.valueOf(minute);
+		}
+
+		if (second < 10) {
+			sSecond = "0" + second;
+		} else {
+			sSecond = String.valueOf(second);
+		}
+
+		return sYear + "-" + sMonth + "-" + sDay + " " + sHour + ":" + sMinute
+				+ ":" + sSecond;
+
+	}
+
+	/**
+	 * Method getTime.
+	 * 
+	 * @return long
+	 */
+	public static long getTime() {
+		return System.currentTimeMillis();
+
+	}
+
+	/**
+	 * Method getClassType.
+	 * 
+	 * @param str
+	 * @return String
+	 */
+	public static String getClassType(String str) {
+		String type = "CHAR_CELL";
+		if (str != null) {
+			if (str.equalsIgnoreCase("CHAR"))
+				type = "CHAR_CELL";
+			else if (str.equalsIgnoreCase("TIME"))
+				type = "TIME_CELL";
+			else if (str.equalsIgnoreCase("CCY"))
+				type = "CCY_CELL";
+			else if (str.equalsIgnoreCase("DATE"))
+				type = "DATE_CELL";
+			else if (str.equalsIgnoreCase("VARCHAR")
+					|| str.equalsIgnoreCase("TXT")
+					|| str.equalsIgnoreCase("LONGVARCHAR"))
+				type = "TEXT_CELL";
+			else if (str.equalsIgnoreCase("FLOAT")
+					|| str.equalsIgnoreCase("FLT")
+					|| str.equalsIgnoreCase("AMT"))
+				type = "FLT_CELL";
+			else if (str.equalsIgnoreCase("RATE"))
+				type = "RATE_CELL";
+			else if (str.equalsIgnoreCase("INTEGER")
+					|| str.equalsIgnoreCase("INT"))
+				type = "INT_CELL";
+			else
+				type = "CHAR_CELL";
+		}
+		//else if(str.equalsIgnoreCase(""))
+		return type;
+
+	}
+
+
+	
+
+	public static String packTime() {
+		//Calendar calendar = Calendar.getInstance();
+		Calendar calendar = new GregorianCalendar();
+		Date date = new Date();
+		//String sDate = DateFormat.getDateTimeInstance().format(date);
+
+		calendar.setTime(date);
+		String sHour = null;
+		String sMinute = null;
+		String sSecond = null;
+		String sYear = null;
+		String sMonth = null;
+		String sDay = null;
+		int year = calendar.get(Calendar.YEAR);
+		int month = calendar.get(Calendar.MONTH) + 1;
+		int day = calendar.get(Calendar.DATE);
+		int hour = calendar.get(Calendar.HOUR_OF_DAY);
+		int minute = calendar.get(Calendar.MINUTE);
+		int second = calendar.get(Calendar.SECOND);
+		int milliSecond = calendar.get(Calendar.MILLISECOND);
+
+		sYear = String.valueOf(year);
+		if (month < 10) {
+			sMonth = "0" + month;
+		} else
+			sMonth = String.valueOf(month);
+		if (day < 10) {
+			sDay = "0" + day;
+		} else
+			sDay = String.valueOf(day);
+
+		if (hour < 10) {
+			sHour = "0" + hour;
+		} else {
+			sHour = String.valueOf(hour);
+		}
+
+		if (minute < 10) {
+			sMinute = "0" + minute;
+		} else {
+			sMinute = String.valueOf(minute);
+		}
+
+		if (second < 10) {
+			sSecond = "0" + second;
+		} else {
+			sSecond = String.valueOf(second);
+		}
+
+		String time = sYear + "-" + sMonth + "-" + sDay + " " + sHour + ":"
+				+ sMinute + ":" + sSecond;
+		return time;
+	}
+
+	public static String dateAddDays(String sDate, int days) {
+		if (sDate == null || sDate.length() < 8) return sDate;
+		
+		int dLen = sDate.length();
+		
+		if (dLen == 8) {
+			try {
+				sDate = DateEToTen(sDate);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		long addtime = (long) days * 24 * 60 * 60 * 1000;
+
+		java.sql.Date sqldate = java.sql.Date.valueOf(sDate);
+
+		if (sqldate == null)
+			return sDate;
+		java.sql.Date newdate = new java.sql.Date(addtime + sqldate.getTime());
+
+		if (dLen == 8) {
+			return dateTenToEight(newdate.toString());
+		} else {
+			return newdate.toString();
+		}
+	}
+
+	public static String timeAddDays(String sDate, int days) {
+		if (sDate == null || sDate.length() < 19) return sDate;
+		
+		long addtime = (long) days * 24 * 60 * 60 * 1000;
+
+		Timestamp sqldate = Timestamp.valueOf(sDate);
+
+		if (sqldate == null)
+			return sDate;
+		Timestamp newtime = new Timestamp(addtime + sqldate.getTime());
+
+		return newtime.toString().substring(0, newtime.toString().length() - 2);
+	}
+
+	public static synchronized String getTimeStamp(String unitStr) {
+		String timeStr = "";
+		try {
+			Thread.sleep(1);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		Calendar cal = Calendar.getInstance();
+		String str = Integer.toString(cal.get(1));
+		int month = 1 + cal.get(2);
+		int day = cal.get(5);
+		int hour = cal.get(11);
+		int minute = cal.get(12);
+		int second = cal.get(13);
+		int milliSecond = cal.get(14);
+		if (month < 10)
+			timeStr = timeStr + "0" + month;
+		else
+			timeStr = timeStr + month;
+		if (day < 10)
+			timeStr = timeStr + "0" + day;
+		else
+			timeStr = timeStr + day;
+		if (hour < 10)
+			timeStr = timeStr + "0" + hour;
+		else
+			timeStr = timeStr + hour;
+		if (minute < 10)
+			timeStr = timeStr + "0" + minute;
+		else
+			timeStr = timeStr + minute;
+		if (second < 10)
+			timeStr = timeStr + "0" + second;
+		else
+			timeStr = timeStr + second;
+		if (milliSecond < 100) {
+			if (milliSecond >= 10)
+				timeStr = timeStr + "0" + milliSecond;
+			else
+				timeStr = timeStr + "00" + milliSecond;
+		} else {
+			timeStr = timeStr + milliSecond;
+		}
+		timeStr = "" + str + timeStr;
+		if (unitStr != null)
+			timeStr = timeStr + unitStr.trim();
+		return timeStr;
+	}
+
+	/**
+	 * yyyy-MM-dd转yyyyMMdd
+	 * @param DateStr
+	 * @return
+	 * @throws StringIndexOutOfBoundsException
+	 */
+	public static String dateTenToEight(String DateStr)
+			throws StringIndexOutOfBoundsException {
+		if (DateStr == null || DateStr.equals(""))
+			return null;
+		return DateStr.substring(0, 4) + DateStr.substring(5, 7)
+				+ DateStr.substring(8, 10);
+	}
+	
+	/**
+	 * yyyy-MM-dd转yyMMdd
+	 * @param dateStr
+	 * @return
+	 * @throws Exception
+	 */
+	public static String dateTenToSix(String dateStr)	throws Exception {
+		if (dateStr == null || dateStr.equals("") || dateStr.length()!=10 )
+			return null;
+	    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	    Date sDate = sdf.parse(dateStr);
+	    sdf =  new SimpleDateFormat("yyMMdd");
+	    dateStr = sdf.format(sDate);
+		return dateStr;
+	}
+	
+	public static String getRunningTime(String starttime, String endtime)throws Exception {
+		if(starttime.equals("") || starttime == null || endtime.equals("") || endtime == null){
+			return null;
+		}
+		try{
+			Timestamp time1 = Timestamp.valueOf(starttime);
+			Timestamp time2 = Timestamp.valueOf(endtime);
+			long time = (time2.getTime() - time1.getTime())/1000;
+			return String.valueOf(time);
+		}catch (Exception e) {
+			e.printStackTrace();
+			throw new SFException(e);
+		}
+	}
+
+	public static String DateSixToTen(String dateStr)	throws Exception {
+		if (dateStr == null || dateStr.equals("") || dateStr.length()!=6 )
+			return null;
+	    SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd");
+	    Date sDate = sdf.parse(dateStr);
+	    sdf =  new SimpleDateFormat("yyyy-MM-dd");
+	    dateStr = sdf.format(sDate);
+		return dateStr;
+	}
+	
+	public static String DateEightToSix(String dateStr)	throws Exception {
+		if (dateStr == null || dateStr.equals("") || dateStr.length()!=8 )
+			return null;
+	    SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+	    Date sDate = sdf.parse(dateStr);
+	    sdf =  new SimpleDateFormat("yyMMdd");
+	    dateStr = sdf.format(sDate);
+		return dateStr;
+	}
+	
+	public static String DateEToTen(String dateStr) throws Exception {
+		if (dateStr.length() < 8)
+			return dateStr;
+		return dateStr.substring(0, 4) + "-" + dateStr.substring(4, 6) + "-"
+				+ dateStr.substring(6, 8);
+	}
+
+	public static String format(String str, int type, int len)
+			throws SFException {
+		try {
+			int strLen = str.getBytes().length;
+			String retval = null;
+
+			if (strLen > len)
+				return str;
+			while (strLen < len) {
+				if (type == 1) {
+					str = "0" + str;
+
+				} else if (type == 2) {
+					str = " " + str;
+				} else if (type == 3) {
+					str = str + " ";
+				}
+				strLen = str.getBytes().length;
+			}
+
+			return str;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SFException(e);
+		}
+	}
+
+	public static String nowDateString() {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+		Date currentTime_1 = new Date();
+		String dateString = formatter.format(currentTime_1);
+
+		return dateString;
+	}
+
+	public static String nowTimeString() {
+		SimpleDateFormat formatter = new SimpleDateFormat("HHmmss");
+		Date currentTime = new Date();
+		String dateString = formatter.format(currentTime);
+
+		return dateString;
+	}
+
+	public static String FormatTime(String time) {
+		String time1 = time;
+		if (time.length() == 8)
+			return time1;
+		String hh = time1.substring(0, time1.indexOf(":"));
+		if (hh.length() == 1)
+			hh = "0" + hh;
+		time1 = hh + time1.substring(time1.indexOf(":"), time.length());
+		return time1;
+	}
+
+	public static String nowDateYYMMDD() {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyMMdd");
+		Date currentTime_1 = new Date();
+		String dateString = formatter.format(currentTime_1);
+		return dateString;
+	}
+
+	/*
+	 * strDate 指定日期值 如 2010-01-26
+	 * days 天数
+	 * 如果days天数为正,则返回strDate日期后days天的日期值
+	 * 如果days天数为负,则返回strDate日期前days天的日期值
+	 * author lzy 2009-01-26
+	 */
+	public static String calDateByDays(String strDate, int days) {
+		String newdate = "";
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		GregorianCalendar grc = new GregorianCalendar();
+		try {
+			grc.setTime(formatter.parse(strDate));
+			grc.add(GregorianCalendar.DATE, days);
+			newdate = formatter.format(grc.getTime());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return newdate;
+	}
+
+	/*
+	 * strDate 指定日期值 如 2010-01-26
+	 * days 天数
+	 * 如果days天数为正,则返回strDate日期后days天的日期值
+	 * 如果days天数为负,则返回strDate日期前days天的日期值
+	 * author lzy 2009-01-26
+	 */
+	public static String calTime(String strDate, int minute) {
+		String newdate = "";
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		GregorianCalendar grc = new GregorianCalendar();
+		try {
+			grc.setTime(formatter.parse(strDate));
+			grc.add(GregorianCalendar.MINUTE, minute);
+			newdate = formatter.format(grc.getTime());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return newdate;
+	}
+	
+	 public static long subDays( String beginDate,String endDate ) {
+	 	long days = -1;
+	 	try {
+	 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+	 		long begin = formatter.parse(beginDate).getTime();
+	 		long end = formatter.parse(endDate).getTime();
+	 		days = ( end - begin ) / (1000 * 60 * 60 * 24);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return days;
+	 }
+
+	 public static long subMinutes( String beginDate,String endDate ) {
+	 	long munite = -1;
+	 	try {
+	 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	 		long begin = formatter.parse(beginDate).getTime();
+	 		long end = formatter.parse(endDate).getTime();
+	 		munite = ( end - begin ) / ( 60 * 1000);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return munite;
+	 }
+	 
+	 public static Date str2Date(String dateStr,int len){
+	 	Date date = new Date();
+		try {
+			SimpleDateFormat sDF = null;
+			if( len == 6 ){
+				sDF = new SimpleDateFormat("yyMMdd");
+			}else if( len == 8 ){
+				sDF = new SimpleDateFormat("yyyyMMdd");
+			}else if( len == 10 ){
+				sDF = new SimpleDateFormat("yyyy-MM-dd");
+			}else if( len == 19 ){
+				sDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			}
+			date = sDF.parse(dateStr);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return date;
+	 }
+	 
+	 public static String getDT4Swift(String dsr, String ff, String dsp, String tsp){
+		if (SFUtil.isEmpty(dsr)) return "";
+		if (dsr.length() != ff.length()) return dsr;
+		Calendar calendar = new GregorianCalendar();
+		Date date = new Date();
+		calendar.setTime(date);
+		
+		String ds = "";
+		try {
+			if ("yyMMddHHmm".equals(ff) && SFUtil.isNotEmpty(dsp) && SFUtil.isNotEmpty(tsp)) {
+				ds = "20" + dsr.substring(0, 2) + dsp + 
+				dsr.substring(2, 4) + dsp + 
+				dsr.substring(4, 6) + " " + 
+				dsr.substring(6, 8) + tsp + 
+				dsr.substring(8, 10) + tsp + 
+				"00";;
+			} else if ("HHmmyyMMdd".equals(ff) && SFUtil.isNotEmpty(dsp) && SFUtil.isNotEmpty(tsp)) {//1153140724
+				ds = "20" + dsr.substring(4, 6) + dsp + 
+				dsr.substring(6, 8) + dsp + 
+				dsr.substring(8, 10) + " " + 
+				dsr.substring(0, 2) + tsp + 
+				dsr.substring(2, 4);
+			} else if ("yyyyMMdd".equals(ff) && SFUtil.isNotEmpty(dsp)) {
+				ds = dsr.substring(0, 4) + dsp + dsr.substring(4, 6) + dsp + dsr.substring(6);
+			} else if ("yyMMdd".equals(ff) && SFUtil.isNotEmpty(dsp)) {
+				ds = "20" + dsr.substring(0, 2) + dsp + dsr.substring(2, 4) + dsp + dsr.substring(4);
+			} else if ("yyMMdd".equals(ff)) {
+				ds = "20" + dsr;
+			} else if ("MMdd".equals(ff) && SFUtil.isNotEmpty(dsp)) {
+				ds = calendar.get(Calendar.YEAR) + dsp + dsr.substring(0, 2) + dsp + dsr.substring(2);
+			} else if ("MMdd".equals(ff)) {
+				ds = calendar.get(Calendar.YEAR) + dsr;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return ds;
+	}
+	 
+	 public static String date2Str(String dateStr,int olen){
+		 	String str="";
+		 	Date date = null;
+			try {
+			    int len = dateStr.length();
+				SimpleDateFormat sDF = null;
+				if( len > 19){
+					dateStr = dateStr.substring(0, 19);
+					len = dateStr.length();
+				}
+				if( len == 6 ){
+					sDF = new SimpleDateFormat("yyMMdd");
+				}else if( len == 8 ){
+					sDF = new SimpleDateFormat("yyyyMMdd");
+				}else if( len == 10 ){
+					sDF = new SimpleDateFormat("yyyy-MM-dd");
+				}else if( len == 19 ){
+					sDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				}
+				if(sDF != null) date = sDF.parse(dateStr);
+				
+				if( olen == 6 ){
+					sDF = new SimpleDateFormat("yyMMdd");
+				}else if( olen == 8 ){
+					sDF = new SimpleDateFormat("yyyyMMdd");
+				}else if( olen == 10 ){
+					sDF = new SimpleDateFormat("yyyy-MM-dd");
+				}else if( olen == 19 ){
+					sDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				}
+				str = sDF.format(date);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			return str;
+	}
+	 
+	 public static long subSeconds( Date beginDate,Date endDate ) {
+	 	long days = -1;
+	 	long begin = beginDate.getTime();
+	 	long end = endDate.getTime();
+	 	days = ( begin - end ) / 1000;
+		return days;
+	 }
+	 
+	 public static long dateDifference(String startDate , String endDate) throws ParseException {
+	 	long  day = -1;
+	 	if(startDate==null||startDate.length()==0)
+	 		startDate = getCurrDateTen();
+	 	if(endDate==null||endDate.length()==0)
+	 		endDate = getCurrDateTen();
+	    SimpleDateFormat myFormatter = new SimpleDateFormat("yyyy-MM-dd");
+	    Date date= myFormatter.parse(endDate);
+	    Date mydate= myFormatter.parse(startDate);
+	    day=(date.getTime()-mydate.getTime())/(24*60*60*1000);
+	    return day;
+	 }
+	 
+	 public static long dateDifferenceLong(String startDate , String endDate) throws ParseException {
+	 	long  day = -1;
+	 	if(startDate==null||startDate.length()==0)
+	 		startDate = getCurrDateTen();
+	 	if(endDate==null||endDate.length()==0)
+	 		endDate = getCurrDateTen();
+	    SimpleDateFormat myFormatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    Date edate= myFormatter.parse(endDate);
+	    Date sdate= myFormatter.parse(startDate);
+	    EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.INFO, 0, endDate + "   end  " + edate.getTime()); 
+	    EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.INFO, 0, startDate+ "   begin " + sdate.getTime());
+	    day= edate.getTime()-sdate.getTime();
+	    return day;
+	 }
+	 
+	 public static ArrayList listWeekend(int year,int param){
+	 	ArrayList list = new ArrayList();
+	 	for (int i = 1; i <= 12; i++) {
+	 		String month = i + "";
+	 		if(i<10) month = "0" + i;
+			for (int j = 1; j <= getDay(year, i); j++) {
+				String day = j + "";
+				if(j<10) day = "0" + j;
+				if (getIsWeekend(year, i, j ,param)) {
+					//System.out.print(year+"-"+month+"-"+day + " ");
+					list.add(year+"-"+month+"-"+day);
+				}
+			}
+			//System.out.print("\r\n");
+	 	}
+	 	return list;
+	 }
+	 
+	 public static int getDay(int year, int month) {
+		if (month == 1 || month == 3 || month == 5 || month == 7 || month == 8
+				|| month == 10 || month == 12) {
+			return 31;
+		} else if (month != 2) {
+			return 30;
+		} else {
+			if (0 == year % 4 && ((year % 100 != 0) || (year % 400 == 0))) { //判断当年是否是闰年
+				return 29;
+			} else {
+				return 28;
+			}
+		}
+	}
+	
+   public static boolean  getIsWeekend(int year, int month, int day ,int param) {
+		Calendar c = Calendar.getInstance();
+		c.set(year, month - 1, day);
+		int week = c.get(Calendar.DAY_OF_WEEK);
+		//if (week == 7 || week == 1) {
+		if (week == param) {
+			return true;
+		}
+		return false;
+	}
+    
+	public  String getFirstDayOfMonth(){
+		Calendar cald=Calendar.getInstance();
+		cald.set(Calendar.DAY_OF_MONTH,cald.getActualMinimum(Calendar.DAY_OF_MONTH));
+		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+		String fd4m=sdf.format(cald.getTime());
+		EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "=========FirstDayOfMonth="+fd4m+"==========");
+	   return fd4m;
+	}
+	
+	public  String getLastDayOfMonth(){
+		Calendar cald=Calendar.getInstance();
+		cald.set(Calendar.DAY_OF_MONTH,cald.getActualMaximum(Calendar.DAY_OF_MONTH));
+		SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+		String ld4m=sdf.format(cald.getTime());
+		EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "=========FirstDayOfMonth="+ld4m+"==========");
+	   return ld4m;
+	}
+   
+	/**
+	 * 校验是否节假日
+	 * @param dateStr 例:"2011-12-22"
+	 * @param dateStr 例:"CCY"
+	 * @return true|false
+	 * @throws SFException 
+	 * @throws SFException 
+	 */
+//TODO:::WARNING
+//	public static boolean checkIsHoliday(String dateStr, String ccy) throws SFException{
+//		try {
+//			Date date = str2Date(dateStr,10);
+//			Calendar c = Calendar.getInstance();
+//			c.setTime(date);
+//			String UTCtime = String.valueOf(c.getTimeInMillis());
+//			int day = c.get(Calendar.DAY_OF_WEEK);
+//			HashMap holidaysObj = UtanUtil.getHolidaysObj();
+//			//当数据库没有进行任何币种节假日维护的时候  默认周六周日算节假日
+//			if (holidaysObj == null || holidaysObj.size() == 0) {
+//				if(day==Calendar.SUNDAY || day==Calendar.SATURDAY){
+//					return true;//节假日
+//				} else {
+//					return false;//非节假日
+//				}
+//			}
+//			HashMap holidays = (HashMap)holidaysObj.get(ccy);
+//			//当数据库没有进行币种ccy节假日维护的时候  默认周六周日算节假日
+//			if (holidays == null || holidays.size() == 0) {
+//				if(day==Calendar.SUNDAY || day==Calendar.SATURDAY){
+//					return true;//节假日
+//				} else {
+//					return false;//非节假日
+//				}
+//			}
+//			String workdays = holidays.get("HOLIDAYSWORKDAY").toString();
+//			String weekends = holidays.get("HOLIDAYSWEEKEND").toString();
+//			
+//			if(day==Calendar.SUNDAY || day==Calendar.SATURDAY){
+//				if(weekends.indexOf(UTCtime) == -1){
+//					return true;
+//				}
+//			} else {
+//				if(workdays.indexOf(UTCtime) != -1){
+//					return true;
+//				}
+//			}
+//			return false;
+//		} catch (Exception e) {
+//			EMPLog.log(SFConstance.DEFAULT_TRXCODE, EMPLog.ERROR, 0, e.getMessage(), e);
+//			throw new SFException(e);
+//		}
+//	}
+
+	/**
+	   * 日期格式化
+	   * Serial NO: FINWARE_V3.5_TFS_2013120003 代码重构
+	   * Date 2013-4-20
+	   * @author Johney
+	   * @version 1.0
+	   * @param dateStr
+	   * @param dateStrPattern
+	   * @param specifiedPattern
+	   * @return
+	   * @throws Exception
+	   */
+	public static String formatDateStrToSpecifiedPattern(String dateStr,String dateStrPattern,String specifiedPattern) throws Exception{
+		SimpleDateFormat sdf  = new SimpleDateFormat(dateStrPattern); 
+		Date date = sdf.parse(dateStr);
+		sdf.applyPattern(specifiedPattern);
+		return sdf.format(date);
+	}
+	
+	/**
+	   * 获取当前日期几个月之后的日期
+	   * Serial NO: FINWARE_V3.5_TFS_2013120003 代码重构
+	   * Date 2013-4-22
+	   * @author Johney
+	   * @version 1.0
+	   * @param month
+	   * @return
+	   */
+	public static String dateAddMonth( int month) {
+		 Calendar cal = Calendar.getInstance();
+	     cal.add(Calendar.MONTH, month);
+	     Date time = cal.getTime();
+	     SimpleDateFormat sDF = new SimpleDateFormat("yyyy-MM-dd");
+		 return sDF.format(time);
+	}
+	
+	public static String date2Long(String dateStr) {
+		GregorianCalendar gc = new GregorianCalendar(Integer.parseInt(dateStr.substring(0, 4)), 
+				Integer.parseInt(dateStr.substring(4, 6)) - 1, 
+				Integer.parseInt(dateStr.substring(6, 8)), 00, 00, 00);
+		return gc.getTimeInMillis() + "";
+	}
+	
+	/**
+	 * 时间比较
+	 * @param DATE1
+	 * @param DATE2
+	 * @return
+	 */
+	public static int compareDate(String DATE1, String DATE2) {
+		Date dt1 = str2Date(DATE1, 19);
+		Date dt2 = str2Date(DATE2, 19);
+		if (dt1.getTime() > dt2.getTime()) {
+			return -1;
+		} else if (dt1.getTime() < dt2.getTime()) {
+			return 1;
+		}
+		return 0;
+	}
+
+	public static void main(String[] args) {
+		System.out.println(Integer.parseInt("075501"));
+	}
+	
+	/**
+	 * 获取系统当前日期
+	 * 格式：yyyyMMdd
+	 */
+	public static String getMacDate() {
+		return getMacDate("yyyyMMdd");
+	}
+	
+	/**
+	 * 获取系统当前日期
+	 * 格式：yyMMdd
+	 */
+	public static String getDateShort() {
+		return getMacDate("yyMMdd");
+	}
+	
+	/**
+	 * 获取系统当前时间
+	 * 格式：HH:mm:ss
+	 */
+	public static String getMacTimeFormat() {
+		return getMacDate("HH:mm:ss");
+	}
+	
+	/**
+	 * 获取系统当前时间
+	 * 格式：HHmmss
+	 */
+	public static String getMacTime() {
+		return getMacDate("HHmmss");
+	}
+	
+	/**
+	 * 获取系统当前时间
+	 * 格式: yyyyMMddHHmmss
+	 */
+	public static String getMacDateTimeShort(){
+		return getMacDate("yyyyMMddHHmmss");
+	}
+	/**
+	 * 获取系统当前日期时间
+	 * 格式：yyyy/MM/dd HH:mm:ss
+	 */
+	public static String getMacDateTime() {
+		return getMacDate("yyyy/MM/dd HH:mm:ss");
+	}
+	
+	/**
+	 * 获取系统当前时间
+	 * 格式：HHmmssSSS
+	 */
+	public static String getMacTimeStamp(){
+		return getMacDate("HHmmssSSS");
+		
+	}
+	
+	/**
+	 * 获取系统当前日期时间
+	 * 格式：YYYYMMDD HH:MM:SS.ttt
+	 */
+	public static String getMacDateTimeFormat(){
+		return getMacDate("yyyyMMdd HH:mm:ss.SSS");
+	}
+	
+	/**
+	 * 根据指定格式获取系统当前日期/时间
+	 * @param format 日期/时间格式
+	 * @return 日期/时间
+	 */
+	private static  String getMacDate(String format) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+		return dateFormat.format(new Date());
+	}
+	
+	/**
+	 * 获取昨天
+	 * @param date
+	 * @return
+	 */
+	public static String getYestoday(String d) throws Exception {
+		SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd");
+		Calendar cal = Calendar.getInstance();
+		Date date = sf.parse(d);
+		cal.setTime(date);
+		cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) - 1);
+		date = cal.getTime();
+		return sf.format(date);
+	}
+	
+	/**
+	 * 根据日期基数向前(过去)推算指定天数
+	 * @param sourceDate 日期基数
+	 * @param days 推算天数
+	 * @return 计算后的日期
+	 * @author wuyong
+	 */
+	public static String beforeTheDate(String sourceDate, int days) throws Exception{
+		String theday = "";
+		SimpleDateFormat sf = new SimpleDateFormat("yyyyMMdd");
+		Calendar cal = Calendar.getInstance();
+		Date date = sf.parse(sourceDate);
+		cal.setTime(date);
+		cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) - days);
+		date = cal.getTime();
+		theday = sf.format(date);
+		return theday;
+	}
+	
+}

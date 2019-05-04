@@ -1,0 +1,385 @@
+/**
+ * module.trans.secu2sf/SFOnline/T100301.java
+ */
+package module.trans.secu2sf;
+
+import java.math.BigDecimal;
+import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.Map;
+
+import module.bean.AgtCustomerInfo;
+import module.bean.SecCompData;
+import module.bean.SignAccountData;
+import module.dao.AgtCustomerInfoDao;
+import module.trans.TranBase;
+import module.trans.sf2bankchl.QryBalClient;
+import module.trans.sf2cobank.T810025Client;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.util.AmtUtil;
+import common.util.BizUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * A股券商端发起--银行端余额查询交易
+ *
+ * 处理逻辑：
+ *			1.接收券商交易 （<深>Acmt.009.01/11009，<直>6027/612211）
+ * 			2.检查请求包有效性
+ *			3.代理:调用612325上代理查询余额
+ *			4.对于行内个人，调用D+接口R3034查询账户余额
+ *			5.对于行内对公，调用D+接口C3019查询账户余额
+ *			6.返回券商 （<深>Acmt.010.01/11009，<直>6027/612211）
+ *
+ * tran code :100301
+ * @author 吕超鸿
+ * @date 2017-9-19 上午08:39:04
+ * @since 1.0
+ */
+
+public class T100301 extends TranBase {
+
+	private String secCompCode = null;// 券商代码
+
+	private String capAcct = null;// 券商端资金台账号
+
+	private String curCode = null;// 币种
+
+	private String acctId = null;// 发展卡卡号/对公账号
+
+	private String invType = null;// 客户类型：1：个人，2：机构
+
+	private String invName = null;// 客户名称
+
+	private String idType = null;// 证件类型
+
+	private String secuType = null;// 券商类型，区分直联、深证通
+
+	private String acctBal = null;// 客户帐户人民币余额
+
+	private String acctBalHKD = null;// 客户帐户港币余额
+
+	private String acctBalUSD = null;// 客户帐户美元余额
+
+	private String chlSeqId = null; // 22位流水号
+
+	private String initSeqId = null; // 交易流水号
+
+	private SignAccountData signAccountData = null;// 签约信息
+
+	@Override
+	protected void initialize( Context context ) throws SFException {
+		KeyedCollection kColl = null;
+		KeyedCollection scAcctKcoll = null;
+		KeyedCollection acctSvcrKcoll = null;
+
+		try {
+			initSeqId = SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID );// 14位前置流水号
+			chlSeqId = BizUtil.getChlSeqId( context, BizUtil.getSubTxSeqId( initSeqId ) ); // 获取22位流水号;
+
+			// 获取券商编码
+			secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" );
+			if( SFUtil.isEmpty( secCompCode ) ) {
+				kColl = SFUtil.getDataElement( context, "Acmt00901" );
+				scAcctKcoll = SFUtil.getDataElement( context, kColl, "ScAcct" );
+				acctSvcrKcoll = SFUtil.getDataElement( context, scAcctKcoll, "AcctSvcr" );
+				secCompCode = SFUtil.getDataValue( context, acctSvcrKcoll, "SEC_COMP_CODE" );
+			}
+
+			SFUtil.chkCond( context, SFUtil.isEmpty( secCompCode ), "ST5711", String.format( "此券商信息不存在" ) );
+			SecCompData secCompData = secCompDataDao.qrySecCompData( context, tranConnection, secCompCode );
+			SFUtil.chkCond( context, ( null == secCompData ), "ST5711", String.format( "此券商信息不存在" ) );
+
+			SFUtil.setDataValue( context, SFConst.PUBLIC_SECU_TYPE, secCompData.getSztFlag() );// 将券商类型放入上下文中
+			SFUtil.setDataValue( context, SFConst.PUBLIC_SECU, secCompData );
+
+			// 券商类型
+			secuType = SFUtil.getDataValue( context, SFConst.PUBLIC_SECU_TYPE );
+			SFUtil.chkCond( context, SFUtil.isEmpty( secuType ), "ST5701", String.format( "券商类型不能为空[%s]", secuType ) );
+
+			if( SFConst.SECU_ZL.equals( secuType ) ) { // 直联模式
+
+				secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" ); // 券商代码
+				capAcct = SFUtil.getReqDataValue( context, "CAP_ACCT" ); // 券商端资金台账号
+				acctId = SFUtil.getReqDataValue( context, "ACCT_ID" ); // 发展卡卡号/对公账号
+				curCode = SFUtil.getReqDataValue( context, "CUR_CODE" ); // 币种
+				invName = SFUtil.getReqDataValue( context, "INV_NAME" );// 客户名称
+
+			} else if( SFConst.SECU_SZT.equals( secuType ) ) { // 深证通模式
+
+				KeyedCollection custKcoll = SFUtil.getDataElement( context, kColl, "Cust" );
+				KeyedCollection bkAcctKcoll = SFUtil.getDataElement( context, kColl, "BkAcct" );
+				KeyedCollection msgHdrKcoll = SFUtil.getDataElement( context, "MsgHdr" );
+				KeyedCollection refKcoll = SFUtil.getDataElement( context, msgHdrKcoll, "Ref" );
+				String secSeqId = SFUtil.getDataValue( context, refKcoll, "Ref" );// 券商流水号
+
+				curCode = SFUtil.getDataValue( context, kColl, "CUR_CODE" );
+				invName = SFUtil.getDataValue( context, custKcoll, "INV_NAME" );
+				idType = SFUtil.getDataValue( context, custKcoll, "ID_TYPE_SZT" );
+				invType = BizUtil.convSZT2SFInvType( context, ( String )SFUtil.getDataValue( context, custKcoll, "INV_TYPE_SZT" ) );
+				acctId = SFUtil.getDataValue( context, bkAcctKcoll, "ACCT_ID" );
+				secCompCode = SFUtil.getDataValue( context, acctSvcrKcoll, "SEC_COMP_CODE" );
+				capAcct = SFUtil.getDataValue( context, scAcctKcoll, "CAP_ACCT" );
+
+				// 组装券商通用上下文
+				KeyedCollection keyColl = new KeyedCollection( "100301_I" );
+				SFUtil.addDataField( context, keyColl, "SEC_COMP_CODE", secCompCode );
+				SFUtil.addDataField( context, keyColl, "CUR_CODE", curCode );
+				SFUtil.addDataField( context, keyColl, "INV_NAME", invName );
+				SFUtil.addDataField( context, keyColl, "ID_TYPE", idType );
+				SFUtil.addDataField( context, keyColl, "INV_TYPE", invType );// 转换客户类型
+				SFUtil.addDataField( context, keyColl, "ACCT_ID", acctId );
+				SFUtil.addDataField( context, keyColl, "CAP_ACCT", capAcct );
+				SFUtil.addDataField( context, keyColl, "SEC_SEQ_ID", secSeqId );
+
+				SFUtil.addDataElement( context, keyColl );
+			}
+
+			// 默认RMB
+			if( SFUtil.isEmpty( curCode ) ) {
+				curCode = SFConst.CUR_CODE_RMB;
+			}
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+	}
+
+	@Override
+	public void doHandle( Context context ) throws SFException {
+
+		// 开始上主机
+		doHost( context );
+
+		// 组包返回券商
+		doSecu( context );
+	}
+
+	@Override
+	public void doHost( Context context ) throws SFException {
+		SFLogger.info( context, "doHost()开始" );
+		Context msgContext = null;
+		Map<String, Object> msg = null;
+		String initSide = null;
+		DecimalFormat df = new DecimalFormat( "#0.00" );// 数字格式化，保留两位小数
+		try {
+
+			initSide = signAccountData.getInitSide();// 渠道
+			if( SFConst.INIT_SIDE_COBANK.equals( initSide ) ) { // 合作行客户
+				AgtCustomerInfoDao agtCustomerInfoDao = new AgtCustomerInfoDao();
+				AgtCustomerInfo agtCustomerInfo = agtCustomerInfoDao.qryAgtCustomerInfo( context, tranConnection, capAcct, secCompCode );
+				String bankId = SFUtil.getReqDataValue( context, "BANK_ID" );
+				if( null != agtCustomerInfo ) {
+					bankId = agtCustomerInfo.getBankId();
+				}
+
+				// 构建请求报文
+				msg = new HashMap<String, Object>();
+				msg.put( "ACCT_ID", acctId );// 银行账号account_no
+				msg.put( "SEC_COMP_CODE", secCompCode );// 券商代码SecCode
+				msg.put( "CAP_ACCT", capAcct );// 证券资金台账号StkAcct
+
+				/*
+				 * 发送请求报文到合作行
+				 */
+				T810025Client coBankProcess = new T810025Client();
+				Context coBankMsgContext = coBankProcess.send( context, msg, bankId );
+
+				String retFlag = SFUtil.getDataValue( coBankMsgContext, SFConst.PUBLIC_RET_FLAG );
+
+				/* 判断是否成功 */
+				SFUtil.chkCond( context, ( !SFConst.RET_SUCCESS.equals( retFlag ) ), "ST5604", "查询银行卡余额失败" );
+
+				// 上合作行返回成功
+				KeyedCollection oKeyCol = SFUtil.getDataElement( coBankMsgContext, "810025_O" );
+				invName = SFUtil.getDataValue( coBankMsgContext, oKeyCol, "INV_NAME" );
+				acctBal = df.format( new BigDecimal( SFUtil.div( SFUtil.getDataValue( coBankMsgContext, oKeyCol, "ACCT_BAL" ) ) ) );
+				SFLogger.info( coBankMsgContext, String.format( "查询合作行客户帐户余额:客户账号[%s],券商代码[%s],资金账号[%s],客户姓名[%s],余额[%s]完成", acctId, secCompCode, capAcct, invName, acctBal ) );
+
+				// 行内客户
+			} else {
+				SFLogger.info( context, "上主机查询帐户余额开始" );
+
+				/*
+				 * 发送请求报文到主机
+				 */
+				msg = new HashMap<String, Object>();
+				msg.put( "BIZ_SEQ_NO", chlSeqId );// 业务流水号
+				msg.put( "CONSUMER_SEQ_NO", chlSeqId );// 交易流水号
+				msg.put( "ACCT_ID", acctId );// 账号ACCT_NO
+				msg.put( "CUR_CODE", curCode );// 币种CCY
+
+				QryBalClient qryBalClient = new QryBalClient();
+				msgContext = qryBalClient.send( context, msg );
+				String retFlag = SFUtil.getDataValue( msgContext, SFConst.PUBLIC_RET_FLAG );
+
+				/* 判断是否成功 */
+				SFUtil.chkCond( context, ( !SFConst.RET_SUCCESS.equals( retFlag ) ), "ST5604", "查询银行卡余额失败" );
+
+				// 零售客户
+				if( SFConst.INV_TYPE_RETAIL.equals( invType ) ) {
+
+					// 获取返回报文MSG_O_ICOLL节点
+					IndexedCollection iColl = SFUtil.getDataElement( msgContext, "MSG_O_ICOLL" );
+					KeyedCollection kColl1 = ( KeyedCollection )iColl.getElementAt( 0 );
+//					acctId = SFUtil.getDataValue( msgContext, kColl1, "ACCT_ID" );// 资金帐号
+					curCode = SFUtil.getDataValue( msgContext, kColl1, "CUR_CODE" );// 币种
+					acctBal = df.format( SFUtil.object2Double( SFUtil.getDataValue( msgContext, kColl1, "ACCT_BAL" ) ) );// 金额
+					acctBalHKD = ( null != SFUtil.getDataValue( msgContext, kColl1, "HKD_ACCT_BAL" ) ) ? df.format( SFUtil.object2Double( SFUtil.getDataValue( msgContext, kColl1, "HKD_ACCT_BAL" ) ) ) : "0";// 港币余额
+					acctBalUSD = ( null != SFUtil.getDataValue( msgContext, kColl1, "USD_ACCT_BAL" ) ) ? df.format( SFUtil.object2Double( SFUtil.getDataValue( msgContext, kColl1, "HKD_ACCT_BAL" ) ) ) : "0";// 美元余额
+
+				}
+				// 对公客户
+				if( SFConst.INV_TYPE_CORP.equals( invType ) ) {
+
+					// 获取返回报文MSG_O节点
+					KeyedCollection outKColl = SFUtil.getDataElement( msgContext, "MSG_O" );
+					acctBal = df.format( SFUtil.object2Double( SFUtil.getDataValue( msgContext, outKColl, "ACCT_BAL" ) ) );// 金额
+					acctBalHKD = ( null != SFUtil.getDataValue( msgContext, outKColl, "HKD_ACCT_BAL" ) ) ? df.format( SFUtil.object2Double( SFUtil.getDataValue( msgContext, outKColl, "HKD_ACCT_BAL" ) ) ) : "0";// 港币余额
+					acctBalUSD = ( null != SFUtil.getDataValue( msgContext, outKColl, "USD_ACCT_BAL" ) ) ? df.format( SFUtil.object2Double( SFUtil.getDataValue( msgContext, outKColl, "HKD_ACCT_BAL" ) ) ) : "0";// 美元余额
+				}
+				SFLogger.info( context, String.format( "查询币种[%s]余额成功:[%s]", curCode, acctBal ) );
+
+				SFLogger.info( context, "上主机查询帐户余额结束" );
+			}
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			e.printStackTrace();
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		SFLogger.info( context, "doHost()结束" );
+	}
+
+	@Override
+	public void doSecu( Context context ) throws SFException {
+		SFLogger.info( context, "doSecu()开始" );
+		try {
+
+			// 交易成功-组包返回券商
+			if( SFConst.SECU_ZL.equals( secuType ) ) { // 直联模式
+
+				SFUtil.setResDataValue( context, "CAP_ACCT", SFUtil.getReqDataValue( context, "CAP_ACCT" ) );// 资金台账号
+				SFUtil.setResDataValue( context, "SEC_COMP_CODE", SFUtil.getReqDataValue( context, "SEC_COMP_CODE" ) );// 券商编号
+				SFUtil.setResDataValue( context, "ACCT_ID", SFUtil.getReqDataValue( context, "ACCT_ID" ) );// 关联银行账号
+				SFUtil.setResDataValue( context, "SEC_SEQ_ID", SFUtil.getReqDataValue( context, "SEC_SEQ_ID" ) );// 券商流水号
+				SFUtil.setResDataValue( context, "HKD_ACCT_BAL", String.valueOf( AmtUtil.conv2SecuMulAmount( context, acctBalHKD ) ) );// 港币余额
+				SFUtil.setResDataValue( context, "USD_ACCT_BAL", String.valueOf( AmtUtil.conv2SecuMulAmount( context, acctBalUSD ) ) );// 美元余额
+				SFUtil.setResDataValue( context, "ACCT_BAL", String.valueOf( AmtUtil.conv2SecuMulAmount( context, acctBal ) ) );// 人民币余额
+
+			} else if( SFConst.SECU_SZT.equals( secuType ) ) { // 深证通模式
+
+				// 组装返回券商报文
+
+				KeyedCollection kColl = SFUtil.getDataElement( context, "Acmt01001" );
+				KeyedCollection bkAcctKcoll = SFUtil.getDataElement( context, kColl, "BkAcct" );
+				KeyedCollection scAcctKcoll = SFUtil.getDataElement( context, kColl, "ScAcct" );
+				// KeyedCollection acctSvcrKcoll = SFUtil.getDataElement( context, scAcctKcoll, "AcctSvcr" );
+				IndexedCollection acctSvcrIcoll = SFUtil.getDataElement( context, "AcctSvcr" );
+				KeyedCollection acctSvcrKcoll = ( KeyedCollection )acctSvcrIcoll.get( 0 );
+				// KeyedCollection acctSvcrKcoll2= (KeyedCollection) acctSvcrKcoll.clone();
+				// acctSvcrIcoll.addDataElement(acctSvcrKcoll2); //Icoll 多条测试用
+				KeyedCollection bkBalKcoll = SFUtil.getDataElement( context, kColl, "BkBal" );
+
+				SFUtil.setDataValue( context, bkAcctKcoll, "ACCT_ID", acctId );
+				SFUtil.setDataValue( context, scAcctKcoll, "CAP_ACCT", capAcct );
+				SFUtil.setDataValue( context, acctSvcrKcoll, "SEC_COMP_CODE", secCompCode );
+				// SFUtil.setDataValue( context, acctSvcrKcoll2, "SEC_COMP_CODE", secCompCode );
+				SFUtil.setDataValue( context, bkBalKcoll, "BEGIN_BAL", acctBal );
+				SFUtil.setDataValue( context, bkBalKcoll, "TYPE", "0" );
+				SFUtil.setDataValue( context, kColl, "CUR_CODE", curCode );
+
+			}
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		SFLogger.info( context, "doSecu()结束" );
+	}
+
+	@Override
+	protected void chkStart( Context context ) throws SFException {
+
+	}
+
+	@Override
+	protected void chkEnd( Context context ) throws SFException {
+		try {
+
+			// 先预定义返回报文-交易异常退出时返回
+			if( SFConst.SECU_ZL.equals( secuType ) ) { // 直联模式
+				KeyedCollection keyColl = SFUtil.getDataElement( context, "100301_O" );
+				SFUtil.setDataValue( context, keyColl, "CUR_CODE", curCode );// 币种
+				SFUtil.setDataValue( context, keyColl, "SEC_COMP_CODE", secCompCode );// 券商代码
+				SFUtil.setDataValue( context, keyColl, "CAP_ACCT", capAcct );
+				SFUtil.setDataValue( context, keyColl, "ACCT_ID", acctId );
+				SFUtil.setDataValue( context, keyColl, "SEC_SEQ_ID", SFUtil.getReqDataValue( context, "SEC_SEQ_ID" ) );
+			}
+			// 深证通模式
+			if( SFConst.SECU_SZT.equals( secuType ) ) {
+
+				KeyedCollection kColl = SFUtil.getDataElement( context, "Acmt01001" );
+				KeyedCollection bkAcctKcoll = SFUtil.getDataElement( context, kColl, "BkAcct" );
+				KeyedCollection scAcctKcoll = SFUtil.getDataElement( context, kColl, "ScAcct" );
+				IndexedCollection acctSvcrIcoll = SFUtil.getDataElement( context, "AcctSvcr" );
+				KeyedCollection acctSvcrKcoll = ( KeyedCollection )acctSvcrIcoll.get( 0 );
+				KeyedCollection bkBalKcoll = SFUtil.getDataElement( context, kColl, "BkBal" );
+
+				SFUtil.setDataValue( context, bkAcctKcoll, "ACCT_ID", acctId );
+				SFUtil.setDataValue( context, scAcctKcoll, "CAP_ACCT", capAcct );
+				SFUtil.setDataValue( context, acctSvcrKcoll, "SEC_COMP_CODE", secCompCode );
+				SFUtil.setDataValue( context, bkBalKcoll, "BEGIN_BAL", acctBal );
+				SFUtil.setDataValue( context, bkBalKcoll, "TYPE", "0" );
+				SFUtil.setDataValue( context, kColl, "CUR_CODE", curCode );
+			}
+
+			// 客户类型
+			invType = SFUtil.getReqDataValue( context, "INV_TYPE" );
+			signAccountData = signAccountDataDao.qrySignAccountDataByBranch( context, tranConnection, acctId, curCode, capAcct, secCompCode );
+			SFUtil.chkCond( context, ( null == signAccountData ), "ST5720", String.format( "签约信息不存在" ) );
+
+			// 五矿、银河证券Rever节点需要回送brchId机构号，先添加到context中
+			SFUtil.addDataField( context, "SEC_BRCH_ID", SFUtil.isNotEmpty( signAccountData.getFlags() ) ? signAccountData.getFlags() : " " );
+
+			// 检查签约关系,此处删去了上主机验证客户身份证
+			String signFlag = signAccountData.getSignFlag();
+
+			// 检查客户类型不能为空
+			SFUtil.chkCond( context, ( SFUtil.isEmpty( signAccountData.getInvType() ) ), "ST5413", String.format( "银行数据库中客户类型为空，请与银行联系" ) );
+
+			// 检查客户类型一致性
+			SFUtil.chkCond( context, ( SFUtil.isNotEmpty( invType ) && ( !invType.equals( signAccountData.getInvType() ) ) ), "ST5413", String.format( "券商送过来的客户类型与银行不符，请与银行联系" ) );
+			invType = signAccountData.getInvType();
+
+			/* 检查签约关系 */
+			if( SFConst.CUR_CODE_RMB.equals( curCode ) || SFConst.CUR_CODE_HKD.equals( curCode ) || SFConst.CUR_CODE_USD.equals( curCode ) ) {
+
+				if( SFConst.SIGN_FLAG_SIGN_IN_PROCESS.equals( signFlag ) || SFConst.SIGN_FLAG_CONFIRM_IN_PROCESS.equals( signFlag ) ) {
+					signFlag = "*";
+				}
+				if( SFUtil.isEmpty( signAccountData.getSignFlag() ) ) {
+					signFlag = "-";
+				}
+				SFUtil.chkCond( context, ( "-".equals( signFlag ) ), "ST4377", String.format( "该客户不存在" ) );
+				SFUtil.chkCond( context, ( SFConst.SIGN_FLAG_CANCEL.equals( signFlag ) ), "ST5720", String.format( "已撤销签约" ) );
+				SFUtil.chkCond( context, ( "*".equals( signFlag ) ), "ST5720", String.format( "签约信息不符" ) );
+				SFUtil.chkCond( context, ( !SFConst.SIGN_FLAG_SIGN.equals( signFlag ) ), "ST5590", String.format( "当前签约状态不允许办理查询交易" ) );
+
+			}
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+	}
+}

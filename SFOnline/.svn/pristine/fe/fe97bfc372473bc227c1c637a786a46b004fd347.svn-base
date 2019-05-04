@@ -1,0 +1,27 @@
+package module.dao;
+
+import java.sql.Connection;
+
+import module.bean.CycleService;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DaoBase;
+import common.util.SFUtil;
+
+public class CycleServiceDao extends DaoBase {
+
+	public CycleService qryCycleService(Context context, Connection connection,String serviceName) throws SFException {
+		CycleService cycleService = null;
+		try {
+			String sql = "SELECT SERVICENAME,PROCSWITCH,BEGINTIME,ENDTIME,VALUE1,VALUE2,VALUE3,VALUE4,VALUE5,MEMO FROM TRDCYCLESERVICE  WHERE SERVICENAME = ?";
+			
+			cycleService = super.query(context, connection, sql, CycleService.class, serviceName);
+		} catch (SFException e){
+			throw new SFException(e);
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		return cycleService;
+	}
+}

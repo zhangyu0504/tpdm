@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="SFOnline" default="default" basedir=".">
+	
+	<!-- 投产日期，每次都要人工填写 -->
+	<property name="tardate" value="2018mmdd" />
+	<!-- 更新文件临时存放目录 -->
+	<property name="temp.dir" value="./temp" />
+	
+	<property environment="env" />
+	<property name="project.name" value="SFOnline" />
+	<property name="dist.dir" value="${basedir}/dist" />
+	<property name="webroot.dir" value="${basedir}/WebContent" />
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="lib.dir" value="${webroot.dir}/WEB-INF/lib" />
+	<property name="classes.dir" value="${webroot.dir}/WEB-INF/classes" />
+	<!-- <property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" /> -->
+
+	<path id="project.classpath">
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!-- get the source compile classpath in a printable form -->
+	<pathconvert pathsep="${line.separator}|   |-- "
+             property="echo.path.compile"
+             refid="project.classpath">
+	</pathconvert>
+	
+	<!-- ================================= 
+      target: 默认任务
+     ================================= -->
+	<target name="default" depends="packWebApp" description="">
+	</target>
+
+	<!-- show classpath jars -->
+	<target name="print.classpath">
+		<echo message="|-- compile classpath"/>
+		<echo message="|   |"/>
+		<echo message="|   |-- ${echo.path.compile}"/>
+	</target>
+
+
+	<target name="clear" description="清理旧文件">
+		<delete dir="${classes.dir}" />
+		<delete dir="${dist.dir}" />
+		<delete file="${catalina.home}/webapps/${project.name}.war" />
+		<delete dir="${catalina.home}/webapps/${project.name}" />
+		<delete dir="${temp.dir}" />
+	</target>
+
+	<target name="init" depends="clear" description="初始化目录结构">
+		<tstamp>
+			<format property="sysdate" pattern="yyyyMMdd" locale="cn" />
+		</tstamp>
+		<mkdir dir="${classes.dir}" />
+		<mkdir dir="${dist.dir}" />
+		<mkdir dir="${temp.dir}" />
+
+	</target>
+
+	<target name="compile" depends="init" description="编译Java文件">
+		<echo message="begin compile..." />
+		<javac srcdir="${src.dir}" destdir="${classes.dir}"
+			includeantruntime="false" nowarn="on" 
+			source="1.6" target="1.6" deprecation="true" debug="true" 
+			encoding="GBK" classpathref="project.classpath">
+			<!-- <compilerarg line="-Xlint:unchecked" /> -->
+		</javac>
+		<copy todir="${classes.dir}">
+			<fileset dir="${src.dir}">
+				<include name="**/*.xml" />
+				<include name="**/*.properties" />
+				<include name="**/*.sql" />
+			</fileset>
+		</copy>
+		<echo message="end compile..." />
+	</target>
+
+	<!--  
+	    <target name="pack" depends="compile"> 
+	        <jar jarfile="${classes.dir}/${project.name}.jar"> 
+	            <fileset dir="${classes.dir}"> 
+	                <include name="**/*.class"/> 
+	            </fileset> 
+	        </jar> 
+	    </target> 
+	-->
+	<!--生产部署war 包
+	<target name="package" depends="compile" description="将工程打成war包">
+		<echo message="begin war..." />
+		<war destfile="${dist.dir}/${project.name}_${sysdate}.war" basedir="${webroot.dir}" 
+			webxml="${webroot.dir}/WEB-INF/web.xml">
+		</war>
+		<echo message="end war..." />
+	</target>-->
+	
+	<!--生产部署tar 包-->
+	<target name="package" depends="compile">
+		<echo message="begin tar..." />
+		<tar destfile="${dist.dir}/${project.name}_${sysdate}.tar" basedir="${webroot.dir}" >
+		</tar>
+		<echo message="end tar..." />
+	</target>
+	
+	<!--  生产部署ZIP包  -->
+	<target name="packWebApp" depends="compile">
+		<!-- 复制所有增量文件到临时目录 -->
+		<copy todir="${temp.dir}" overwrite="true">
+			<fileset dir="${webroot.dir}" includesfile="SFBuilder/update_${tardate}.txt" />
+		</copy>
+		<zip destfile="${dist.dir}/${project.name}_${tardate}_update.zip" duplicate="preserve">
+			<zipfileset dir="${temp.dir}" includes="**/*.*" 
+				prefix="${project.name}.war"/>
+		</zip>	
+		<delete dir="${temp.dir}" />
+	</target>
+</project>

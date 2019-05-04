@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+<servletContext>
+	<classMap>
+	
+		<map id="fmtDef" class="core.communication.format.PBankFormatElement"/>
+		<map id="record" class="core.communication.format.KeyedFormat"/>
+		<map id="iColl" class="core.communication.format.IndexedFormat"/>
+		<map id="fString" class="core.communication.format.string.StringFormat"/>
+		<map id="nullCheck" class="core.communication.format.string.NullCheck"/>
+		<map id="delim" class="core.communication.format.string.Delimiter"/>
+		<map id="xmlWrap" class="com.ecc.emp.format.xml.XMLWrapFormat"/>
+		<map id="xmlHead" class="com.ecc.emp.format.xml.XMLHeadTagFormat"/>
+		<map id="xmlIColl" class="com.ecc.emp.format.xml.XMLIndexedFormat"/>
+		<map id="xmlFullTag" class="com.ecc.emp.format.xml.XMLFullTagFormat"/>
+		<map id="xmlTag" class="com.ecc.emp.format.xml.XMLTagFormat"/>
+		<map id="xmlConstantTag" class="com.ecc.emp.format.xml.XMLConstantTagFormat"/>
+		<map id="ISO8583PkgFmt" class="com.ecc.emp.format.ISO8583.ISO8583Format"/>
+		<map id="ISO8583Field" class="com.ecc.emp.format.ISO8583.ISO8583Field"/>
+		<map id="FixedLenFormat" class="core.communication.format.string.FixedLenFormat"/>
+		<map id="IDStringFormat" class="core.communication.format.string.IDStringFormat"/>
+		<map id="ConstantFormat" class="core.communication.format.string.ConstantFormat"/>
+		<map id="ESBCD" class="core.communication.format.paesb.ESBCDFormat"/>
+		<map id="ESBArray" class="core.communication.format.paesb.ESBArrayFormat"/>
+		<map id="ESBField" class="core.communication.format.paesb.ESBFieldFormat"/>
+		<map id="ESBFieldFlt" class="core.communication.format.paesb.ESBFieldFloatFormat"/>
+		<map id="XMLHead" class="core.communication.format.xml.XMLHeadFormat"/>
+		<map id="XMLKC" class="core.communication.format.xml.XMLWrapFormat"/>
+		<map id="XMLArray" class="core.communication.format.xml.XMLArrayFormat"/>
+		<map id="XMLField" class="core.communication.format.xml.XMLFieldFormat"/>
+		<map id="RequestHeadFormat" class="core.communication.format.PBankFormatElement"/>
+		<map id="ResponseHeadFormat" class="core.communication.format.PBankFormatElement"/>
+		<map id="Map" class="java.util.HashMap"/>
+		<map id="MapEntry" class="com.ecc.emp.component.xml.MapEntry"/>
+	
+	
+	
+	
+	
+		<map id="accessManager" class="com.ecc.emp.accesscontrol.EMPAccessManager"/>
+		<map id="TCPIPService" class="core.communication.access.esb.PBankTCPIPDataSerializerService"/>
+		<map id="TCPIPRequestHandler" class="core.communication.access.esb.PBankTCPIPRequestHandler"/>
+	</classMap>
+	
+	<accessManager id="accessManager">
+		<logInterceptor componentIdPrefix="PBank" appendUniqId="true" uniqIdLen="6" class="core.log.SFLogInertceptor">
+			<logInstance class="com.ecc.emp.log.EMPLog4jLog"/>
+		</logInterceptor> 
+	</accessManager>
+	
+
+	<sessionManager class="com.ecc.emp.session.EMPSessionManager" name="ESBChannel" sessionTimeOut="1" sessionCheckInterval="1"/>
+	<TCPIPServerService class="core.communication.tcpip.TCPIPServerService" keepAlive="false" dual="true">
+		<ListenPort name="ListenPort" port="1998" maxConnection="50"  idleCheck="true" idleTimeOut="10000" poolThread="true" class="core.communication.tcpip.ListenPort" poolSize="1" keepAlive="false"/>
+		<CommProcessor name="CommProcessor" class="core.communication.access.esb.ESBCommProcessor"/>
+		<!--<ConnectToHost name="ConnectToHost" port="2020" hostAddr="10.1.1.29" keepAlive="true"/>
+	--></TCPIPServerService>
+	<TCPIPRequestHandler appendReqHead="true" serviceIdField="serviceId" class="core.communication.access.esb.PBankTCPIPRequestHandler" appendRepHead="true">
+		<RequestHeadFormat id="headReqFmt">
+			<record>
+				<fString dataName="serviceId">
+					<delim delimChar="|"/>
+				</fString>
+				<delim delimChar="#"/>
+			</record>
+		</RequestHeadFormat>
+		<ResponseHeadFormat id="headRepFmt">
+			<record>
+				<fString dataName="errorCode">
+					<delim delimChar="|"/>
+				</fString>
+				<delim delimChar="#"/>
+			</record>
+		</ResponseHeadFormat>
+	</TCPIPRequestHandler>
+	<!-- <TCPIPService id="09001000003_70" opId="aa" bizId="aaa" serviceType="normal" checkSession="true"/> -->
+	
+	<TCPIPService id="09001000003_70" tranCode="200200" className = "module.trans.bankchl2sf.T200200"  />
+	<TCPIPService id="09002000002_72" tranCode="200100" className = "module.trans.bankchl2sf.T200100" />
+	<TCPIPService id="09002000002_37" tranCode="200100" className = "module.trans.bankchl2sf.T200100" />
+	<!--个人客户查询签约关系-->	
+	<TCPIPService id="11003000007_70" tranCode="200300" className = "module.trans.bankchl2sf.T200300" />
+	<!--机构客户查询签约关系-->	
+	<TCPIPService id="09003000001_74" tranCode="200300" className = "module.trans.bankchl2sf.T200300" />
+	<!--零售查询资金台帐余额-->	
+	<TCPIPService id="11003000003_75" tranCode="200301" className = "module.trans.bankchl2sf.T200301" />
+	<!--机构客户查询资金台帐余额-->	
+	<TCPIPService id="09003000014_04" tranCode="200301" className = "module.trans.bankchl2sf.T200301" />	
+	<!--零售查询交易明细（当日，历史）-->
+	<TCPIPService id="11003000008_71" tranCode="200302" className = "module.trans.bankchl2sf.T200302" />
+	<!--对公查询交易明细（当日，历史）-->
+	<TCPIPService id="09003000006_87" tranCode="200302" className = "module.trans.bankchl2sf.T200302" />
+	<!--查询三方存管劵商列表-->
+	<TCPIPService id="09003000007_71" tranCode="200303" className = "module.trans.bankchl2sf.T200303" />
+	<!--预约查询-->
+	<TCPIPService id="09003000006_70" tranCode="200304" className = "module.trans.bankchl2sf.T200304" />	
+	<!--一户通查询签约关系-->
+	<TCPIPService id="11003000007_73" tranCode="200306" className = "module.trans.bankchl2sf.T200306" />		
+	<!--机构客户建立/取消卡状态字-->
+	<TCPIPService id="11002000008_61" tranCode="200103" className = "module.trans.bankchl2sf.T200103" />
+	<!--个人客户建立/取消卡状态字-->
+	<TCPIPService id="11002000008_62" tranCode="200103" className = "module.trans.bankchl2sf.T200103" />
+	<!--零售客户变更银行结算帐号-->
+	<TCPIPService id="09002000002_75" tranCode="200102" className = "module.trans.bankchl2sf.T200102" />
+	<!--对公客户变更银行结算帐号-->
+	<TCPIPService id="09002000002_38" tranCode="200102" className = "module.trans.bankchl2sf.T200102" />
+	<!--账户信息修改-->
+	<TCPIPService id="11002000034_32" tranCode="200104" className = "module.trans.bankchl2sf.T200104" />
+	<!--预约撤销-->
+	<TCPIPService id="09002000002_74" tranCode="200121" className = "module.trans.bankchl2sf.T200121" />
+	<!--校验账户状态-->
+	<TCPIPService id="11002000012_70" tranCode="200305" className = "module.trans.bankchl2sf.T200305" />
+	<!-- 个人客户银行预指定 -->
+	<TCPIPService id="09002000002_73" tranCode="200106" className = "module.trans.bankchl2sf.T200106" />
+	<!-- 个人客户银转证 -->
+	<TCPIPService id="09001000003_70" tranCode="200200" className = "module.trans.bankchl2sf.T200200" />
+	<!-- 机构客户银转证 -->
+	<TCPIPService id="09001000003_04" tranCode="200200" className = "module.trans.bankchl2sf.T200200" />
+	<!-- 个人客户证转银 -->
+	<TCPIPService id="09001000004_70" tranCode="200201" className = "module.trans.bankchl2sf.T200201" />
+	<!-- 机构客户证转银 -->
+	<TCPIPService id="09001000004_03" tranCode="200201" className = "module.trans.bankchl2sf.T200201" />
+	<!-- 个人客户开户预约-->
+	<TCPIPService id="04002000002_23" tranCode="200120" className = "module.trans.bankchl2sf.T200120" />
+	<!-- 内部通讯接口 刷新缓存 -->
+	<TCPIPService id="900481_01" tranCode="900481" className = "module.trans.sf2sf.T900481" />
+</servletContext>

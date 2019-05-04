@@ -1,0 +1,11 @@
+package module.batch;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+
+public interface BatchInterface {
+	
+	public boolean init(Context context) throws SFException;
+
+	public void execute() throws SFException;
+}

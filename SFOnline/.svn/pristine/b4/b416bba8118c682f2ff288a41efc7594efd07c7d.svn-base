@@ -1,0 +1,175 @@
+package common.util;
+
+import java.security.spec.KeySpec;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESKeySpec;
+
+import common.exception.SFException;
+
+/**
+ * DES加/解密工具类
+ * @author 汪华
+ *
+ */
+public class DESUtil {
+	private final static String DES_ALGORITHM="DES";// 定义 加密算法,可用 DES,DESede,Blowfish
+	private final static String DES_ENCRYPT_MODE="DES/ECB/NoPadding";// 定义 加密算法,可用 DES,DESede,Blowfish
+	/**
+	 * DES加密
+	 * @param hexStr  字符串（16位16进制字符串）
+	 * @param keyStr 密钥16个1
+	 * @throws Exception
+	 */
+	public static String encode(String hexStr, String keyStr)throws SFException {
+		String result="";
+		try {
+			byte[] theKey = null;
+			byte[] theMsg = null;
+			theMsg = hexToBytes(hexStr);
+			theKey = hexToBytes(keyStr);
+			KeySpec ks = new DESKeySpec(theKey);
+			SecretKeyFactory kf = SecretKeyFactory.getInstance(DES_ALGORITHM);
+			SecretKey ky = kf.generateSecret(ks);
+			Cipher cf = Cipher.getInstance(DES_ENCRYPT_MODE);
+			cf.init(Cipher.ENCRYPT_MODE, ky);
+			//加密
+			byte[] theCph = cf.doFinal(theMsg);
+			//bytes转换成十六进制字符串
+			result=bytesToHex(theCph);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SFException("ST4079",e.getMessage(),e);
+		}
+		return result;
+	}
+
+	/**
+	 * DES解密
+	 * @param hexStr 16位十六进制字符串
+	 * @param keyStr 密钥16个1
+	 * @param modeStr 解密模式:ECB
+	 * @throws Exception
+	 */
+	public static String decode(String hexStr, String keyStr)throws Exception {
+		String result=null;
+		try {
+			byte[] theKey = null;
+			byte[] theMsg = null;
+			theMsg = hexToBytes(hexStr);
+			theKey = hexToBytes(keyStr);
+			KeySpec ks = new DESKeySpec(theKey);
+			SecretKeyFactory kf = SecretKeyFactory.getInstance(DES_ALGORITHM);
+			SecretKey ky = kf.generateSecret(ks);
+			Cipher cf = Cipher.getInstance(DES_ENCRYPT_MODE);
+			cf.init(Cipher.DECRYPT_MODE, ky);
+			//DES解密
+			byte[] theCph = cf.doFinal(theMsg);
+			result=new String(theCph);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new SFException("ST4079",e.getMessage(),e);
+		}
+		return result;
+	}
+	/**
+	 * 十六进制字符串转换成bytes
+	 * @param str
+	 * @return
+	 */
+	public static byte[] hexToBytes(String str) {
+		if (str == null) {
+			return null;
+		} else if (str.length() < 2) {
+			return null;
+		} else {
+			int len = str.length() / 2;
+			byte[] buffer = new byte[len];
+			for (int i = 0; i < len; i++) {
+				buffer[i] = (byte) Integer.parseInt(str.substring(i * 2,i * 2 + 2), 16);
+			}
+			return buffer;
+		}
+	}
+	/**
+	 * bytes转换成十六进制字符串
+	 * @param data
+	 * @return
+	 */
+	public static String bytesToHex(byte[] data) {
+		if (data == null) {
+			return null;
+		} else {
+			int len = data.length;
+			String str = "";
+			for (int i = 0; i < len; i++) {
+				if ((data[i] & 0xFF) < 16)
+					str = str + "0"+ Integer.toHexString(data[i] & 0xFF);
+				else
+					str = str + Integer.toHexString(data[i] & 0xFF);
+			}
+			return str.toUpperCase();
+		}
+	}
+	/**
+	 * 格式化字符串，不足部份补0
+	 * @param str
+	 * @param len
+	 * @return
+	 */
+	public static String formatString(String str,int len){
+		if(SFUtil.isEmpty(str)){
+			return str;
+		}
+		int strLen=str.length();
+		if(strLen>len){
+			return str.substring(0,len);
+		}
+		StringBuffer sbu=new StringBuffer(str);
+		for(int i=0;i<len-strLen;i++){
+			sbu.append("0");
+		}
+		return sbu.toString();
+	}
+	
+	
+	public static void main(String[] args) throws Exception {		
+		System.out.println("**************转ASCILL*******************");			
+		String sData="123456";
+		String sKey="CESHIZZZ";//"PINGANZZ";//
+		
+		System.out.println("**************转换十六进制*******************");
+		String hData=bytesToHex(sData.getBytes());
+		String hKey=bytesToHex(sKey.getBytes());
+		hData=formatString(hData,16);
+		//hData=hData+"0057";
+		System.out.println("16 DATA hData>="+hData);
+		System.out.println("16 DATA="+hData);
+		System.out.println("16 KEY="+hKey);
+		System.out.println("**************DES加密*******************");
+		String ecData=encode(hData, hKey);
+		System.out.println("加密后: " + ecData);
+		
+		System.out.println("**************DES解密*******************");
+		String dcData=decode(ecData, hKey);
+		System.out.println("解密后: " + dcData);
+		dcData=decode("4DA3FB6D063A9BFB", "3B2C8A6A5D1B4224");
+		System.out.println("解密后2: " + dcData);
+		
+
+		System.out.println("~~~~~~~~~~~~~~~~~~~~~MAC校验~~~~~~~~~~~~~~~~~~~~~");
+		String str="0284810005                                                                                                                                                            2017112914:23:1378196440800000030618201711290016                                 36225631100004229060             C9E19350";
+		String macKey="1A3A7A5C8D4B2C8D";
+		
+		boolean flag=MacUtil.checkMac(macKey, str);
+		System.out.println("MAC "+flag);
+		
+		
+		String kk=MacUtil.generateMac8(macKey,str.substring(0,str.length()-8));
+		System.out.println("MAC "+kk);
+		
+		
+	}
+}

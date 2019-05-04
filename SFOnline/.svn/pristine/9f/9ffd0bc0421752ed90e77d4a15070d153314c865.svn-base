@@ -1,0 +1,7 @@
+WorkMode = C
+
+FileQueue = c:\\fqueue
+
+IscMq = DST_R_GW1(10.14.30.186:1420)|DST_R_GW2(10.14.30.187:1420)
+
+#RecvQueue_1 = Q_AB_100001|[S_QM1(10.14.57.67:6001:M),S_QM2(10.14.57.68:6002:M)]|1

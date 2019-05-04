@@ -1,0 +1,103 @@
+package module.communication;
+
+import java.util.Map;
+
+import module.bean.ErrorMap;
+import module.bean.SecCompData;
+import module.cache.ErrorMapCache;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.format.FormatElement;
+
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.communication.access.zlsecu.TCPIPSendAction;
+import core.communication.format.KeyedFormat;
+import core.log.SFLogger;
+/**
+ * 直联券商消费端处理类
+ * @author 汪华
+ *
+ */
+public final class ZLSecuClientBase {
+	public Context send(Context context,Map<String,Object>msg,String msgCode)throws SFException{
+		/*
+		 * 克隆新的通信上下文
+		 */
+		Context msgContext=SFUtil.cloneMsgContext(context, msg);
+		try{
+			/*
+			 * 上下文获取当前券商信息
+			 */
+			SecCompData secCompData = SFUtil.getDataValue(context,SFConst.PUBLIC_SECU); // (SecCompData)context.getDataValue(SFConst.PUBLIC_SECU);
+			//判断券商是否存在
+			if(secCompData==null){
+				SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+				SFLogger.error(msgContext, String.format("直联券商执行【%s】报文失败，券商【不存在！", msgCode));
+				return msgContext;
+			}
+			/*
+			 * 发送报文
+			 */
+			TCPIPSendAction access=  new TCPIPSendAction();
+			access.setHostIP(secCompData.getIp());
+			access.setHostPort(secCompData.getPort());
+			access.setSvrCode(msgCode);
+			access.setSecCompCode(secCompData.getSecCompCode());
+			access.setUserId(secCompData.getUserId());
+			access.doExecute(msgContext);
+		}catch(Exception e){
+			SFLogger.error(msgContext, String.format("直联券商执行【%s】报文失败，%s", msgCode, e.getMessage()));
+			/*
+			 * 设置返回值
+			 */
+			String outputName = msgCode + "_O";
+			FormatElement outputFormat = context.getFormat(outputName);
+			KeyedFormat tranCodeO = (KeyedFormat)outputFormat.getFormatElement();
+			String outKcollName = tranCodeO.getKcollName();
+			String retCode=SFUtil.getDataValue(msgContext,outKcollName+".RESP_CODE");
+			if(SFUtil.isNotEmpty(retCode)){
+				if(retCode.startsWith("M")){//成功
+					SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_SUCCESS);
+				}else if(retCode.startsWith("R") || "E1011".equals(retCode)|| "E9999".equals(retCode)){//超时
+					SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+				}else
+					SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_FAILURE);//增加errorMSG参数
+			}else{
+				SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+			}
+			return msgContext;
+		}
+		/*
+		 * 设置返回值
+		 */
+		String outputName = msgCode + "_O";
+		FormatElement outputFormat = context.getFormat(outputName);
+		KeyedFormat tranCodeO = (KeyedFormat)outputFormat.getFormatElement();
+		String outKcollName = tranCodeO.getKcollName();
+//		String tranCode = SFUtil.getDataValue(msgContext, SFConst.PUBLIC_TX_CODE);
+		String retCode=SFUtil.getDataValue(msgContext,outKcollName+".RESP_CODE");
+		if(SFUtil.isNotEmpty(retCode)){
+			if(retCode.startsWith("M")){//成功
+				SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_SUCCESS);
+			}else if(retCode.startsWith("R") || "E1011".equals(retCode)|| "E9999".equals(retCode)){//超时
+				SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+			}else
+				SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_FAILURE);//增加errorMSG参数
+		}else{
+			SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+		}
+		
+		//直联返回码取后4位
+		if(SFUtil.isNotEmpty(retCode)){
+			SFUtil.setDataValue(msgContext,outKcollName+".RESP_CODE",retCode.substring(1));
+		}
+	
+		
+		
+		
+		return msgContext;
+	}
+}

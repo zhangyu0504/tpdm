@@ -1,0 +1,156 @@
+package module.communication;
+
+import java.util.Map;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.communication.esb.SFSendEsbAction;
+import core.log.SFLogger;
+/**
+ * 行内渠道ESB消费端处理类
+ * @author 汪华
+ *
+ */
+public abstract class ESBClientBase {
+	/**
+	 * 发送报文统一入口
+	 * @param context
+	 * @param msg
+	 * @return
+	 * @throws SFException
+	 */
+	public Context send(Context context,Map<String,Object>msg)throws SFException{
+		//私有业务处理方法：组装输入报文，定义服务号与场景号
+		return doHandle(context,msg);
+	}
+	
+	
+	/**
+	 * 实际发送报文
+	 * @param context
+	 * @param msg
+	 * @param msgCode
+	 * @param serviceCode
+	 * @return
+	 * @throws SFException
+	 */
+	protected Context send(Context context,Map<String,Object>msg,String msgCode,String serviceCode)throws SFException{
+		/*
+		 * 克隆新的通信上下文
+		 */
+		Context msgContext=SFUtil.cloneMsgContext(context, msg);
+		try{			
+			/*
+			 * 发送报文
+			 */
+			SFSendEsbAction SFSendEsbAction = new SFSendEsbAction();
+			SFSendEsbAction.setHostId("PAESB");
+			SFSendEsbAction.setHostInterfaceClass("core.communication.esbinterface.EsbStandardMessage");
+			
+			SFSendEsbAction.setTrxCode(msgCode);
+			//失败是否冲正
+			SFSendEsbAction.setAcctInterfaceFlag(false);
+			// 修改抛出异常
+			SFSendEsbAction.setThrowExceptionFlag(true);
+			SFSendEsbAction.setSaveInDatabase(false);
+			
+			SFSendEsbAction.setTcpipServiceName("tcpipservice_os390");
+			SFSendEsbAction.setServiceCode(serviceCode);
+			// 发送ESB
+			SFSendEsbAction.execute(msgContext);
+		}catch(Exception e){
+			/*
+			 * 所有不明异常都做超时处理
+			 * <p>
+			 * 1、无法建立连接
+			 * 2、发送超时
+			 * 3、接收超时
+			 * 4、SOCKET 或IO出现异常
+			 * 5、其他错误（包含无法解析返回报文）
+			 */
+			SFLogger.error(msgContext, String.format("执行ESB【%s】报文失败，%s", msgCode, e.getMessage()),e);
+			/*
+			 * 设置返回值
+			 */
+			IndexedCollection iColl=SFUtil.getDataElement(msgContext,"RET");
+			boolean otherFlag=false;
+			if(iColl!=null&&iColl.size()>0){
+				KeyedCollection kColl=(KeyedCollection)iColl.getElementAt(0);
+				//填充响应结果至公共上下文
+				String retCode=SFUtil.getDataValue(msgContext,kColl,"RET_CODE");//从响应报文中取响应码
+				String retMsg=SFUtil.getDataValue(msgContext,kColl,"RET_MSG");//从响应报文中取响应信息
+				SFLogger.info( context, String.format( "主机应答码【%s】,应答信息【%s】", retCode,retMsg ) );
+				SFUtil.setDataValue(msgContext, SFConst.CTX_ERRCODE, retCode);
+				SFUtil.setDataValue(msgContext, SFConst.CTX_ERRMSG, retMsg);
+				if(SFConst.RESPCODE_TIMEOUT_ESB.equals(retCode)||SFConst.RESPCODE_TIMEOUT_AE0666_ESB.equals(retCode)){//超时
+					SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+				}else if(SFUtil.isNotEmpty(retCode)&&!SFConst.RESPCODE_SUCCCODE_ESB.equals(retCode)){
+					SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_FAILURE);//增加errorMSG参数
+				}else{
+					otherFlag=true;
+				}
+			}else{
+				otherFlag=true;			
+			}
+			/*
+			 * 未知情况都以超时处理
+			 */
+			if(otherFlag){
+				SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+				try{					
+					KeyedCollection keyColl = new KeyedCollection();
+					SFUtil.addDataField(msgContext,keyColl,"RET_CODE", SFConst.CTX_ERRCODE_UNKNOWN);
+					SFUtil.addDataField(msgContext,keyColl,"RET_MSG", SFConst.CTX_ERRMSG_UNKNOWN);
+					if(iColl==null){
+						iColl=new IndexedCollection("RET");
+						iColl.add(keyColl);
+						SFUtil.addDataElement(msgContext, iColl);
+					}else{
+						iColl.add(keyColl);	
+					}
+				}catch(Exception ex){
+					SFLogger.error(msgContext, String.format("执行ESB【%s】报文失败，%s", msgCode, ex.getMessage()),ex);
+				}
+				SFUtil.setDataValue(msgContext, SFConst.CTX_ERRCODE, SFConst.CTX_ERRCODE_UNKNOWN);
+				SFUtil.setDataValue(msgContext, SFConst.CTX_ERRMSG, SFConst.CTX_ERRMSG_UNKNOWN);				
+			}
+			return msgContext;
+		}
+		/*
+		 * 设置返回值
+		 */
+		IndexedCollection iColl=SFUtil.getDataElement(msgContext,"RET");
+		KeyedCollection kColl=(KeyedCollection)iColl.getElementAt(0);
+		//填充响应结果至公共上下文
+		String retCode=SFUtil.getDataValue(msgContext,kColl,"RET_CODE");//从响应报文中取响应码
+		String retMsg=SFUtil.getDataValue(msgContext,kColl,"RET_MSG");//从响应报文中取响应信息
+		SFLogger.info( context, String.format( "主机应答码【%s】,应答信息【%s】", retCode,retMsg ) );
+		SFUtil.setDataValue(msgContext, SFConst.CTX_ERRCODE, retCode);
+		SFUtil.setDataValue(msgContext, SFConst.CTX_ERRMSG, retMsg);
+		
+		if(SFConst.RESPCODE_SUCCCODE_ESB.equals(retCode)){//成功
+			SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_SUCCESS);
+		}else if(!SFConst.RESPCODE_SUCCCODE_ESB.equals(retCode)&&!SFConst.RESPCODE_TIMEOUT_ESB.equals(retCode)){//失败
+			SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_FAILURE);//增加errorMSG参数
+		}else if(SFConst.RESPCODE_TIMEOUT_ESB.equals(retCode)||SFConst.RESPCODE_TIMEOUT_AE0666_ESB.equals(retCode)){//超时
+			SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+		}
+		return msgContext;
+	}
+	
+	/**
+	 * 私有业务处理方法：组装输入报文，定义服务号与场景号
+	 * @param context
+	 * @param msgCode
+	 * @param serviceCode
+	 * @return
+	 * @throws SFException
+	 */
+	protected abstract Context doHandle(Context context,Map<String,Object>msg)throws SFException;
+	
+}

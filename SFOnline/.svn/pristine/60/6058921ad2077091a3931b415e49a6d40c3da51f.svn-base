@@ -1,0 +1,92 @@
+package module.trans.bankchl2sf;
+
+import common.sql.dao.DBHandler;
+import common.sql.dao.DaoBase;
+import com.ecc.emp.core.Context;
+
+import module.trans.TranBase;
+import common.exception.SFException;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+import core.log.SFLogger;
+
+public class T900230 extends TranBase {
+
+	/**
+	 * 交易执行入口
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	@Override
+	public void execute(Context context) throws SFException {
+		tranConnection = SFUtil.getDataValue(context, SFConst.PUBLIC_TRAN_CONNECTION);
+		DBHandler.beginTransaction(context, tranConnection);//开启事务
+		/* 获取常量 */
+		String subSysNo = SFConst.SYS_SYSID;
+		/* 获取报文头信息 */
+		String filePath = SFUtil.getDataValue(context, "SYS_HEAD.FILE_PATH");
+		String seqNo = SFUtil.getDataValue(context, "SYS_HEAD.CONSUMER_SEQ_NO");
+		String serviceCode = SFUtil.getDataValue(context, "SYS_HEAD.SERVICE_CODE");
+		String serviceScene = SFUtil.getDataValue(context, "SYS_HEAD.SERVICE_SCENE");
+		/* 获取报文体信息 */
+		String fileName = SFUtil.getReqDataValue(context, "RESPONSE_FILE_NAME");
+		String fileNo = SFUtil.getReqDataValue(context, "FILE_NO");
+		String fileMD5 = SFUtil.getReqDataValue(context, "FILE_MD5");
+		String orgSysNo = SFUtil.getReqDataValue(context, "RESPONSE_FILE_NAME");
+		/* 获取时间信息 */
+		String txdate = DateUtil.getMacDate();
+		String txtime = DateUtil.getMacTime();
+		
+		/* 插入一条trdbftstask表记录 */
+		SFLogger.info(context, String.format("插入一条下载记录到trdbftstask表，文件名[%s]!", fileName));
+		String sql = "INSERT INTO TRDBFTSTASK "
+				+ "(TXDATE, TXTIME, FILENAME, FILEPATH, ORGSYSNO, SUBSYSNO, FILE_NO, "
+				+ "FILE_MD5, SERVICE_CODE, SERVICE_SCENE, REQ_SEQ_NO, TIMES, STATUS)"
+				+ "VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '0', '0')";
+		DaoBase daobase = new DaoBase();
+		daobase.save(context, tranConnection, sql, txdate, txtime, fileName, filePath, orgSysNo, subSysNo, fileNo,
+				fileMD5, serviceCode, serviceScene, seqNo);
+		DBHandler.commitTransaction(context, tranConnection);//提交事务
+		SFLogger.info(context, "处理完成!");
+	}
+
+	@Override
+	protected void initialize(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void doHandle(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+		String acctId = SFUtil.getReqDataValue(context, "ACCT_ID");// 卡号CARD_NO
+
+	}
+
+	@Override
+	public void doHost(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void doSecu(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void chkStart(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void chkEnd(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+}

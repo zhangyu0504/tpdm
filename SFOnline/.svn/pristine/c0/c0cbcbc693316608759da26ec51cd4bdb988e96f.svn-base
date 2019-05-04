@@ -1,0 +1,424 @@
+package core.schedule;
+
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.dom4j.Element;
+import org.quartz.CronTrigger;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.SimpleTrigger;
+import org.quartz.Trigger;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.log.EMPLog;
+import common.action.db.SqlExecAction;
+import common.exception.SFException;
+import common.services.GenContextBySql;
+import common.services.PublicService;
+import common.util.SFConst;
+
+
+/**
+   * 调度任务工厂， 获取调度任务参数 
+   * Serial NO: FINWARE_V3.5_TFS_2013120003 代码重构
+   * Date 2013-6-13 
+   * @author hh
+   * @version 1.0
+   */
+public class ScheduleTaskFactory {
+    public HashMap<String, ScheduleTaskInfo> schTaskCache = new HashMap<String, ScheduleTaskInfo>();    //[FinWare_V3.5_调度cron表达式修及时生效]_B xuh 2014-3-27 ---------------
+    private static ScheduleTaskFactory schedTask;
+    private static String PARAMTYPE = "SCHEDULE";
+
+	//调度计量单位
+	public static final String SCH_UNIT_ONETIME = "onetime";	
+	public static final String SCH_UNIT_DAY = "day";	
+	public static final String SCH_UNIT_WEEK = "week";
+	public static final String SCH_UNIT_MONTH = "month";
+	public static final String SCH_UNIT_CRON = "cron";
+	
+	public static final String SECOND = "s";	
+	public static final String MINUTE = "m";	
+    
+    private ScheduleTaskFactory() {
+    }
+
+    synchronized public static ScheduleTaskFactory getInstance() {
+        if (schedTask == null)
+            schedTask = new ScheduleTaskFactory();
+        return schedTask;
+    }
+
+    public ScheduleTaskInfo getScheduleTask(String schedTaskName, ContextData c) throws SFException {
+        long begin = System.currentTimeMillis();
+        ScheduleTaskInfo scheduleTaskInfo = null;
+        try {
+            if (schedTaskName == null || schedTaskName.length() <= 0)
+                throw new SFException("schedTaskName为空，请检查");
+            if (ParameterInfo.hasParam(schedTaskName) ) {
+                scheduleTaskInfo = schTaskCache.get(schedTaskName);
+            }
+            if (scheduleTaskInfo == null) {
+//                String schTaskFile = ParameterInfo.getParamPath(schedTaskName, c);
+                //String schTaskFile = "D:\\UProjects\\FinWare_NEWGJ\\UtanTool\\WebContent\\UtanParams\\Server\\SCHEDULE\\SwfInInterfaceSch.schuedule";
+                scheduleTaskInfo = buildScheduleTaskInfo(schedTaskName,c.EMPContext);
+                //logger.debug("schedTaskName-->" + schedTaskName + "\n" + scheduleTaskInfo.toString());
+                schTaskCache.put(schedTaskName, scheduleTaskInfo);
+                ParameterInfo.paramContain.put(schedTaskName, "Y");
+            } else {
+               // logger.debug("getScheduleTask from cache :" + schedTaskName);
+            }
+        } catch (Exception e) {
+            EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "getScheduleTask fail:" + e.getMessage(), e);
+            throw new SFException(e);
+        }
+        long end = System.currentTimeMillis();
+        EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "get getScheduleTask;" + schedTaskName + " cost " + (end - begin));
+        return scheduleTaskInfo;
+    }
+    
+    @SuppressWarnings("unchecked")
+	private ScheduleTaskInfo buildScheduleTaskInfo(String schedTaskName,Context context) throws SFException{
+	    try{
+	    	
+	    	HashMap<String, HashMap<String, Object>> schedData = EMPDBUtil.fromContext2Map(EMPDBUtil.EMPExecuteSQL("SQL_ALL_SCHEDULE_S0041", new ContextData(context)));
+	    	
+	    	
+	    	SqlExecAction sqlExecAction = null;
+			Context tmpContext = null;
+			sqlExecAction = ((PublicService) context.getService((String) context
+					.getDataValue(SFConst.SERVICE_PUBLICSERVICENAME)))
+					.getSQLExecAction(context);
+	    	sqlExecAction.setRefSQL("SQL_SCHEDULETASKINFO_S0001");
+			sqlExecAction.initialize();
+			tmpContext = ((GenContextBySql) context
+					.getService((String) context
+							.getDataValue(SFConst.SERVICE_GENCONTEXTBYSQL)))
+					.getContext(context, "SQL_SCHEDULETASKINFO_S0001");
+			tmpContext.setDataValue("SCHEDULE_NAME", schedTaskName);
+			ScheduleTaskInfo schTaskInfo = new ScheduleTaskInfo();
+			if ("0".equals(sqlExecAction.execute(context, tmpContext))) {
+				
+				    schTaskInfo.setSchTaskType((String)tmpContext.getDataValue("TASK_TYPE"));
+				    schTaskInfo.setName(schedTaskName);
+				    schTaskInfo.setSchTaskDesc((String)tmpContext.getDataValue("TASKDESC"));
+//				    schTaskInfo.setSchTaskEnDesc((String)tmpContext.getDataValue("TASKENDESC"));
+				    
+				    // jobType 1 代表走class 2代表走biz
+				    String jobType = (String)tmpContext.getDataValue("JOB_TYPE");
+				    String jobClass = null;
+				   
+				    
+				    /**
+				     *  statusType  
+				     *  1  代表调度任务之间按队列执行，前一任务没结束之前后一任务不能开始    
+				     *  2  代表 调度任务之间互不影响
+				     */
+				    String statusType = (String)tmpContext.getDataValue("STATUS_TYPE");
+				    if("1".equals(jobType)){
+				    	if("1".equals(statusType)){
+				    		jobClass = "core.schedule.ScheduleStatefulJobAction";
+				    	}else{
+				    		jobClass = "core.schedule.ScheduleJobAction";
+				    	}
+				    }else if("2".equals(jobType)){
+				    	if("1".equals(statusType)){
+				    		jobClass = "core.schedule.ScheduleStatefulJobTaskAction";
+				    	}else{
+				    		jobClass = "core.schedule.ScheduleJobTaskAction";
+				    	}
+				    }else{
+				    	jobClass = "core.schedule.ScheduleStatefulJobAction";
+				    }
+
+				    
+				   // String jobClass = "core.schedule.ScheduleStatefulJobAction";// (String)tmpContext.getDataValue("job"); //core.schedule.ScheduleStatefulJobAction
+				   
+				    
+				    Class cJobClass = Class.forName(jobClass);
+				    JobDetail jobDetail = new JobDetail( schedTaskName,ScheduleTaskInfo.GROUP ,cJobClass);
+				    JobDataMap jobDataMap = new JobDataMap();
+				    jobDataMap.put("taskName", (String)tmpContext.getDataValue("JOB"));
+//				    jobDataMap.put("errCount", (String)tmpContext.getDataValue("ERR_COUNT"));
+//				    jobDataMap.put("maxErrCount", (String)tmpContext.getDataValue("MAXERR_COUNT"));
+				    //批量默认永远不停止
+				    jobDataMap.put("errCount", "0");
+				    jobDataMap.put("maxErrCount", "-1");
+				    
+				    //begin createJobDetail
+					jobDetail.setJobDataMap(jobDataMap);
+				    schTaskInfo.setJobDetail( jobDetail );
+				    //end createJobDetail
+				    
+				  //begin create trigger
+//				    Element triggerE =  (Element) schTaskNode.selectSingleNode("trigger");
+				    Trigger trigger = null;
+				    String triggerType = SCH_UNIT_CRON;//(String)tmpContext.getDataValue("TRIGGER_TYPE");
+					if( SCH_UNIT_ONETIME.equals(triggerType) ){	
+						Map<String,String> triggerE = new HashMap<String,String>();
+						triggerE.put("startTime", "");
+						triggerE.put("startDate", "");
+						Date startTime = getStartTime(triggerE);
+						trigger = new SimpleTrigger(schedTaskName,ScheduleTaskInfo.GROUP);
+						trigger.setStartTime(startTime);
+					}else{
+						String cronExpression =  (String)tmpContext.getDataValue("CRON");// assembleExpress(triggerE);
+						EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, cronExpression);
+						trigger = new CronTrigger(schedTaskName, ScheduleTaskInfo.GROUP,cronExpression);
+					}
+				    schTaskInfo.setTrigger( trigger );
+				    //end create trigger
+				    
+				    return schTaskInfo;
+				    
+			}
+	    	
+			return schTaskInfo;
+	    	
+//		    SAXReader reader = new SAXReader();
+//		    Document doc = reader.read( new File(fileName) );
+//		    ScheduleTaskInfo schTaskInfo = new ScheduleTaskInfo();
+//		    
+//		    Node schTaskNode = doc.selectSingleNode("schtask");  
+//		    Element schTaskE = (Element) schTaskNode;
+//		    String schTaskType = schTaskE.attributeValue("type");
+//		    
+//		    Element schTaskNameE = (Element) schTaskNode.selectSingleNode("schTaskName");
+//		    String schTaskName = schTaskNameE.getText();
+//		    Element schTaskDescE = (Element) schTaskNode.selectSingleNode("schTaskDesc");
+//		    Element schtaskEnDescE = (Element) schTaskNode.selectSingleNode("schTaskEnDesc");
+//		    
+//		    schTaskInfo.setSchTaskType( schTaskType );
+//		    schTaskInfo.setName( schTaskName );
+//		    schTaskInfo.setSchTaskDesc( schTaskDescE.getText() );
+//		    schTaskInfo.setSchTaskEnDesc( schtaskEnDescE.getText() );
+//		    
+//		    //begin createJobDetail
+//		    Element jobDetailE =  (Element) schTaskNode.selectSingleNode("jobDetail");
+//		    String jobClass = jobDetailE.attributeValue("job");
+//		    Class cJobClass = Class.forName(jobClass);
+//		    //JobDetail jobDetail = new JobDetail(  );
+//		    JobDetail jobDetail = new JobDetail( schTaskName,ScheduleTaskInfo.GROUP ,cJobClass);
+//		    JobDataMap jobDataMap = new JobDataMap();
+//			Element eJobDataMap = jobDetailE.element("jobDataMap");
+//			jobDataMap.putAll( Dom4jXmlUtil.element2HashMap(eJobDataMap) );
+//			jobDetail.setJobDataMap(jobDataMap);
+//		    schTaskInfo.setJobDetail( jobDetail );
+//		    //end createJobDetail
+//		    
+//		    //begin create trigger
+//		    Element triggerE =  (Element) schTaskNode.selectSingleNode("trigger");
+//		    Trigger trigger = null;
+//		    String triggerType = triggerE.attributeValue("type");
+//			if( SCH_UNIT_ONETIME.equals(triggerType) ){	
+//				Date startTime = getStartTime(triggerE);
+//				trigger = new SimpleTrigger(schTaskName,ScheduleTaskInfo.GROUP);
+//				trigger.setStartTime(startTime);
+//			}else{
+//				String cronExpression = assembleExpress(triggerE);
+//				EMPLog.log(SFConstance.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, cronExpression);
+//				trigger = new CronTrigger(schTaskName, ScheduleTaskInfo.GROUP,cronExpression);
+//			}
+//		    schTaskInfo.setTrigger( trigger );
+//		    //end create trigger
+//
+//		    return schTaskInfo;
+	    }catch (Exception e) {
+//	        EMPLog.log(SFConstance.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "buildScheduleTask " + fileName + e.getMessage(), e);
+	        throw new SFException(e);
+        }
+    }
+    
+	
+	/**
+	 * 获得触发器的开始时间
+	 */
+	private Date getStartTime(Map<String,String> triggerNode){
+		Date startDateTime = new Date();
+		try {
+//			String type = triggerNode.attributeValue("type");
+			String sStartTime =  triggerNode.get("startTime");
+			String startDate = triggerNode.get("startDate");
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			if(null==startDate || "".equals(startDate.trim())){
+				String st = sdf.format(startDateTime);
+//				Calendar c = Calendar.getInstance();
+				startDateTime = DateFormat.getDateInstance().parse(st + " " + sStartTime);
+			}else{
+				startDateTime = DateFormat.getDateInstance().parse(startDate+ " " + sStartTime);
+			}
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "getStartTime error:"+e.getMessage(), e);
+		}
+		EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "startDateTime-->"+startDateTime);
+		return startDateTime;
+	}
+	
+ 
+	private String assembleExpress(Element triggerNode) throws SFException {
+		String express = "";
+		try{
+			String type = triggerNode.attributeValue("type");
+			
+			if(SCH_UNIT_DAY.equals(type)){
+				express = getDayExpress(triggerNode);
+			}else if(SCH_UNIT_WEEK.equals(type)){
+				express = getWeekExpress(triggerNode);
+			}else if(SCH_UNIT_MONTH.equals(type)){
+				express = getMonthExpress(triggerNode);
+			}else if(SCH_UNIT_CRON.equals(type)){
+			    express = triggerNode.elementText("cron");
+			}else 
+			    throw new SFException("Scheduler type format error:" + type);
+		}catch(Exception e){
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "assembleExpress fail" + e.getMessage(), e);
+			throw new SFException(e);
+		}
+		EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "assembleExpress---->"+express);
+		return express;
+	}
+
+	/**
+	 * 天为单位的CRON表达式
+	 */
+	private String getDayExpress(Element triggerNode) throws SFException {
+		String express = "";
+		try{
+			String startTime = triggerNode.elementText("startTime");
+			String endTime = triggerNode.elementText("endTime");
+			String interval = triggerNode.elementText("interval");
+			String iu = triggerNode.elementText("intervalUnit");
+			
+			String hour = startTime + "-" + endTime;
+			if( SECOND.equals(iu.trim() ) ){
+				express = "0/" + interval + " 0-59 "+ hour +" * * ?";
+			}else if(MINUTE.equals(iu.trim())){
+				express = "0 0/" + interval+ " " + hour+ " * * ?";
+			}else{
+				throw new SFException("时间单位错误！");
+			}
+
+		}catch(Exception e){
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "getDayExpress fail:"+e.getMessage(), e);
+			throw new SFException(e);
+		}
+		return express;
+	}	
+	
+	
+	/**
+	 * 周为单位的CRON表达式
+	 * @param triggerNode
+	 * @return
+	 * @throws SFException
+	 */
+	private String getWeekExpress(Element triggerNode) throws SFException {
+		String express = "";
+		try{
+			String startTime = triggerNode.elementText("startTime");
+			String endTime = triggerNode.elementText("endTime");
+			String interval = triggerNode.elementText("interval");
+			String iu = triggerNode.elementText("intervalUnit");
+			String days = triggerNode.elementText("days");
+			
+			String hour = startTime + "-" + endTime;
+			
+			if(SECOND.equals(iu.trim())){
+				express = "0/" + interval + " 0-59 " + hour + " * * " + days;
+			}else if(MINUTE.equals(iu.trim())){
+				express = "0 0/" + interval + " " + hour + " * * " + days;
+			}else{
+				throw new SFException("时间单位错误！");
+			}
+			
+
+		}catch(Exception e){
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "getMonthExpress fail:"+e.getMessage(), e);
+			throw new SFException(e);
+		}
+		
+		return express;
+	}
+
+	/**
+	 * 月为单位的CRON表达式
+	 * @param triggerNode
+	 * @return
+	 * @throws SFException
+	 */
+	private String getMonthExpress(Element triggerNode) throws SFException {
+		String express = "";
+		try{
+			Element eFreq = triggerNode.element("freq");
+			String freqUnit = eFreq.attributeValue("unit");
+//			String startTime = triggerNode.elementText("startTime");
+//			String endTime = triggerNode.elementText("endTime");
+			String interval = triggerNode.elementText("interval");
+			String iu = triggerNode.elementText("intervalUnit");
+//			String days = triggerNode.elementText("days");
+			
+			String cronSecond = "0";
+			String cronMinute = "0-59";
+			String cronHour = "*";
+			String cronDayOfMonth = "?";
+			String cronMonth = "*";
+			String cronDayOfWeek = "?";
+
+			//秒分
+			if(SECOND.equals(iu.trim())){
+				cronSecond = "0/" + interval;
+			}else if(MINUTE.equals(iu.trim())){
+				cronMinute = "0/" + interval;
+			}else{
+				throw new SFException("时间单位错误！");
+			}
+			
+			//周或天
+			if(SCH_UNIT_WEEK.equals(freqUnit)){
+				String month = eFreq.elementText("month");
+				String weekno = eFreq.elementText("weekno");
+				String weekday = eFreq.elementText("weekday");
+				cronMonth = month;
+				cronDayOfWeek = weekday + "#" + weekno;
+			}else{
+				String month = eFreq.elementText("month");
+				String day = eFreq.elementText("day");
+				cronMonth = month;
+				cronDayOfMonth = day;
+			}
+			
+			express = cronSecond + " " + cronMinute + " " + cronHour + " " 
+					+ cronDayOfMonth + " " + cronMonth + " " + cronDayOfWeek;
+			
+		}catch(Exception e){
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "getMonthExpress fail:"+e.getMessage(), e);
+			throw new SFException(e);
+		}
+		
+		return express;
+	}	
+	
+	//获取所有调度信息
+    public ArrayList<ScheduleTaskInfo> getAllScheduleTasks(ContextData c) throws SFException, EMPException {
+        ArrayList<ScheduleTaskInfo> allSchTasks = new ArrayList<ScheduleTaskInfo>();
+        HashMap<String, HashMap<String, Object>> schedData = EMPDBUtil.fromContext2Map(EMPDBUtil.EMPExecuteSQL("SQL_ALL_SCHEDULE_S0041", "PARAMTYPE", PARAMTYPE, c.EMPContext));
+        for (int i = 1 ;i <= schedData.size(); i++) {
+            String schTaskname = (String) schedData.get(String.valueOf(i)).get("NAME");
+            try{
+                ScheduleTaskInfo sti = getScheduleTask(schTaskname, c);
+                allSchTasks.add(sti);
+            }catch(Exception e){
+                EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "构造"+schTaskname+"调度失败："+e.getMessage(), e);
+            }
+        }
+        return allSchTasks;
+    }
+}
+

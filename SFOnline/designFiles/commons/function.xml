@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+
+<FuncGroup id="函数">
+	<FuncGroup id="函数">
+		<Func id="isEmpty" name="isEmpty" className="core.emp.func.IsEmptyFunc" defineName="isEmpty">
+			<document>作者：易俊
+描述：判断DataFeild是否为字符串并长度为0。
+输入：
+arg1--要判断的DataFeild对象
+返回值：
+true--对象值为empty
+false--对象值不为empty
+示例：@isEmpty($TRAN_CODE)</document>
+		</Func>
+	</FuncGroup>
+</FuncGroup>

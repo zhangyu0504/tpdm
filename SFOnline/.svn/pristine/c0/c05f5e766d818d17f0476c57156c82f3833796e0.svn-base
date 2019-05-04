@@ -1,0 +1,294 @@
+package module.service;
+
+import java.sql.SQLException;
+
+import module.bean.InvestData;
+import module.bean.SecCompData;
+import module.bean.SignAccountData;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * 客户参数检查公共类
+ * 
+ */
+public class InvestorService {
+
+	/**
+	 * 投资人身份检查
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	public static void chkInvestor( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "chkInvestor()开始" ) );
+		SFLogger.info( context, String.format( "投资人身份检查" ) );
+
+		try {
+			InvestData investData = SFUtil.getDataValue( context, SFConst.PUBLIC_INVEST_DATA );
+			SFUtil.chkCond( context, investData == null, "ST4392", "投资人基本信息不存在" );
+
+			String idType = SFUtil.getDataValue( context, SFConst.PUBLIC_ID_TYPE );
+			String idCode = SFUtil.getReqDataValue( context, "INV_ID_CODE" );
+			SFUtil.chkCond( context, !investData.getIdType().equals( idType ) || !investData.getInvIdCode().equals( idCode ), "ST4090", "证件不符" );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		SFLogger.info( context, String.format( "chkInvestor()结束" ) );
+	}
+
+	/**
+	 * 合作行客户不允许在节假日时间段发起该交易
+	 * 
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	public static void chkCobankHoliday( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "chkCobankHoliday()开始" ) );
+		SFLogger.info( context, String.format( "检查合作行客户是否允许在节假日时间段发起该交易" ) );
+
+		try {
+			SignAccountData signAccountData = SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA );
+			SFUtil.chkCond( context, signAccountData == null, "ST5720", "客户签约信息不存在" );
+			String initSide = signAccountData.getInitSide();
+			String workMode = SFUtil.getDataValue( context, SFConst.PUBLIC_WORKMODE );// 当前工作模式
+			SFUtil.chkCond( context, workMode.equals( SFConst.WORKMODE_724HOLIDAY ) && SFConst.INIT_SIDE_COBANK.equals( initSide ), "ST5774", "合作行客户不允许在节假日时间段发起该交易!" );
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		SFLogger.info( context, String.format( "chkCobankHoliday()结束" ) );
+	}
+
+	/**
+	 * 合作行客户不允许在724时间段发起该交易
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	public static void chkCobank724( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "chkCobank724()开始" ) );
+		SFLogger.info( context, String.format( "检查合作行客户是否允许在724时间段发起该交易" ) );
+		try {
+			SignAccountData signAccountData = SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA );
+			SFUtil.chkCond( context, signAccountData == null, "ST5720", "客户签约信息不存在" );
+			String initSide = signAccountData.getInitSide();
+			String workMode = SFUtil.getDataValue( context, SFConst.PUBLIC_WORKMODE );// 当前工作模式
+			SFUtil.chkCond( context, !workMode.equals( SFConst.WORKMODE_NORMAL ) && SFConst.INIT_SIDE_COBANK.equals( initSide ), "ST5774", "合作行客户不允许在724时间段发起该交易!" );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		SFLogger.info( context, String.format( "chkCobank724()结束" ) );
+	}
+
+	/**
+	 * 账户激活状态
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
+	public static void chkActiveFlag( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "chkActiveFlag()开始" ) );
+		SFLogger.info( context, String.format( "账户激活状态检查" ) );
+
+		try {
+			SignAccountData signAccountData = SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA );
+			SFUtil.chkCond( context, signAccountData == null, "ST5720", "客户签约信息不存在" );
+
+			String activeFlag = signAccountData.getActiveFlag();// 激活标志
+			SFUtil.chkCond( context, "1".equals( activeFlag ), "ST5762", "请先从银行端发起银转证交易以激活此资金账号!" );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+
+		SFLogger.info( context, String.format( "chkActiveFlag()检查结束" ) );
+	}
+
+	/**
+	 * 是否允许该券商的机构户发起银证交易
+	 * 
+	 * @param context
+	 * @return
+	 * @throws SQLException
+	 */
+	public static void chkSecuCorpTrans( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "chkSecuCorpTrans()开始" ) );
+		SFLogger.info( context, String.format( "检查是否允许该券商的机构户发起银证交易" ) );
+
+		SignAccountData signAccountData = SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA );
+		String invType = signAccountData.getInvType();// 1-个人客户 2-机构客户
+
+		if( SFConst.INV_TYPE_CORP.equals( invType ) ) {// 当前交易客户为机构客户时才检查
+			try {
+				SecCompData secCompData = SFUtil.getDataValue( context, SFConst.PUBLIC_SECU );
+				SFUtil.chkCond( context, secCompData == null, "ST5711", "券商信息不存在!" );
+
+				String JGZZFlag = secCompData.getJGZZFlag();// 是否允许券商发起机构户证转银交易标志
+				String JGZZFlag1 = secCompData.getJGZZFlag1();// 是否允许券商发起机构户银转证交易标志
+				SFUtil.chkCond( context, !"1".equals( JGZZFlag ) || !"1".equals( JGZZFlag1 ), "ST5773", "不允许该券商的机构户发起银证交易!" );
+
+			} catch( SFException e ) {
+				throw e;
+			} catch( Exception e ) {
+				SFUtil.chkCond( context, "ST4895", e.getMessage() );
+			}
+		}
+
+		SFLogger.info( context, String.format( "chkSecuCorpTrans()结束" ) );
+	}
+
+	/**
+	 * 不允许我行个人客户发起该交易
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
+	public static void chkBankChlRetailTrans( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "chkBankChlRetailTrans()开始" ) );
+		SFLogger.info( context, String.format( "检查是否允许我行个人客户发起该交易" ) );
+		try {
+
+			SignAccountData signAccountData = SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA );
+			SFUtil.chkCond( context, signAccountData == null, "ST5720", "客户签约信息不存在" );
+
+			String initSide = signAccountData.getInitSide();// A-合作行客户 其他-我行客户
+			String invType = signAccountData.getInvType();// 1-个人客户 2-机构客户
+
+			if( !SFConst.INIT_SIDE_COBANK.equals( initSide ) && SFConst.INV_TYPE_RETAIL.equals( invType ) )
+				SFUtil.chkCond( context, "ST5774", "不允许我行个人客户发起该交易!" );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		SFLogger.info( context, String.format( "chkBankChlRetailTrans()结束" ) );
+	}
+
+	/**
+	 * 不允许我行机构客户发起该交易
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
+	public static void chkCorpTrans( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "chkCorpTrans()开始" ) );
+		SFLogger.info( context, String.format( "检查是否允许我行机构客户发起该交易" ) );
+		try {
+			SignAccountData signAccountData = SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA );
+			SFUtil.chkCond( context, signAccountData == null, "ST5720", "客户签约信息不存在" );
+
+			String initSide = signAccountData.getInitSide();// A-合作行客户 其他-我行客户
+			String invType = signAccountData.getInvType();// 1-个人客户 2-机构客户
+			if( !SFConst.INIT_SIDE_COBANK.equals( initSide ) && SFConst.INV_TYPE_CORP.equals( invType ) )
+				SFUtil.chkCond( context, "ST5774", "不允许我行机构客户发起此交易!" );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		SFLogger.info( context, String.format( "chkCorpTrans()结束" ) );
+	}
+
+	/**
+	 * 不允许合作行个人客户发起该交易
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
+	public static void chkCobankRetailTrans( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "chkCobankRetailTrans()开始" ) );
+		SFLogger.info( context, String.format( "检查是否允许合作行个人客户发起该交易" ) );
+		try {
+			SignAccountData signAccountData = SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA );
+			SFUtil.chkCond( context, signAccountData == null, "ST5720", "客户签约信息不存在" );
+
+			String initSide = signAccountData.getInitSide();// A-合作行客户 其他-我行客户
+			String invType = signAccountData.getInvType();// 1-个人客户 2-机构客户
+			if( SFConst.INIT_SIDE_COBANK.equals( initSide ) && SFConst.INV_TYPE_RETAIL.equals( invType ) )
+				SFUtil.chkCond( context, "ST5774", "不允许合作行个人客户发起该交易!" );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		SFLogger.info( context, String.format( "chkCobankRetailTrans()结束" ) );
+	}
+
+	/**
+	 * 不允许合作行机构客户发起该交易
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
+	public static void chkCobankCorpTrans( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "chkCobankCorpTrans()开始" ) );
+		SFLogger.info( context, String.format( "检查是否允许合作行机构客户发起该交易" ) );
+		try {
+			SignAccountData signAccountData = SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA );
+			SFUtil.chkCond( context, signAccountData == null, "ST5720", "客户签约信息不存在" );
+
+			String initSide = signAccountData.getInitSide();// A-合作行客户 其他-我行客户
+			String invType = signAccountData.getInvType();// 1-个人客户 2-机构客户
+			if( SFConst.INIT_SIDE_COBANK.equals( initSide ) && SFConst.INV_TYPE_CORP.equals( invType ) )
+				SFUtil.chkCond( context, "ST5774", "不允许合作行机构客户发起该交易!" );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		SFLogger.info( context, String.format( "chkCobankCorpTrans()结束" ) );
+	}
+
+	/**
+	 * 检查签约关系sign
+	 * 
+	 * @return
+	 * @throws SQLException
+	 */
+	public static void chkSignAccount( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "chkSignAccount()开始" ) );
+		SFLogger.info( context, String.format( "签约关系检查" ) );
+		try {
+			String acctId = SFUtil.getReqDataValue( context, "ACCT_ID" );// 银行卡号
+
+			InvestData investData = SFUtil.getDataValue( context, SFConst.PUBLIC_INVEST_DATA );
+			SFUtil.chkCond( context, investData == null, "ST4392", "投资人基本信息不存在" );
+
+			SignAccountData signAccountData = SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA );
+			SFUtil.chkCond( context, signAccountData == null, "ST5720", "客户签约信息不存在" );
+
+			String dbAcctId = signAccountData.getAcctId();
+
+			if( SFUtil.isNotEmpty( acctId ) && SFUtil.isNotEmpty( dbAcctId ) ) {
+				SFUtil.chkCond( context, !acctId.equals( dbAcctId ), "ST4532", "卡号不一致" );
+			}
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+
+		SFLogger.info( context, String.format( "chkSignAccount()结束" ) );
+	}
+
+}

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="GBK"?>
+
+<project name="SFOnline" default="emp" basedir=".">
+	<!--emp属性-->
+	<property name="empide.home" value="." />
+	<property name="emp.project.base" value=".." /> 
+	<property name="emp.web.home" value="../WebContent" />
+	<property name="project.name" value="SFOnline" />
+	<property name="emp.factoryName" value="${project.name}" />
+	<property name="emp.mvcFactoryName" value="${project.name}" />
+	<property name="emp.designFiles" value="${emp.project.base}/designFiles" />
+	<property name="emp.destFolder" value="${emp.web.home}/WEB-INF" />
+	<property name="emp.ideFolder" value="${empide.home}" />
+
+	<!--emp任务-->
+	<taskdef name="InitEnv" classname="com.emp.ide.ant.InitEnvTask" />
+	<taskdef name="BuildBizTask" classname="com.emp.ide.ant.BuildBizTask" />
+	<taskdef name="BuildMvcTask" classname="com.emp.ide.ant.BuildMvcTask" />
+	<taskdef name="BuildGrdTask" classname="com.emp.ide.ant.BuildGrdTask" />
+	<taskdef name="BuildTableTask" classname="com.emp.ide.ant.BuildTableTask" />
+	<taskdef name="CommonContextTask" classname="com.emp.ide.ant.CommonContextTask" />
+	<taskdef name="CommonFlowTask" classname="com.emp.ide.ant.CommonFlowTask" />
+	<taskdef name="CommonServiceTask" classname="com.emp.ide.ant.CommonServiceTask" />
+	<taskdef name="CommonFormatTask" classname="com.emp.ide.ant.CommonFormatTask" />
+	<taskdef name="CommonFunctionTask" classname="com.emp.ide.ant.CommonFunctionTask" />
+	
+	<target name="emp">
+		<echo>--emp.destFolder: ${emp.destFolder}</echo>
+		<echo>--emp.designFiles ${emp.designFiles}</echo>
+		<echo>--project.name ${project.name}</echo>
+		<echo>--emp.mvcFactoryName ${emp.mvcFactoryName}</echo>
+		<!--为防止开发提交了编译后的biz文件到代码库带来的影响，先把biz编译后的目录清空-->
+		<delete dir="${emp.destFolder}/bizs/${emp.factoryName}/operations" includeemptydirs="true"></delete>
+		<delete dir="${emp.destFolder}/mvcs/${emp.factoryName}/actions" includeemptydirs="true"></delete>
+		<antcall target="empInitEnv" />
+		<antcall target="empbuildbizgrp" />
+		<antcall target="empbuildemp" />
+	</target>
+	<target name="empInitEnv">
+		<InitEnv designFileFolder="${emp.designFiles}" factoryName="${emp.factoryName}" version="2.1">
+			<profileDefine type="action" fileName="${emp.ideFolder}/EMPProfile/actionProfile.xml" />
+			<profileDefine type="service" fileName="${emp.ideFolder}/EMPProfile/serviceProfile.xml" />
+			<profileDefine type="format" fileName="${emp.ideFolder}/EMPProfile/formatProfile.xml" />
+			<!--profileDefine type="function" fileName="${emp.ideFolder}/EMPProfile/function.xml" /-->
+		</InitEnv>
+	</target>
+
+	<target name="empbuildemp">
+
+		<CommonFunctionTask destPath="${emp.destFolder}/commons/" />
+		<BuildBizTask srcPath="${emp.designFiles}" destPath="${emp.destFolder}/bizs/${emp.factoryName}/operations" />
+		<BuildMvcTask srcPath="${emp.designFiles}" destPath="${emp.destFolder}/mvcs/${emp.mvcFactoryName}/actions" />
+		<BuildGrdTask srcPath="${emp.designFiles}/mvcs/${emp.mvcFactoryName}" destPath="${emp.destFolder}/mvcs/${emp.mvcFactoryName}" jspEncoding="GB18030" />
+		<BuildTableTask srcPath="${emp.designFiles}/tables" destPath="${emp.destFolder}/tables" />
+		
+		<copy overwrite="true" todir="${emp.destFolder}" includeEmptyDirs="false">
+			<fileset dir="${emp.designFiles}">
+				<exclude name="**/.debug/*" />
+				<exclude name="**/desc.xml" />
+				<exclude name="**/nodeSettings.xml" />
+				<exclude name="**/formats.xml" />
+				<exclude name="**/serverFlow.xml" />
+				<exclude name="**/services.xml" />
+				<exclude name="**/function.xml" />
+				<exclude name="**/mvcdefine.xml" />
+				<exclude name="**/dataDict.xml" />
+				<exclude name="**/hostPackageSettings.xml" />
+				<exclude name="**/hostSettings.xml" />
+				<exclude name="**/jspEditorProfile.xml" />
+				<exclude name="**/serviceProfile.xml" />
+				<exclude name="**/actionProfile.xml" />
+				<exclude name="**/jspTagGenerator.xml" />
+				<exclude name="**/commonProperty.xml" />
+				<exclude name="**/build.xml" />
+				<exclude name="**/*.doc" />
+				<exclude name="**/*.mvc" />
+				<exclude name="**/*.biz" />
+				<exclude name="**/*.mtx" />
+				<exclude name="**/*.grd" />
+				<exclude name="**/*.table" />
+				<exclude name="**/*.pdt" />
+				<exclude name="**/*.rpt" />
+				<exclude name="**/*.vm" />
+				<exclude name="**/*.acc" />
+				<exclude name="**/*.uif" />
+				<exclude name="**/*.rule" />
+				<exclude name="**/*.wf" />
+				<exclude name="**/contexts.xml"/>
+			</fileset>
+		</copy>
+	</target>
+	<target name="empbuildbizgrp">
+		<copy todir="${emp.destFolder}/bizs/${emp.factoryName}/">
+			<fileset file="${emp.designFiles}/bizs/${emp.factoryName}/settings.xml" />
+			<fileset file="${emp.designFiles}/bizs/${emp.factoryName}/mbeans.xml" />
+			<fileset file="${emp.designFiles}/commons/dataType.xml" />
+			<fileset file="${emp.designFiles}/commons/dataTypeDef.xml" />
+		</copy>
+		<CommonContextTask srcFile="${emp.designFiles}/bizs/${emp.factoryName}/nodeSettings.xml" destPath="${emp.destFolder}/bizs/${emp.factoryName}" />
+		<CommonFlowTask srcFile="${emp.designFiles}/bizs/${emp.factoryName}/serverFlow.xml" destPath="${emp.destFolder}/bizs/${emp.factoryName}" />
+		<CommonServiceTask srcFile="${emp.designFiles}/bizs/${emp.factoryName}/services.xml" destPath="${emp.destFolder}/bizs/${emp.factoryName}" />
+		<CommonFormatTask srcFile="${emp.designFiles}/bizs/${emp.factoryName}/formats.xml" destPath="${emp.destFolder}/bizs/${emp.factoryName}" />
+	</target>
+
+</project>

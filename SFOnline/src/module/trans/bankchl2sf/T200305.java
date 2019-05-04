@@ -1,0 +1,159 @@
+package module.trans.bankchl2sf;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import module.bean.AllyData;
+import module.bean.BankSignData;
+import module.bean.InvestData;
+import module.bean.SecCompData;
+import module.bean.SignAccountData;
+import module.dao.AllyDataDao;
+import module.dao.BankSignDataDao;
+import module.trans.TranBase;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.BizUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * (银行渠道发起) 校验账户状态
+ * 仅个人客户
+ * 交易码 : 200305
+ * @author 张钰
+ */
+public class T200305 extends TranBase {
+
+	@Override
+	protected void initialize(Context context) throws SFException {
+
+	}
+	@Override
+	public void doHandle(Context context) throws SFException {
+		//上主机R3036账户信息查询
+		SFLogger.info(context, String.format("doHost()开始"));
+		doHost(context);
+		SFLogger.info(context, String.format("doHost()结束"));
+	}
+
+	@Override
+	public void doHost(Context context) throws SFException {
+		String acctId = SFUtil.getReqDataValue(context, "ACCT_ID");//账号ACCT_NO
+		String busitType = SFUtil.getReqDataValue(context, "BUSI_TYPE");//交易类型  0-预约   1-激活
+		try {
+			/**************************************************************************
+			 *                    上主机查询卡状态开始
+			 ***************************************************************************/
+			Map<String,Object> msg=new HashMap<String,Object>();
+			msg.put("ACCT_ID",acctId);//账号ACCT_NO
+			BizUtil.qryCardAttrClient(context, msg);
+			/**********************上主机查询卡状态字结束********************************/
+			
+			// 交易成功，组返回报文
+			SFUtil.setResDataValue(context, "ACCT_ID", acctId);
+			SFUtil.setResDataValue(context, "SEC_COMP_CODE", SFUtil.getReqDataValue(context, "SEC_COMP_CODE"));
+			if("0".equals(busitType)){//银行预约
+				SFUtil.setResDataValue(context, "REMARK", String.format("银行预约校验通过"));
+			}else if("1".equals(busitType)){//银行激活
+				SFUtil.setResDataValue(context, "REMARK", String.format("银行激活校验通过"));
+			}
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context,  "ST4895", String.format("doHost()处理失败%s",e.getMessage()));
+		}
+		
+
+	}
+	
+	@Override
+	public void doSecu(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void chkStart(Context context) throws SFException {
+		//证件类型检查 ，0、20、21类型不允许做此交易
+		BizUtil.chkIdType(context, (String) SFUtil.getDataValue(context, SFConst.PUBLIC_ID_TYPE),(String)SFUtil.getReqDataValue(context,"INV_TYPE" ));
+	}
+
+	@Override
+	protected void chkEnd(Context context) throws SFException {
+		String idType = SFUtil.getDataValue(context, SFConst.PUBLIC_ID_TYPE);//转换后的证件类型//证件类型
+		InvestData investData = SFUtil.getDataValue(context, SFConst.PUBLIC_INVEST_DATA);
+		String invIdCode = SFUtil.getReqDataValue(context, "INV_ID_CODE");//证件号码
+		String acctId = SFUtil.getReqDataValue(context, "ACCT_ID");//银行卡号
+		String secCompCode = SFUtil.getReqDataValue(context, "SEC_COMP_CODE");//券商代码
+		String busitType = SFUtil.getReqDataValue(context, "BUSI_TYPE");//交易类型  0-预约   1-激活
+		SignAccountData signAccountData = null;
+		try {
+			if("0".equals(busitType)){//银行预约
+				SecCompData secCompData = SFUtil.getDataValue(context, SFConst.PUBLIC_SECU);//获取券商对象
+				SFUtil.chkCond(context, secCompData == null, "ST5711", String.format("券商代码错误"));
+				
+				String bankPreSignFlag = secCompData.getBankPreSignFlag();//是否允许该券商的银行预指定交易标志 1允许
+				SFUtil.chkCond(context, !"1".equals(bankPreSignFlag), "ST5421", String.format("该券商不允许办理[银行预指定交易]"));
+				String stkAcct = null;
+				AllyDataDao allyDataDao = new AllyDataDao();
+				AllyData allyData = allyDataDao.qryAllyData(context, tranConnection, acctId);
+				if(allyData != null){
+					String useFlag = allyData.getUseFlag(); //使用标志 1-已用 2-可用
+					String tmpSecCompCode = allyData.getSecCompCode();
+					stkAcct = allyData.getCapAcct();
+					SFUtil.chkCond(context, "1".equals(useFlag), "ST5113", String.format("您的联名卡预约还有效，不能重复预约"));
+					SFUtil.chkCond(context, !secCompCode.equals(tmpSecCompCode), "ST5702", String.format("[券商代码]非法"));
+				
+					/*检查TRDSignAccountData表，该卡号或该券商和资金账号无签约记录，才能做银行预指定*/
+					signAccountData = signAccountDataDao.qrySignFlagByAcctId(context, tranConnection, acctId,secCompCode,stkAcct);
+					SFUtil.chkCond(context, signAccountData == null, "ST5720", String.format("签约关系不存在"));
+					String signFlag = signAccountData.getSignFlag();
+					SFUtil.chkCond(context, SFConst.SIGN_FLAG_SIGN.equals(signFlag), "ST5501", String.format("签约状态为[签约]，不能重复办理"));
+					SFUtil.chkCond(context, SFConst.SIGN_FLAG_SECU_PRE.equals(signFlag), "ST5531", String.format("签约状态为[券商预指定]，请选择激活券商三方存管"));
+					SFUtil.chkCond(context, SFConst.SIGN_FLAG_SIGN_IN_PROCESS.equals(signFlag)||SFConst.SIGN_FLAG_CANCEL_IN_PROCESS.equals(signFlag)||SFConst.SIGN_FLAG_CONFIRM_IN_PROCESS.equals(signFlag), "ST5591", String.format("签约状态不正常"));
+				}
+				
+				//银行预约检查
+			    if(investData != null){
+			    	signAccountData = signAccountDataDao.qrySignAccountDataBySecAcct(context,tranConnection,investData.getSecAcct(),secCompCode);
+			    	SFUtil.chkCond(context,signAccountData!=null, "ST5531", String.format("您已经先与该券商建立了存管关系，请选择'预指定确认'"));
+			    	signAccountData = signAccountDataDao.qrySignAccountDataBySignFlag(context, tranConnection, investData.getSecAcct(), secCompCode);
+			    	SFUtil.chkCond(context, signAccountData!=null, "ST5501", String.format("不能重复开通该券商的三方存管"));
+			    }
+			    BankSignDataDao bankSignDataDao = new BankSignDataDao();
+				BankSignData bankSignData = bankSignDataDao.qryBankSignDataByIdCodeAndIdType(context, tranConnection,invIdCode,idType,secCompCode);
+				SFUtil.chkCond(context, bankSignData!=null, "ST5113", String.format("您的预约还有效，不能重复预约"));
+				   
+				bankSignData = bankSignDataDao.qryBankSignDataByIdTypeAndInvInvIdCode(context, tranConnection,secCompCode, idType, invIdCode);
+				if(bankSignData != null){
+					if(SFConst.SIGN_FLAG_BANK_PRE_IN_PROCESS.equals(bankSignData.getSignFlag())){//预约处理中，则比较前后两次的预约卡号是否一致，不一致则拒绝
+						SFUtil.chkCond(context, !acctId.equals(bankSignData.getAcctId()), "ST5571", String.format("签约状态为[预指定签约处理中]，原签约卡号与现有签约卡号不符！不允许继续签约"));
+					}
+				}
+			}else if("1".equals(busitType)){//银行激活
+				
+				if(investData!=null){
+					signAccountData = signAccountDataDao.qrySignFlagBySecAcct(context,tranConnection,investData.getSecAcct(),secCompCode);	
+				}
+				
+				SFUtil.chkCond(context, signAccountData == null, "ST5720", String.format("没有您该券商的预指定，请选择“预约开通三方存管”或先到券商营业部预指定"));
+				String signFlag = signAccountData.getSignFlag();
+				SFUtil.chkCond(context, SFConst.SIGN_FLAG_SIGN.equals(signFlag), "ST5501", String.format("签约状态为[签约]，不能重复办理"));
+				SFUtil.chkCond(context, SFConst.SIGN_FLAG_CANCEL_IN_PROCESS.equals(signFlag), "ST5591", String.format("您已经先与该券商建立了存管关系，签约状态不正常"));
+				long count = signAccountDataDao.qrySignAccountDataTotalCountByCardId( context, tranConnection, acctId );
+				SFUtil.chkCond( context, count>=5, "ST5100", "该卡已签约5个资金帐号" );
+			}
+			
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context,  "ST4895", String.format("chkEnd()处理失败%s",e.getMessage()));
+		}
+
+	}
+
+}

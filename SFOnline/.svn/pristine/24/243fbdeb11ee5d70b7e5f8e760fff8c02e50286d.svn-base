@@ -1,0 +1,115 @@
+package module.batch;
+
+import java.sql.Connection;
+import java.util.HashMap;
+import java.util.Map;
+
+import module.bean.TrcNoTBL;
+import module.cache.TransCache;
+import module.dao.TrcNoTBLDao;
+import module.trans.sf2bankchl.UpdTxDateClient;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.BizUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+import core.schedule.ScheduleActionInterface;
+
+/**
+ * (轮询)更新系统会计日期
+ * 
+ * 
+ * 功能描述： 24小时每分钟执行一次，轮询更新系统会计日期
+ * 
+ *   调用主机接口（11003000018_06）获取会记日期
+ *   
+ *   如果和数据库的日期不一致，则更新TRCNOTBL表记录
+ *   
+ * tran code :800010
+ * @author 吕超鸿
+ *
+ */
+public class T800010 implements ScheduleActionInterface {
+
+	@Override
+	public boolean init( Context context ) throws SFException {
+		String tranCode = SFUtil.getDataValue( context, SFConst.PUBLIC_TX_CODE );
+		TransCache.getValue( tranCode );
+
+		return true;
+	}
+
+	@Override
+	public void execute( Context context ) throws SFException {
+		SFLogger.info( context, "更新系统会计日期开始" );
+		String consumerId = null;// 用于组 SYS_HEAD 头节点
+		String chlSeqId = null;// 获取22位流水号;
+		Connection tranConnection = null;
+		TrcNoTBLDao trcNoTBLDao = new TrcNoTBLDao();
+		try {
+
+			// 获取连接
+			tranConnection = SFUtil.getDataValue( context, SFConst.PUBLIC_TRAN_CONNECTION );
+
+			// 系统类型
+			String type = "3";
+			SFLogger.info( context, String.format( "更新系统会计日期配置参数 IP PORT TYPE,[%s],[%s],[%s]", "10.1.95.135", "38798", "3" ) );
+			SFUtil.chkCond( context, SFUtil.isEmpty( type ), "ST4895", "渠道类型不能为空" );
+
+			// 三方存管获取流水号
+			String subTxSeqId = SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID );// 服务平台流水号
+			if( SFConst.INV_TYPE_RETAIL.equals( type ) ) { // 零售理财
+				consumerId = "826840";
+				// 理财获取流水号???用于组装报文M8004头部信息
+			}
+			if( SFConst.INV_TYPE_CORP.equals( type ) ) { // 对公理财
+				consumerId = "251908";
+				// 理财获取流水号???用于组装报文M8004头部信息
+			}
+			if( "3".equals( type ) ) { // 三方存管
+				consumerId = SFConst.SYS_SYSID;
+				chlSeqId = BizUtil.getChlSeqId( context, subTxSeqId ); // 获取22位流水号;
+			}
+
+			// 组装M8004报文,发往核心并接收核心返回信息
+			Map<String, Object> msg = new HashMap<String, Object>();
+			msg.put( "CONSUMER_ID", consumerId );// 系统ID
+			msg.put( "BIZ_SEQ_NO", chlSeqId );// 业务流水号
+			msg.put( "CONSUMER_SEQ_NO", chlSeqId );// 交易流水号
+			msg.put( "VALIDATION_FLAG", "Y" );// 查询标志
+			
+			// 发送报文到核心
+			Context hostContext = new UpdTxDateClient().send( context, msg );
+
+			String retFlag = SFUtil.getDataValue( hostContext, SFConst.PUBLIC_RET_FLAG );
+			SFUtil.chkCond( context, !SFConst.RET_SUCCESS.equals( retFlag ), "ST5601", String.format( "上主机[查询当前工作日]失败" ) );
+
+			// 解析返回报文
+			String tranDate = SFUtil.getDataValue( hostContext, "MSG_O.DATE" );
+			SFUtil.chkCond( context, SFUtil.isEmpty( tranDate ), "ST4895", String.format( "获取交易日期TRAN_DATE失败" ) );
+			SFUtil.chkCond( context, tranDate.length() != 8, "ST4895", String.format( "交易日期长度不是8位,不处理，退出程序" ) );
+			// 查询TRCNOTBL表中的日期，判断及更新
+			TrcNoTBL trcNoTBL = trcNoTBLDao.qryTrcNoTBL( context, tranConnection );
+			if( null != trcNoTBL ) {
+				String trcDate = trcNoTBL.getTrcDate();
+				// 如果日期不同，则更新日期
+				if( !tranDate.equals( trcDate ) ) {
+					DBHandler.beginTransaction( context, tranConnection );// 开启事务
+					trcNoTBLDao.saveTrcNoTBL( context, tranConnection, tranDate );
+					DBHandler.commitTransaction( context, tranConnection );// 提交事务
+				}
+			}
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e1 ) {
+			SFUtil.chkCond( context, "ST4895", e1.getMessage() );
+		} finally {
+			DBHandler.releaseConnection( context, tranConnection );
+		}
+		SFLogger.info( context, "更新系统会计日期结束" );
+	}
+}

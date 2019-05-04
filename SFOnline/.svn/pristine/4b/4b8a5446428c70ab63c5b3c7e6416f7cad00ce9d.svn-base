@@ -1,0 +1,118 @@
+package module.bean;
+
+
+public class BankUnit {
+	private String depId;
+	private String branchId;
+	private boolean branchIdChanged=false;
+	private String depName;
+	private boolean depNameChanged=false;
+	private String addr;
+	private boolean addrChanged=false;
+	private String zip;
+	private boolean zipChanged=false;
+	private String phone;
+	private boolean phoneChanged=false;
+	private String fax;
+	private boolean faxChanged=false;
+	private String conName;
+	private boolean conNameChanged=false;
+	private String conPhone;
+	private boolean conPhoneChanged=false;
+	private String quashFlag;
+	private boolean quashFlagChanged=false;
+	private String comDepId;
+	private boolean comDepIdChanged=false;
+	public String getDepId() {
+		return depId;
+	}
+	public void setDepId(String depId) {
+		this.depId = depId;
+	}
+	public String getBranchId() {
+		return branchId;
+	}
+	public void setBranchId(String branchId) {
+		this.branchId = branchId;
+		this.branchIdChanged=true;
+
+	}
+	public String getDepName() {
+		return depName;
+	}
+	public void setDepName(String depName) {
+		this.depName = depName;
+		this.depNameChanged=true;
+	}
+	public String getAddr() {
+		return addr;
+	}
+	public void setAddr(String addr) {
+		this.addr = addr;
+		this.addrChanged=true;
+	}
+	public String getZip() {
+		return zip;
+	}
+	public void setZip(String zip) {
+		this.zip = zip;
+		this.zipChanged=true;
+	}
+	public String getPhone() {
+		return phone;
+	}
+	public void setPhone(String phone) {
+		this.phone = phone;
+		this.phoneChanged=true;
+	}
+	public String getFax() {
+		return fax;
+	}
+	public void setFax(String fax) {
+		this.fax = fax;
+		this.faxChanged=true;
+	}
+	public String getConName() {
+		return conName;
+	}
+	public void setConName(String conName) {
+		this.conName = conName;
+		this.conNameChanged=true;
+	}
+	public String getConPhone() {
+		return conPhone;
+	}
+	public void setConPhone(String conPhone) {
+		this.conPhone = conPhone;
+		this.conPhoneChanged=true;
+	}
+	public String getQuashFlag() {
+		return quashFlag;
+	}
+	public void setQuashFlag(String quashFlag) {
+		this.quashFlag = quashFlag;
+		this.quashFlagChanged=true;
+	}
+	public String getComDepId() {
+		return comDepId;
+	}
+	public void setComDepId(String comDepId) {
+		this.comDepId = comDepId;
+		this.comDepIdChanged=true;
+	}
+	
+	public void resetChangedFlag(){
+		this.branchIdChanged=false;
+		this.depNameChanged=false;
+		this.addrChanged=false;
+		this.zipChanged=false;
+		this.phoneChanged=false;
+		this.faxChanged=false;
+		this.conNameChanged=false;
+		this.conPhoneChanged=false;
+		this.quashFlagChanged=false;
+		this.comDepIdChanged=false;
+	}
+	
+	
+}

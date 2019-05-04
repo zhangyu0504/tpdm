@@ -1,0 +1,1017 @@
+package core.communication.isc;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import com.dc.eai.data.CompositeData;
+import com.dc.eai.data.Field;
+import com.dc.eai.data.FieldAttr;
+import com.dc.eai.data.FieldType;
+import com.dcfs.esb.client.converter.PackUtil;
+import com.ecc.emp.core.Context;
+import com.ibm.mq.MQSimpleConnectionManager;
+import com.pingan.fqueue.FQueue;
+import com.pingan.isc.Config;
+import com.pingan.isc.core.MessageExecutor;
+import com.pingan.isc.core.MessageHandler;
+import com.pingan.isc.core.RejectedSendHandler;
+import com.pingan.isc.util.MQMsgReceiver;
+import com.pingan.isc.util.MsgSender;
+import com.pingan.isc.util.TcpMsgSender;
+import com.pingan.isc.util.UUID;
+import com.pingan.isc.util.ZipUtil;
+
+/**
+ * ISC消息管理器
+ * 
+ * 该消息发送管理器保证了消息的幂等性和一致性
+ * 
+ * 
+ * <p>Description:	由于日志规范要求需要在私有交易中打印消息日志	<p>
+ * <p>Module:		重写JAR包的消息发送管理器	<p>
+ *
+ * @author EX_KJKFB_LVCHAOHONG
+ * @date 2018-3-14 下午02:45:19
+ * @since 1.0
+ */
+public class ISCMessageBroker {
+
+	private static Log log = LogFactory.getLog( ISCMessageBroker.class );
+
+	private static boolean isInit = false;
+
+	private static String WorkMode = "A";
+
+	private static ThreadLocal MQMsgReceiver = new ThreadLocal();
+
+	private static List ProxyTcp = Collections.synchronizedList( new ArrayList() );
+
+	private static List ProxyMq = Collections.synchronizedList( new ArrayList() );
+
+	private static List MsgSenders = Collections.synchronizedList( new ArrayList() );
+
+	private static Map MsgReceiver = Collections.synchronizedMap( new HashMap() );
+
+	private static RejectedSendHandler rejectHandle;
+
+	private static Map exeMap = Collections.synchronizedMap( new HashMap() );
+
+	private static Map queueMap = Collections.synchronizedMap( new HashMap() );
+
+	private static MessageExecutor exe;
+
+	private static FQueue queue = null;
+
+	public static int HEADLEN = 185;
+
+	private static boolean ProxyMqFlag = false;
+
+	private static boolean ProxyTcpFlag = false;
+
+	private static String SENDQUEUEDIR = "sendqueue";
+
+	private static String RECVQUEUEDIR = "recvqueue";
+
+	private static String FileQueueDir = "";
+
+	private static volatile long SendMsgCont = 0L;
+
+	private static Thread customerthread = null;
+
+	private static Customer FileqQueueCustomer = null;
+
+	static {
+		isInit = false;
+		init();
+	}
+
+	private static void initMq( Properties prop, String name, List MqSender ) {
+		String mqconfig = prop.getProperty( name );
+		if( mqconfig != null )
+			mqconfig = mqconfig.trim();
+		else {
+			return;
+		}
+
+		log.info( name + " = " + mqconfig );
+		String[] mqlist = mqconfig.split( "\\|" );
+		for( int i = 0; i < mqlist.length; i++ ) {
+			String mq = mqlist[ i ].trim();
+			int index = mq.indexOf( "(" );
+			String qManagerName = "";
+			String hostName = "127.0.0.1";
+			int port = 1414;
+			String queueName = "Q_INPUT";
+			if( index > 0 ) {
+				int indexend = mq.indexOf( ")" );
+				qManagerName = mq.substring( 0, index ).trim();
+
+				String value = mq.substring( index + 1, indexend ).trim();
+				String[] values = value.split( "\\:" );
+
+				if( values.length > 2 ) {
+					hostName = values[ 0 ].trim();
+					port = Integer.parseInt( values[ 1 ].trim() );
+					queueName = values[ 2 ].trim();
+				} else if( values.length > 1 ) {
+					hostName = values[ 0 ].trim();
+					port = Integer.parseInt( values[ 1 ].trim() );
+				} else {
+					hostName = values[ 0 ].trim();
+				}
+			} else {
+				qManagerName = mq;
+			}
+
+			MQSimpleConnectionManager myConnMan = new MQSimpleConnectionManager();
+			myConnMan.setActive( 1 );
+			myConnMan.setTimeout( 60000L );
+			myConnMan.setMaxConnections( 50 );
+			myConnMan.setMaxUnusedConnections( 10 );
+
+			String channel = "CLIENT.CHANNEL";
+			String cha = prop.getProperty( "channel" );
+			if( cha != null ) {
+				cha = cha.trim();
+				if( !"".equals( cha ) ) {
+					channel = cha;
+				}
+			}
+
+			int charSet = 1208;
+
+			String chas = prop.getProperty( "charSet" );
+			if( chas != null ) {
+				chas = chas.trim();
+				if( !"".equals( chas ) ) {
+					charSet = Integer.parseInt( chas );
+				}
+
+			}
+
+			Hashtable hashtable = new Hashtable();
+			hashtable.put( "hostname", hostName );
+			hashtable.put( "port", new Integer( port ) );
+			hashtable.put( "channel", channel );
+			hashtable.put( "CCSID", new Integer( charSet ) );
+			hashtable.put( new Integer( 262144 ), new Integer( 400 ) );
+			hashtable.put( "userID", "mqm" );
+			hashtable.put( "password", "" );
+
+			MQMsgSender sender = new MQMsgSender( myConnMan, hashtable, qManagerName, queueName );
+
+			MqSender.add( sender );
+		}
+	}
+
+	private static void initIscSender( Properties prop ) {
+		log.info( "start initIscSender mq" );
+		initMq( prop, "IscMq", MsgSenders );
+		log.info( "end initIscSender mq" );
+	}
+
+	private static void initProxyTcp( Properties prop ) {
+		log.info( "start initProxyTcp" );
+		String name = "ProxyTcp";
+		String tcpconfig = prop.getProperty( name );
+		if( tcpconfig != null ) {
+			ProxyTcpFlag = true;
+			tcpconfig = tcpconfig.trim();
+		} else {
+			return;
+		}
+
+		log.info( name + " = " + tcpconfig );
+
+		String[] tcplist = tcpconfig.split( "\\|" );
+		for( int i = 0; i < tcplist.length; i++ ) {
+			String mq = tcplist[ i ].trim();
+			int index = mq.indexOf( "(" );
+			String qManagerName = "";
+			String hostName = "127.0.0.1";
+			int port = 1414;
+			if( index > 0 ) {
+				int indexend = mq.indexOf( ")" );
+				qManagerName = mq.substring( 0, index ).trim();
+
+				String value = mq.substring( index + 1, indexend ).trim();
+				String[] values = value.split( "\\:" );
+
+				if( values.length > 2 ) {
+					hostName = values[ 0 ].trim();
+					port = Integer.parseInt( values[ 1 ].trim() );
+				} else if( values.length > 1 ) {
+					hostName = values[ 0 ].trim();
+					port = Integer.parseInt( values[ 1 ].trim() );
+				} else {
+					hostName = values[ 0 ].trim();
+				}
+			} else {
+				qManagerName = mq;
+			}
+
+			int timeout = 5000;
+			String TcpTimeOut = prop.getProperty( "TcpTimeOut" );
+			if( TcpTimeOut != null ) {
+				TcpTimeOut = TcpTimeOut.trim();
+				if( !"".equals( TcpTimeOut ) ) {
+					timeout = Integer.parseInt( TcpTimeOut );
+				}
+			}
+
+			log.info( name + " qManagerName=" + qManagerName );
+			log.info( name + " hostName=" + hostName );
+			log.info( name + " port=" + port );
+			log.info( name + " timeout=" + timeout );
+
+			Hashtable hashtable = new Hashtable();
+			hashtable.put( "Host", hostName );
+			hashtable.put( "Port", port );
+			hashtable.put( "TimeOut", timeout );
+
+			TcpMsgSender sender = new TcpMsgSender( hashtable );
+
+			ProxyTcp.add( sender );
+		}
+		log.info( "end initProxyTcp" );
+	}
+
+	private static void initProxyMq( Properties prop ) {
+		log.info( "start initProxyMq" );
+
+		String mqconfig = prop.getProperty( "ProxyMq" );
+		if( mqconfig != null ) {
+			mqconfig = mqconfig.trim();
+			ProxyMqFlag = true;
+			WorkMode = "A";
+		} else {
+			String workmode = prop.getProperty( "WorkMode" );
+			if( workmode != null )
+				WorkMode = workmode.trim();
+			else {
+				WorkMode = "C";
+			}
+			return;
+		}
+		initMq( prop, "ProxyMq", ProxyMq );
+
+		log.info( "end initProxyMq" );
+	}
+
+	private static void initFileQueue( Properties prop ) {
+		log.info( "start initFileQueue" );
+		try {
+			String filedir = prop.getProperty( "FileQueue" );
+			if( filedir != null ) {
+				FileQueueDir = filedir;
+
+				boolean issend = true;
+				String SendFlag = prop.getProperty( "SendFlag" );
+				if( "FALSE".equalsIgnoreCase( SendFlag ) ) {
+					issend = false;
+				}
+
+				if( issend ) {
+					filedir = filedir + File.separator + SENDQUEUEDIR;
+					log.info( "开始初始化本地发送文件队列fileque配置[" + filedir + "]" );
+					queue = new FQueue( filedir );
+					FileqQueueCustomer = new Customer( queue );
+					customerthread = new Thread( FileqQueueCustomer );
+					customerthread.start();
+					log.info( "结束初始化本地发送文件队列fileque配置[" + filedir + "]" );
+				}
+			} else {
+				log.info( "开始初始化本地队列fileque路径为空" );
+			}
+		} catch( Exception e ) {
+			log.error( "初始化本地队列失败", e );
+		}
+
+		log.info( "end initFileQueue" );
+	}
+
+	public static String getSENDQUEUEDIR() {
+		return SENDQUEUEDIR;
+	}
+
+	public static void setSENDQUEUEDIR( String sENDQUEUEDIR ) {
+		SENDQUEUEDIR = sENDQUEUEDIR;
+	}
+
+	public static String getRECVQUEUEDIR() {
+		return RECVQUEUEDIR;
+	}
+
+	public static void setRECVQUEUEDIR( String rECVQUEUEDIR ) {
+		RECVQUEUEDIR = rECVQUEUEDIR;
+	}
+
+	public static String getFileQueueDir() {
+		return FileQueueDir;
+	}
+
+	public static void setFileQueueDir( String fileQueueDir ) {
+		FileQueueDir = fileQueueDir;
+	}
+
+	private static void initMsgReceiver( Properties prop ) {
+		log.info( "start initMsgReceiver" );
+		Iterator it = prop.entrySet().iterator();
+		while( it.hasNext() ) {
+			Map.Entry entry = ( Map.Entry )it.next();
+			String key = entry.getKey().toString();
+			String value = entry.getValue().toString().trim();
+			String queueName = null;
+			String qms = null;
+			int thread = 1;
+			if( key.startsWith( "RecvQueue" ) ) {
+				log.info( "接收队列配置" + key + " = " + value );
+				if( !"".equals( value ) ) {
+					String[] vs = value.split( "\\|" );
+
+					if( vs.length > 2 ) {
+						queueName = vs[ 0 ].trim();
+
+						qms = vs[ 1 ].trim();
+						try {
+							thread = Integer.parseInt( vs[ 2 ].trim() );
+						} catch( Exception e ) {
+							e.printStackTrace();
+							log.error( "解析处理线程数失败", e );
+						}
+					} else if( vs.length > 1 ) {
+						queueName = vs[ 0 ].trim();
+						qms = vs[ 1 ].trim();
+						thread = 1;
+					} else {
+						int i = key.indexOf( "_" );
+						queueName = key.substring( i + 1 );
+						qms = vs[ 0 ].trim();
+						thread = 1;
+					}
+					queueMap.put( key, queueName );
+					int start = qms.indexOf( "[" );
+					int end = qms.indexOf( "]" );
+					qms = qms.substring( start + 1, end ).trim();
+					start = 0;
+					int len = qms.length();
+					while( start < len ) {
+						log.info( "接收队列配置star = " + start + " len=" + len );
+
+						int s = qms.indexOf( "(", start );
+						int e = qms.indexOf( ")", start );
+						if( s > 0 ) {
+							String queueManager = qms.substring( start, s ).trim();
+							String tmpqmconfig = qms.substring( s + 1, e ).trim();
+							String[] tmpconfigs = tmpqmconfig.split( "\\," );
+							for( int i = 0; i < tmpconfigs.length; i++ ) {
+								String[] tmpconfigvs = tmpconfigs[ i ].split( "\\:" );
+								String hostName = tmpconfigvs[ 0 ].trim();
+								int port = Integer.parseInt( tmpconfigvs[ 1 ].trim() );
+								String type = tmpconfigvs[ 2 ].trim();
+
+								String channel = "CLIENT.CHANNEL";
+								String cha = prop.getProperty( "channel" );
+								if( cha != null ) {
+									cha = cha.trim();
+									if( !"".equals( cha ) ) {
+										channel = cha;
+									}
+								}
+
+								int charSet = 1208;
+
+								String chas = prop.getProperty( "charSet" );
+								if( chas != null ) {
+									chas = chas.trim();
+									if( !"".equals( chas ) ) {
+										charSet = Integer.parseInt( chas );
+									}
+								}
+
+								int waitInterval = 300000;
+
+								String waits = prop.getProperty( "WaitInterval" );
+								if( waits != null ) {
+									waits = waits.trim();
+									if( !"".equals( waits ) ) {
+										waitInterval = Integer.parseInt( waits );
+									}
+								}
+
+								log.info( "接收队列配置queueName = " + queueName );
+								log.info( "接收队列配置qmName = " + queueManager );
+								log.info( "接收队列配置hostName = " + hostName );
+								log.info( "接收队列配置port = " + port );
+								log.info( "接收队列配置channel = " + channel );
+								log.info( "接收队列配置charSet = " + charSet );
+								log.info( "接收队列配置type = " + type );
+								log.info( "接收队列配置waitInterval = " + waitInterval );
+								log.info( "接收队列配置thread = " + thread );
+
+								Hashtable hashtable = new Hashtable();
+								hashtable.put( "hostname", hostName );
+								hashtable.put( "port", new Integer( port ) );
+								hashtable.put( "channel", channel );
+								hashtable.put( "CCSID", new Integer( charSet ) );
+								hashtable.put( new Integer( 262144 ), new Integer( 20 ) );
+								hashtable.put( "userID", "mqm" );
+								hashtable.put( "password", "" );
+
+								MQMsgReceiver recv = new MQMsgReceiver( queueManager, queueName, hashtable, waitInterval, type, thread );
+
+								MsgReceiver.put( queueManager + "_" + queueName + "_" + type, recv );
+							}
+
+							start = e + 1;
+							if( start >= len ) {
+								break;
+							}
+							int tmpi = qms.indexOf( ",", start );
+							log.info( "接收队列配置star = " + start + " tmpi=" + tmpi );
+							if( tmpi >= start ) {
+								start = tmpi + 1;
+							}
+						}
+					}
+				}
+
+			}
+
+		}
+
+		log.info( "end initMsgReceiver" );
+	}
+
+	public static void init() {
+		if( isInit ) {
+			return;
+		}
+		Config.init();
+		Properties prop = Config.getConfigProperty();
+		init( prop );
+		Runtime.getRuntime().addShutdownHook( new Thread() {
+
+			public void run() {
+				try {
+					System.out.println( "ISCMessageBroker.destroyed()" );
+					ISCMessageBroker.log.info( "ISCMessageBroker.destroyed()" );
+					ISCMessageBroker.destroyed();
+				} catch( Exception localException ) {
+				}
+			}
+		} );
+		isInit = true;
+	}
+
+	public static void reinit() {
+		Config.init();
+		Properties prop = Config.getConfigProperty();
+		init( prop );
+		isInit = true;
+	}
+
+	public static void init( Properties prop ) {
+		initIscSender( prop );
+		initProxyMq( prop );
+		initProxyTcp( prop );
+		initFileQueue( prop );
+		initMsgReceiver( prop );
+		isInit = true;
+	}
+
+	public static void reInit( Properties prop ) {
+		initIscSender( prop );
+		initProxyMq( prop );
+		initProxyTcp( prop );
+		initFileQueue( prop );
+		initMsgReceiver( prop );
+		isInit = true;
+	}
+
+	public static void regRejectedSendHandl( RejectedSendHandler handle ) {
+		rejectHandle = handle;
+	}
+
+	public static RejectedSendHandler getRejectHandle() {
+		return rejectHandle;
+	}
+
+	public static void send( Context context, CompositeData msgData ) {
+		CompositeData iscSysData = msgData.getStruct( "ISC_SYS_HEAD" );
+		CompositeData iscPubData = msgData.getStruct( "ISC_PUB_HEAD" );
+
+		Field topicField = iscSysData.getField( "MAIN_TOPIC" );
+		Field subTopicField = iscSysData.getField( "SUB_TOPIC" );
+
+		Field dateField = iscSysData.getField( "MSG_DATE" );
+		Field timeField = iscSysData.getField( "MSG_TIMESTAMP" );
+		String topic = topicField.strValue();
+		String subTopic = subTopicField.strValue();
+		String dateStr = null;
+		if( dateField == null ) {
+			SimpleDateFormat format = new SimpleDateFormat( "yyyyMMddHHmmssSSS" );
+			Date now = new Date();
+			String date = format.format( now ).substring( 0, 6 );
+			dateField = new Field( new FieldAttr( FieldType.FIELD_STRING, 42, 0 ) );
+			dateField.setValue( date );
+			iscSysData.addField( "MSG_DATE", dateField );
+		}
+
+		if( timeField == null ) {
+			String time = null;
+			if( dateStr != null ) {
+				time = dateStr.substring( 7 );
+			} else {
+				SimpleDateFormat format = new SimpleDateFormat( "HHmmssSSS" );
+				Date now = new Date();
+				time = format.format( now );
+			}
+			timeField = new Field( new FieldAttr( FieldType.FIELD_STRING, 42, 0 ) );
+			timeField.setValue( time );
+			iscSysData.addField( "MSG_TIMESTAMP", timeField );
+		}
+
+		String iscSeq = UUID.randomUUID().toString();
+		Field iecSeqField = new Field( new FieldAttr( FieldType.FIELD_STRING, 42, 0 ) );
+		iecSeqField.setValue( iscSeq );
+		iscSysData.addField( "ISC_MSG_SEQ_NO", iecSeqField );
+
+		Field iecVerField = new Field( new FieldAttr( FieldType.FIELD_STRING, 6, 0 ) );
+		iecVerField.setValue( "J(1.0.0)" );
+		iscSysData.addField( "VER_ID", iecVerField );
+
+		Field iecModeField = new Field( new FieldAttr( FieldType.FIELD_STRING, 6, 0 ) );
+		iecModeField.setValue( "XML" );
+		iscSysData.addField( "MODE_ID", iecModeField );
+
+		Field appSeqNoField = iscSysData.getField( "APP_MSG_SEQ_NO" );
+
+		Field appIdField = iscPubData.getField( "MSG_PRODUCER_ID" );
+
+		String appid = "";
+		String appseq = "";
+		if( appSeqNoField != null ) {
+			appseq = appSeqNoField.strValue();
+		}
+
+		if( appSeqNoField != null ) {
+			appseq = appSeqNoField.strValue();
+		}
+
+		if( appIdField != null ) {
+			appid = appIdField.strValue();
+		}
+
+		String date = dateField.strValue();
+		String time = timeField.strValue();
+
+		String msg = PackUtil.packXmlStr( msgData );
+		byte[] buf = ( byte[] )null;
+		try {
+			buf = msg.getBytes( "UTF-8" );
+		} catch( UnsupportedEncodingException e ) {
+			buf = msg.getBytes();
+		}
+		send( context, topic, subTopic, date, time, iscSeq, appseq, appid, buf );
+	}
+
+	private static TcpMsgSender getTcpMqSender( long count ) {
+		TcpMsgSender sender = null;
+		long size = ProxyTcp.size();
+		if( size > 1L ) {
+			long index = count % size;
+			sender = ( TcpMsgSender )ProxyTcp.get( ( int )index );
+			if( sender.isAlive() ) {
+				return sender;
+			}
+
+			for( int i = 0; i < size; i++ ) {
+				index += 1L;
+				if( index >= size ) {
+					index = 0L;
+				}
+
+				sender = ( TcpMsgSender )ProxyTcp.get( ( int )index );
+				if( sender.isAlive() ) {
+					return sender;
+				}
+			}
+
+		} else if( size == 1L ) {
+			sender = ( TcpMsgSender )ProxyTcp.get( 0 );
+			if( sender.isAlive() ) {
+				return sender;
+			}
+		}
+
+		return null;
+	}
+
+	private static MQMsgSender getIscMqSender( long count ) {
+		MQMsgSender sender = null;
+		long size = MsgSenders.size();
+		if( size > 1L ) {
+			long index = count % size;
+			sender = ( MQMsgSender )MsgSenders.get( ( int )index );
+			if( sender.isAlive() ) {
+				return sender;
+			}
+
+			for( int i = 0; i < size; i++ ) {
+				index += 1L;
+				if( index >= size ) {
+					index = 0L;
+				}
+
+				sender = ( MQMsgSender )MsgSenders.get( ( int )index );
+				if( sender.isAlive() ) {
+					return sender;
+				}
+			}
+
+		} else if( size == 1L ) {
+			sender = ( MQMsgSender )MsgSenders.get( 0 );
+			if( sender.isAlive() ) {
+				return sender;
+			}
+		}
+
+		return null;
+	}
+
+	private static MQMsgSender getProxyMqSender( long count ) {
+		MQMsgSender sender = null;
+		long size = ProxyMq.size();
+		if( size > 1L ) {
+			long index = count % size;
+			sender = ( MQMsgSender )ProxyMq.get( ( int )index );
+			if( sender.isAlive() ) {
+				return sender;
+			}
+
+			for( int i = 0; i < size; i++ ) {
+				index += 1L;
+				if( index >= size ) {
+					index = 0L;
+				}
+
+				sender = ( MQMsgSender )ProxyMq.get( ( int )index );
+				if( sender.isAlive() ) {
+					return sender;
+				}
+			}
+
+		} else if( size == 1L ) {
+			sender = ( MQMsgSender )ProxyMq.get( 0 );
+			if( sender.isAlive() ) {
+				return sender;
+			}
+		}
+
+		return null;
+	}
+
+	private static void saveToFileQueue( byte[] msg ) {
+		try {
+			queue.add( msg );
+		} catch( Exception e ) {
+			log.error( "保存消息到本地文件队列失败", e );
+		}
+	}
+
+	private static void send( Context context, String topic, String subTopic, String date, String time, String seqno, String appseqno, String appid, byte[] bodymsg ) {
+		String compress = "Y";
+		long count = SendMsgCont++;
+		byte[] sendmsg = ( byte[] )null;
+		try {
+			sendmsg = ZipUtil.compress( bodymsg );
+		} catch( IOException e1 ) {
+			sendmsg = bodymsg;
+			compress = "N";
+		}
+
+		Hashtable msgProperty = new Hashtable();
+		msgProperty.put( "ISCAPP.HEAD.MAGIC", "ISCAPP" );
+		msgProperty.put( "ISCAPP.HEAD.LEN", sendmsg.length + "          " );
+		msgProperty.put( "ISCAPP.HEAD.MAINTOPIC", topic );
+		msgProperty.put( "ISCAPP.HEAD.SUBTOPIC", subTopic );
+		msgProperty.put( "ISCAPP.HEAD.SEQNO", seqno );
+		msgProperty.put( "ISCAPP.HEAD.APPSEQNO", appseqno );
+		msgProperty.put( "ISCAPP.HEAD.APPID", appid );
+		msgProperty.put( "ISCAPP.HEAD.APPINFO", "J(1.0.0)|" + compress );
+
+		byte[] headbuf = getHeadByte( msgProperty );
+		byte[] msg = new byte[ headbuf.length + sendmsg.length ];
+		System.arraycopy( headbuf, 0, msg, 0, headbuf.length );
+		System.arraycopy( sendmsg, 0, msg, headbuf.length, sendmsg.length );
+
+		if( "A".equals( WorkMode ) ) {
+			MQMsgSender sender = getProxyMqSender( count );
+			if( sender != null )
+				try {
+					sender.SendMsg( context, msgProperty, msg );
+				} catch( Exception e ) {
+					saveToFileQueue( msg );
+				}
+			else
+				saveToFileQueue( msg );
+		} else if( "B".equals( WorkMode ) ) {
+			saveToFileQueue( msg );
+		} else if( "C".equals( WorkMode ) ) {
+			MQMsgSender sender = getIscMqSender( count );
+			if( sender != null )
+				try {
+					sender.SendMsg( context, msgProperty, msg );
+				} catch( Exception e ) {
+					saveToFileQueue( msg );
+				}
+			else
+				saveToFileQueue( msg );
+		}
+	}
+
+	public static void send( Context context, String topic, String subTopic, String appSeqNo, byte[] msg ) {
+		String date = "";
+		String time = "";
+		String iecSeq = UUID.randomUUID().toString();
+		String appId = "";
+		send( context, topic, subTopic, date, time, iecSeq, appSeqNo, appId, msg );
+	}
+
+	public static void send( Context context, String topic, String subTopic, String appSeqNo, String appId, byte[] msg ) {
+		String date = "";
+		String time = "";
+		String iecSeq = UUID.randomUUID().toString();
+		send( context, topic, subTopic, date, time, iecSeq, appSeqNo, appId, msg );
+	}
+
+	public static byte[] recv( String queueName, String queueManager, String type ) throws Exception {
+		MQMsgReceiver recv = ( MQMsgReceiver )MQMsgReceiver.get();
+		if( recv == null ) {
+			recv = initMqRecv( queueName, queueManager, type );
+			MQMsgReceiver.set( recv );
+		}
+
+		if( recv == null ) {
+			return null;
+		}
+
+		byte[] buf = recv.recv();
+		String head = new String( buf, 0, 6 );
+
+		if( ( head.equals( "ISCAPP" ) ) && ( buf.length > HEADLEN ) ) {
+			byte[] headbuf = new byte[ HEADLEN ];
+			System.arraycopy( buf, 0, headbuf, 0, HEADLEN );
+			Hashtable msgProperty = parseHeadByte( headbuf );
+			log.info( "接收到消息[" + msgProperty + "]" );
+			String appinfo = ( String )msgProperty.get( "ISCAPP.HEAD.APPINFO" );
+			String[] appinfos = appinfo.split( "\\|" );
+			String compress = "N";
+			if( appinfos.length >= 2 ) {
+				compress = appinfos[ 1 ];
+			}
+
+			byte[] body = new byte[ buf.length - HEADLEN ];
+			System.arraycopy( buf, 185, body, 0, body.length );
+			if( "Y".equals( compress ) ) {
+				byte[] uncompress = ZipUtil.uncompress( body );
+				return uncompress;
+			}
+			return body;
+		}
+
+		return buf;
+	}
+
+	public static void MessageExecutor( int corePoolSize, int maximumPoolSize, int keepAliveTime, int queueSize, MessageHandler handler ) {
+		if( exe == null ) {
+			exe = new MessageExecutor( corePoolSize, maximumPoolSize, keepAliveTime, queueSize, handler, MsgReceiver );
+			exeMap.put( "exeALL", exe );
+			try {
+				exe.startExecutor();
+			} catch( Exception e ) {
+				log.error( "启动消息接收线程失败", e );
+			}
+		} else {
+			log.info( "消息接收线程已经启动" );
+		}
+	}
+
+	public static void MessageExecutor( int corePoolSize, int maximumPoolSize, int keepAliveTime, int queueSize, MessageHandler handler, int queueIndex ) {
+		String key = "exe" + queueIndex;
+		String queueKey = "RecvQueue_" + queueIndex;
+		MessageExecutor exe = ( MessageExecutor )exeMap.get( key );
+		if( exe == null ) {
+			Map receiver = Collections.synchronizedMap( new HashMap() );
+			Iterator it = MsgReceiver.entrySet().iterator();
+
+			String queuename = ( String )queueMap.get( queueKey );
+			if( queuename != null ) {
+				while( it.hasNext() ) {
+					Map.Entry e = ( Map.Entry )it.next();
+
+					MQMsgReceiver recv = ( MQMsgReceiver )e.getValue();
+					String qname = recv.getQueueName();
+					if( queuename.equals( qname ) ) {
+						receiver.put( e.getKey(), recv );
+					}
+				}
+
+				exe = new MessageExecutor( corePoolSize, maximumPoolSize, keepAliveTime, queueSize, handler, receiver );
+				exeMap.put( key, exe );
+				try {
+					exe.startExecutor();
+				} catch( Exception e ) {
+					log.error( "启动消息接收线程失败", e );
+				}
+			}
+		} else {
+			log.info( "消息接收线程已经启动" );
+		}
+	}
+
+	private static MQMsgReceiver initMqRecv( String queueName, String queueManager, String type ) {
+		MQMsgReceiver recv = ( MQMsgReceiver )MsgReceiver.get( queueManager + "_" + queueName + "_" + type );
+		return recv.newInstance();
+	}
+
+	public static void main( String[] args ) throws Exception {
+		String config = "C:\\ConfigFile\\A_IscConfig.properties";
+		System.getProperties().put( "paisc.client.config", config );
+	}
+
+	public static byte[] getHeadByte( Hashtable msgProperty ) {
+		byte[] buf = new byte[ '鹿' ];
+		StringBuffer sBuffer = new StringBuffer( 1024 );
+		for( int i = 0; i < 200; i++ ) {
+			sBuffer.append( " " );
+		}
+		String len = ( String )msgProperty.get( "ISCAPP.HEAD.LEN" );
+		String topic = ( String )msgProperty.get( "ISCAPP.HEAD.MAINTOPIC" );
+		String subTopic = ( String )msgProperty.get( "ISCAPP.HEAD.SUBTOPIC" );
+		String seqno = ( String )msgProperty.get( "ISCAPP.HEAD.SEQNO" );
+		String appseqno = ( String )msgProperty.get( "ISCAPP.HEAD.APPSEQNO" );
+		String appid = ( String )msgProperty.get( "ISCAPP.HEAD.APPID" );
+		String appinfo = ( String )msgProperty.get( "ISCAPP.HEAD.APPINFO" );
+
+		System.arraycopy( sBuffer.toString().getBytes(), 0, buf, 0, 185 );
+		System.arraycopy( "ISCAPP".getBytes(), 0, buf, 0, 6 );
+		System.arraycopy( len.getBytes(), 0, buf, 6, len.length() );
+		System.arraycopy( topic.getBytes(), 0, buf, 14, topic.length() );
+		System.arraycopy( subTopic.getBytes(), 0, buf, 16, subTopic.length() );
+		System.arraycopy( seqno.getBytes(), 0, buf, 21, seqno.length() );
+		System.arraycopy( appseqno.getBytes(), 0, buf, 63, appseqno.length() );
+		System.arraycopy( appid.getBytes(), 0, buf, 105, appid.length() );
+		System.arraycopy( appinfo.getBytes(), 0, buf, 121, appinfo.length() );
+
+		return buf;
+	}
+
+
+	public static Hashtable parseHeadByte( byte[] buf ) {
+		Hashtable msgProperty = new Hashtable();
+
+		byte[] magicbuf = new byte[ 6 ];
+		System.arraycopy( buf, 0, magicbuf, 0, 6 );
+		String magic = new String( magicbuf ).trim();
+		msgProperty.put( "ISCAPP.HEAD.MAGIC", magic );
+
+		byte[] lenbuf = new byte[ 8 ];
+		System.arraycopy( buf, 6, lenbuf, 0, 8 );
+		String len = new String( lenbuf ).trim();
+		msgProperty.put( "ISCAPP.HEAD.LEN", len );
+
+		byte[] topicbuf = new byte[ 2 ];
+		System.arraycopy( buf, 14, topicbuf, 0, 2 );
+		String topic = new String( topicbuf ).trim();
+		msgProperty.put( "ISCAPP.HEAD.MAINTOPIC", topic );
+
+		byte[] subTopicbuf = new byte[ 5 ];
+		System.arraycopy( buf, 16, subTopicbuf, 0, 5 );
+		String subTopic = new String( subTopicbuf ).trim();
+		msgProperty.put( "ISCAPP.HEAD.SUBTOPIC", subTopic );
+
+		byte[] seqnobuf = new byte[ 42 ];
+		System.arraycopy( buf, 21, seqnobuf, 0, 42 );
+		String seqno = new String( seqnobuf ).trim();
+		msgProperty.put( "ISCAPP.HEAD.SEQNO", seqno );
+
+		byte[] appseqnobuf = new byte[ 42 ];
+		System.arraycopy( buf, 63, appseqnobuf, 0, 42 );
+		String appseqno = new String( appseqnobuf ).trim();
+		msgProperty.put( "ISCAPP.HEAD.APPSEQNO", appseqno );
+
+		byte[] appidbuf = new byte[ 16 ];
+		System.arraycopy( buf, 105, appidbuf, 0, 16 );
+		String appid = new String( appidbuf ).trim();
+
+		msgProperty.put( "ISCAPP.HEAD.APPID", appid );
+
+		byte[] appinfobuf = new byte[ 64 ];
+		System.arraycopy( buf, 121, appinfobuf, 0, 64 );
+		String appinfo = new String( appinfobuf ).trim();
+		msgProperty.put( "ISCAPP.HEAD.APPINFO", appinfo );
+
+		return msgProperty;
+	}
+
+	public static void destroyed() {
+		FileqQueueCustomer.exit();
+		try {
+			queue.close();
+		} catch( Exception localException ) {
+		}
+		Iterator it = exeMap.entrySet().iterator();
+
+		while( it.hasNext() ) {
+			Map.Entry e = ( Map.Entry )it.next();
+			MessageExecutor ex = ( MessageExecutor )e.getValue();
+			try {
+				if( ex != null )
+					ex.exit();
+			} catch( Exception localException1 ) {
+			}
+		}
+	}
+
+	public static class Customer implements Runnable {
+
+		private FQueue queue;
+
+		private volatile boolean keepRunning = true;
+
+		public Customer( FQueue queue ) {
+			this.queue = queue;
+		}
+
+		public void exit() {
+			this.keepRunning = false;
+		}
+
+		public void run() {
+			while( this.keepRunning ) {
+				try {
+					long count = ISCMessageBroker.SendMsgCont++;
+
+					MsgSender send = null;
+
+					if( ISCMessageBroker.ProxyMqFlag ) {
+						send = ( MsgSender )ISCMessageBroker.getProxyMqSender( count );
+					}
+
+					if( send == null ) {
+						send = ( MsgSender )ISCMessageBroker.getIscMqSender( count );
+					}
+
+					if( ( send == null ) && ( ISCMessageBroker.ProxyTcpFlag ) ) {
+						send = ISCMessageBroker.getTcpMqSender( count );
+					}
+
+					if( send == null ) {
+						try {
+							Thread.sleep( 50L );
+						} catch( InterruptedException localInterruptedException ) {
+						}
+					} else {
+						byte[] b = this.queue.poll();
+
+						if( b == null ) {
+							this.queue.waitMsg();
+						} else {
+							Hashtable msgProperty = ISCMessageBroker.parseHeadByte( b );
+							try {
+								send.SendMsg( msgProperty, b );
+							} catch( Exception e ) {
+								ISCMessageBroker.saveToFileQueue( b );
+								try {
+									Thread.sleep( 50L );
+								} catch( InterruptedException localInterruptedException1 ) {
+								}
+							}
+						}
+					}
+				} catch( Exception e ) {
+					try {
+						Thread.sleep( 50L );
+					} catch( InterruptedException localInterruptedException2 ) {
+					}
+				}
+			}
+		}
+	}
+}

@@ -1,0 +1,43 @@
+cd $HOME/bin
+
+LIBPATH=/usr/mqm/lib64:$LIBPATH
+export LIBPATH
+
+case $1 in
+start)
+    echo "Start Recv MQ"
+    iscmqrecv  "S_QM1(10.1.18.174:7001:Q_S429696_100001)" 1
+    iscmqrecv  "S_QM2(10.1.18.175:7002:Q_S429696_100001)" 1
+    iscmqrecv  "S_QM5(10.1.18.176:7005:Q_S429696_100001)" 1
+    iscmqrecv  "S_QM6(10.1.18.177:7006:Q_S429696_100001)" 1
+    iscmqrecv  "S_QM9(10.1.28.103:7001:Q_S429696_100001)" 1
+    iscmqrecv  "S_QM10(10.1.28.104:7001:Q_S429696_100001)" 1 
+    ;;
+
+   
+    
+kill)
+    echo "Stop Recv MQ"
+    for i in `ps -ef -o pid,args |grep iscmqrecv|grep -v grep|awk '{print $1}'`
+	do
+		kill -9 $i
+	done
+	;;
+	
+
+	
+stop)
+    echo "Stop Recv MQ"
+    iscmqrecv  "S_QM1(10.1.18.174:7001:Q_S429696_100001)" 1 stop
+    iscmqrecv  "S_QM2(10.1.18.175:7002:Q_S429696_100001)" 1 stop
+    iscmqrecv  "S_QM5(10.1.18.176:7005:Q_S429696_100001)" 1 stop
+    iscmqrecv  "S_QM6(10.1.18.177:7006:Q_S429696_100001)" 1 stop
+    iscmqrecv  "S_QM9(10.1.28.103:7001:Q_S429696_100001)" 1 stop
+    iscmqrecv  "S_QM10(10.1.28.104:7001:Q_S429696_100001)" 1 stop
+	;;
+	
+
+	
+esac
+
+   

@@ -1,0 +1,62 @@
+package core.schedule;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.flow.EMPAction;
+import common.action.db.SqlExecAction;
+import common.services.PublicService;
+import common.util.SFConst;
+
+public class ScheduleSetAction extends EMPAction {
+
+	@Override
+	public String execute(Context context) throws EMPException {
+		Object tempData = context.getDataValue("_UF.TEMP_DATA");
+		if("SAVE_SET".equals(tempData)){
+			this.saveSet(context);
+		}else if("QUERY_SET".equals(tempData)){
+			this.querySet(context);
+		}
+		return "0";
+	}
+
+	public void saveSet(Context context) throws EMPException {
+		String sets = context.getDataValue("SCHEDULE_SET.SETS").toString();
+		
+		String sqlId = "SQL_SCHEDULE_SET_S0001";
+		PublicService pubService = ((PublicService) context.getService((String) context.getDataValue(SFConst.SERVICE_PUBLICSERVICENAME)));
+		SqlExecAction sqlExecAction = pubService.getSQLExecAction(context);
+		sqlExecAction.setRefSQL(sqlId);
+		sqlExecAction.initialize();
+		String result = sqlExecAction.execute(context);
+		
+		if("0".equals(result)){
+			sqlId = "SQL_SCHEDULE_SET_U0001";
+			context.setDataValue("SCHEDULE_SET.SETS", sets);
+		}else{
+			sqlId = "SQL_SCHEDULE_SET_I0001";
+		}
+		
+		sqlExecAction.setRefSQL(sqlId);
+		sqlExecAction.initialize();
+		result = sqlExecAction.execute(context);
+//		if("0".equals(result)){
+//			context.setDataValue(DataDictConstants.CONTEXT_JSON_DATA_KEY.replace(DATA_DICT_DOT_FLAG, DATA_DICT_DOT),"SUCCESS");
+//		}else{
+//			context.setDataValue(DataDictConstants.CONTEXT_JSON_DATA_KEY.replace(DATA_DICT_DOT_FLAG, DATA_DICT_DOT),"FAIL");
+//		}
+	}
+	
+	public void querySet(Context context) throws EMPException {
+		String sqlId = "SQL_SCHEDULE_SET_S0001";
+		PublicService pubService = ((PublicService) context.getService((String) context.getDataValue(SFConst.SERVICE_PUBLICSERVICENAME)));
+		SqlExecAction sqlExecAction = pubService.getSQLExecAction(context);
+		sqlExecAction.setRefSQL(sqlId);
+		sqlExecAction.initialize();
+		String result = sqlExecAction.execute(context);
+		
+		String sets = context.getDataValue("SCHEDULE_SET.SETS").toString();
+		
+//		context.setDataValue(DataDictConstants.CONTEXT_JSON_DATA_KEY.replace(DATA_DICT_DOT_FLAG, DATA_DICT_DOT),sets);
+	}
+}

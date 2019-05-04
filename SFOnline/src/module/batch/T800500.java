@@ -1,0 +1,85 @@
+package module.batch;
+
+import java.io.File;
+import java.util.Map;
+
+import module.bean.Trans;
+import module.cache.ParamCache;
+import module.cache.TransCache;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.BizUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+import core.schedule.ScheduleActionInterface;
+/**
+ * 日志备份</br>
+ * 每日凌晨开时日志备份：
+ * 1、先按交易配置开始备份日志；
+ * 2、再按券商代码开始备份批量日志
+ * 3、移动备份日志文件到指定路径下
+ * @author 汪华
+ *
+ */
+public class T800500 implements ScheduleActionInterface{
+	
+	@Override
+	public boolean init(Context context) throws SFException {
+		return true;
+	}
+
+	@Override
+	public void execute(Context context) throws SFException {
+		try{
+			SFLogger.info(context, "日志备份开始");
+			
+			/*
+			 * 按交易码备份日志
+			 */
+			Map<String,Trans>transMap= TransCache.getAllValue();
+			String trCode=SFUtil.getDataValue(context, SFConst.PUBLIC_TX_CODE);//获取当前交易码
+			if(transMap!=null){
+				//log输出路径
+				String logFilePath = BizUtil.getLogPath();
+				//从配置中获取当前实例编码
+				String macCode=SFUtil.getSysProperty( "APP_CODE" );
+				for(Trans tran:transMap.values()){
+					if("0".equals(tran.getType())||"3".equals(tran.getType())){//交易分类: 0:A股联机交易 ；1：A股后台批量、管理台 ；2:B股联机 ；3:A股联机批量
+						/*
+						 * 判断文件是否存在，不存在或是空日志文件将不备份日志
+						 */
+						File file=new File(logFilePath+"/" + tran.getTxCode()+"-"+macCode + ".log");
+						if(!file.exists()||file.length()<=89L){
+							continue;
+						}						
+						
+						/*
+						 * 以重新打印日志方式来备份日志
+						 */
+						SFUtil.setDataValue(context, SFConst.PUBLIC_TX_CODE, tran.getTxCode());
+						SFLogger.info(context, "^_^  美好的一天开始了，撸起袖子加油干吧！  ^_^");
+					}
+				}
+			}
+			SFUtil.setDataValue(context, SFConst.PUBLIC_TX_CODE, trCode);//回置当前交易码
+			
+			/*
+			 * 日志转移
+			 */
+			String backUpLogPath =ParamCache.getValue2("BACKUP", "LOG_PATH");//备份日志路径
+			backUpLogPath = SFUtil.processPath(context,backUpLogPath);
+			String logPath = ParamCache.getValue2("SF_SHELL", "LOG_PATH");//日志路径
+			logPath = SFUtil.processPath(context,logPath);
+			SFUtil.executeShellFile(context,"backup_logs.sh", backUpLogPath, logPath);
+		}catch (SFException e) {//程序逻辑报错			
+			throw e;
+		} catch (Exception e) {//系统级别异常
+			SFLogger.error(context, e.getMessage());
+		}finally{
+			SFLogger.info(context, "日志备份结束");			
+		}
+	}
+}

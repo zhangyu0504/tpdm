@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="GBK" ?>
+
+
+<ECCMCIProject>
+	<dbAccess>
+		<driverType>Oracle JDBC Driver</driverType>
+		<driverName>oracle.jdbc.driver.OracleDriver</driverName>
+		<dbURL>jdbc:oracle:thin:@xx.xx.xx.xx:xx:xx</dbURL>
+		<userName>xx</userName>
+		<password>xx</password>
+	</dbAccess>
+	<properties>
+		<property id="manualSetXMLEncode" value="true"/>
+		<property id="XMLEncode" value="GB18030"/>
+		<property id="manualSetJSPEncode" value="true"/>
+		<property id="JSPEncode" value="UTF-8"/>
+		<property id="WebRootPath" value="WebContent"/>
+		<property id="JavaSourcePath" value="src"/>
+		<property id="autoCompile" value="true"/>
+		<property id="autoValidate" value="false"/>
+		<property id="ConsoleUnable" value="true"/>
+		<property id="PRJVersion" value="2.1"/>
+	</properties>
+	<modules>
+		<module id="core"/>
+	</modules>
+</ECCMCIProject>

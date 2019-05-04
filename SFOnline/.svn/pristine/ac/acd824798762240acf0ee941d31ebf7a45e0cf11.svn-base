@@ -1,0 +1,209 @@
+package core.communication.access.zlsecu;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+
+import module.bean.SecCompData;
+
+import com.ecc.emp.core.Context;
+import common.util.SFConst;
+
+import core.log.SFLogger;
+
+/**
+ * 【类名】客户端TCPIP通讯类。
+ * <p>
+ * 类功能说明：
+ * 
+ * <pre>
+ * 实现银银平台与外围系统的TCPIP通讯
+ * </pre>
+ * 
+ * @author zhanglm@hundsun.com
+ * @version 2.1
+ * @since 1.0 2011-4-14
+ * 
+ */
+public class BBCPCommClient {
+	private DataInputStream in;
+	private DataOutputStream out;
+
+	private String sIP;
+	private String sPort;
+	private int timeOut;
+	private int pkgLen;// 报文长度的位数
+	private String sResult = null;
+
+	public BBCPCommClient(String sIP, String sPort, int timeOut, int pkgLen) {
+		this.sIP = sIP;
+		this.sPort = sPort;
+		this.timeOut = timeOut;
+		this.pkgLen = pkgLen;
+	}
+
+	public String getResult() {
+		return sResult;
+	}
+
+	/**
+	 * 使用Socket向外围系统发送
+	 * 
+	 * @param sCmd:
+	 *            字符串
+	 * @return: 0为成功; 1为无法建立连接; 2为发送超时; 3为接收超时; 4为出现异常;5其他错误
+	 */
+	public String SendCMD(Context context,byte[] sCmd) {
+		int state = 1;
+		Socket sock = null;
+		ByteArrayOutputStream swapStream = null;
+
+		try {
+			//SFLogger.info(context,"connect ip:" + sIP + ",port:" + sPort + ",timeOut:"+ timeOut + ",pkgLen=" + pkgLen);			
+			SFLogger.info(context,"TCPIP发送内容:[" + new String(sCmd) + "]");			
+			sock = new Socket(sIP, Integer.parseInt(sPort));
+			// 设置超时
+			sock.setSoTimeout(timeOut);
+			out = new DataOutputStream(sock.getOutputStream());
+
+			// 发送报文内容
+			out.write(sCmd);
+			out.flush();
+			// out.close();
+			
+
+			// 设置为接收状态
+			state = 2;
+			in = new DataInputStream(sock.getInputStream());
+			swapStream = new ByteArrayOutputStream();
+			int rc = 0;
+
+			if (pkgLen > 0) {
+				byte[] lenByte = new byte[pkgLen];
+				in.read(lenByte, 0, lenByte.length);
+				int len = Integer.parseInt(new String(lenByte));
+				SFLogger.info(context,"接收数据报文长度:[" + len + "]");
+				byte[] buff = new byte[1024]; // buff用于存放循环读取的临时数据
+				int off = 0;
+				while ((rc = in.read(buff, 0, buff.length)) > 0) {
+					swapStream.write(buff, 0, rc);
+					off = off + rc;
+					if (off == len) {
+						break;
+					}
+				}
+				sResult = new String(swapStream.toByteArray());
+			} else {
+				/*
+				 * 区别对待接收不同券商返回报文：
+				 * 1、国信长报文会出现数据丢包；
+				 * 2、华泰、国泰君安返回报文后不会直接关闭socket连接
+				 */
+				SecCompData secCompData = (SecCompData)context.getDataValue(SFConst.PUBLIC_SECU);
+				String secCompCode = null;
+				if(secCompData!=null){
+					 secCompCode = secCompData.getSecCompCode();
+				}
+				if(secCompCode!=null&&(SFConst.SECU_GUOXINZQ.equals(secCompCode)||SFConst.SECU_GUOXINXY.equals(secCompCode))){ //国信 
+					byte[] buff = new byte[2048]; // buff用于存放循环读取的临时数据
+					while ((rc = in.read(buff, 0, buff.length)) > 0) {
+						swapStream.write(buff, 0, rc);
+						//if(rc < buff.length){ break; }
+					}
+				}else{
+					/*
+					 * 直联券商分两部接收响应报文：
+					 * 1、先取定长报文头111个字节
+					 * 2、按报文头送的长度截取报文体长度
+					 */
+					//取报文头
+					int msgLength=0;
+					byte[] headBuff = new byte[111];
+					while ((rc = in.read(headBuff, 0, headBuff.length)) > 0) {
+						swapStream.write(headBuff, 0, rc);
+						if(headBuff.length==111){ break; }	
+					}
+					if(headBuff!=null&&headBuff.length>0){
+						msgLength = Integer.parseInt(new String(headBuff).substring(40, 49).trim());					
+					}
+					
+					//取报文体
+					int off = 0;
+					byte[] contentBuf = new byte[msgLength];
+					while (off < msgLength) {	
+						int len = in.read(contentBuf, off, msgLength - off);
+						swapStream.write(contentBuf, 0, len);
+						if (len <= 0) {
+							break;
+						}
+						off = off + len;
+					}
+				}
+				sResult = new String(swapStream.toByteArray());
+			}
+
+			SFLogger.info(context,"接收数据成功.接收数据:[" + sResult + "]");
+		} catch (ConnectException e) {
+			SFLogger.error(context,"ConnectException通讯异常:" ,e);
+			return "1:为无法建立连接";
+		} catch (SocketTimeoutException e) {
+			SFLogger.error(context,"SocketTimeoutException通讯异常:" ,e);
+			if (state == 1)
+				return "2:为发送超时";
+			else{
+				SFLogger.error(context,"SocketTimeoutException通讯异常:接收超时" ,e);
+				throw new RuntimeException("receiveTimeOut");
+			}
+		} catch (SocketException e) {
+			SFLogger.error(context,"SocketException通讯异常:" ,e);
+			return "4:为出现异常";
+		} catch (IOException e) {
+			SFLogger.error(context,"IOException通讯异常:" ,e);	
+			return "4:为出现异常";
+		} catch (Exception e) {
+			SFLogger.error(context,"Exception通讯异常:" ,e);	
+			return "5:其他错误";
+		} finally {
+			try {
+				if (in != null) {
+					in.close();
+				}
+				if (out != null) {
+					out.close();
+				}
+				if (swapStream != null) {
+					swapStream.close();
+				}
+				if (sock != null) {
+					sock.close();
+				}
+			} catch (IOException e) {
+				SFLogger.error(context,"IOException关闭数据流异常:" ,e);
+				return "5:其他错误";
+			}
+		}
+
+		return "0";
+	}
+
+	/**
+	 * 测试用
+	 * 
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		BBCPCommClient client = new BBCPCommClient("10.14.154.23", "10003",60000, 4);
+		try {
+			String ret = client.SendCMD(null,"0322810010                                                                                                                                                            2016120108:44:2116113008670632      2016120100050361                            16223228801371134                102800000700466485            1RMB0000000000050".getBytes());
+			System.out.println("ret="+ret);
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
+	}
+
+}

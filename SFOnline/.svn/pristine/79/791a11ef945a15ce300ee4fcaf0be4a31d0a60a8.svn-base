@@ -1,0 +1,71 @@
+package module.dao;
+
+import java.sql.Connection;
+
+import module.bean.SecTruAcct;
+
+import com.ecc.emp.core.Context;
+
+import common.exception.SFException;
+import common.sql.dao.DaoBase;
+import common.util.SFUtil;
+
+public class SecTruAcctDao extends DaoBase {
+	
+	
+	private StringBuffer getQrySecTruAcctSQLStruct(){
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("SELECT NVL(O.ACCTNAME,'') ACCTNAME,O.ACCTID,O.SERIAL,O.ACCTTYPE,O.SECCOMPCODE,O.CURCODE,O.OPENDEPID,O.BRANCHID");
+		buffer.append(" FROM TRDSECTRUACCT O WHERE 1=1");
+		
+		return buffer;
+	}
+	
+	/**
+	 * 根据主键查询券商托管账户表
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public SecTruAcct qrySecTruAcct(Context context,Connection connection,String secCompCode, String serial)throws SFException{
+		SecTruAcct secTruAcct = null;
+		try {
+			
+			StringBuffer buffer = getQrySecTruAcctSQLStruct();
+			buffer.append(" AND O.SECCOMPCODE=? AND O.SERIAL=?");
+			
+			secTruAcct = super.query(context, connection, buffer.toString(), SecTruAcct.class, secCompCode, serial);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		return secTruAcct;
+	}
+	
+	/**
+	 * 根据券商代码SecCompCode查询券商托管账户表
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public SecTruAcct qrySecTruAcctBySecCompCode(Context context,Connection connection,String secCompCode) throws SFException{
+		SecTruAcct secTruAcct = null;
+		try {
+			
+			StringBuffer buffer = getQrySecTruAcctSQLStruct();
+			buffer.append(" AND O.SECCOMPCODE=?");
+			
+			secTruAcct = super.query(context, connection, buffer.toString(), SecTruAcct.class, secCompCode);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		return secTruAcct;
+	}
+}

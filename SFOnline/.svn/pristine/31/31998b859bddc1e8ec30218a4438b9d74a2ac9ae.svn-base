@@ -1,0 +1,12 @@
+WorkMode = C
+
+FileQueue = /logs/fqueue
+
+IscMq = D_R_GW1(10.14.30.186:1418)|D_R_GW2(10.14.30.187:1418)
+
+
+#product_env  
+#ISCClient="DST_R_GW1(10.14.30.186:1420)|DST_R_GW2(10.14.30.187:1420)"
+
+#UAT_env
+#ISCClient="D_R_GW1(10.14.30.186:1418)|D_R_GW2(10.14.30.187:1418)"

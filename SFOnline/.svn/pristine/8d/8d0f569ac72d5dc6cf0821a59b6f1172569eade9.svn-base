@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="GB18030" ?>
+<!-- 
+	FINWARE平台SQL开发规范，请遵守！
+	1. 以SQL为单元，新增SQL一定要把注释加上，简单的描述下该SQL的功能作用。
+	2. SQL命名规范：
+		a. 所有SQL的ID由三部分组成：HEAD+BODY+TAIL，且ID必须全大写！
+		b. 其中：
+			HEAD为："SQL_";
+			BODY为：功能缩写+操作表名，如PARAMTYPE_FX_PARAM;
+			TAIL为：SQL编号+SQL语句操作类型缩写(I-INSERT-增,D-DELETE-删,U-UPDATE-改,S-SELECT-查)，编号规则：4位编号0001-9999，不足前面补0，如：S0002
+ -->
+<SF_SqlDefine_SCHEDULE.xml>
+	
+	<SFSqlDefine id="SQL_SCHEDULE_SET_S0001" sqlType="select" iCollName="SCHEDULE_SET"
+		SQLStr=" SELECT SCHEDULEID ,IP,APP FROM trdscheduleparam WHERE SCHEDULEID = ?">
+		<input>
+		    <param idx="1" dataName="SCHEDULE_SET.SCHEDULE_NAME" dataType="CHAR" />
+		</input>
+		<output>
+			<param idx="1" dataName="SCHEDULE_NAME" dataType="CHAR" />
+			<param idx="2" dataName="IP" dataType="CHAR" />
+			<param idx="3" dataName="APP" dataType="CHAR" />
+		</output>
+	</SFSqlDefine>
+	
+	
+	
+	
+	
+		<!-- 查询所有调度 -->
+	<SFSqlDefine id="SQL_ALL_SCHEDULE_S0041" sqlType="select" iCollName="DFT_ICOLL_NAME"
+		SQLStr=" SELECT scheduleId FROM trdscheduleparam  ">
+		<input>
+		</input>
+		<output>
+			<param idx="1" dataName="NAME" dataType="CHAR" />
+		</output>
+	</SFSqlDefine>
+	
+	
+
+	
+	<SFSqlDefine id="SQL_SCHEDULETASKINFO_S0001" sqlType="select" 
+		SQLStr=" SELECT  f.tasktype,f.taskname,f.jobid,f.cron,f.crondesc,f.jobtype,f.statustype 
+  FROM trdscheduleparam f
+ where f.scheduleid = ?">
+		<input>
+		    <param idx="1" dataName="SCHEDULE_NAME" dataType="CHAR" />
+		</input>
+		<output>
+			<param idx="1" dataName="TASK_TYPE" dataType="CHAR" />
+			<param idx="2" dataName="TASKDESC" dataType="CHAR" />
+			<param idx="3" dataName="JOB" dataType="CHAR" />
+			<param idx="4" dataName="CRON" dataType="CHAR" />
+			<param idx="5" dataName="CRON_DESC" dataType="CHAR" />
+			<param idx="6" dataName="JOB_TYPE" dataType="CHAR" />
+			<param idx="7" dataName="STATUS_TYPE" dataType="CHAR" />
+		</output>
+	</SFSqlDefine>
+	
+	
+	
+
+	
+	
+	
+	<!-- 添加日志记录 -->
+	<SFSqlDefine id="SQL_00BA_SCHEDULE_LOG_I0001"
+		SQLStr="
+		INSERT INTO trdschedulelog (
+ID,SCHEDULEID,STARTTIME,ENDTIME,
+MEMO,REGISTERDATE,
+ERRCODE,ERRMSG,STARTDATE,ENDDATE,IP) 
+values(SEQ_SCHEDULE_LOG.NEXTVAL,?,?,?,?,SYSDATE,?,?,?,?,?)"
+		sqlType="insert">
+		<output>
+		</output>
+		<input>
+			 <param idx="1" dataName="SCHEDULE_LOG.SCHEDULE_NAME" dataType="CHAR"/>
+			 <param idx="2" dataName="SCHEDULE_LOG.START_TIME" dataType="CHAR"/>
+			 <param idx="3" dataName="SCHEDULE_LOG.END_TIME" dataType="CHAR"/>
+			 <param idx="4" dataName="SCHEDULE_LOG.MEMO" dataType="CHAR"/>
+			 <param idx="5" dataName="SCHEDULE_LOG.ERR_CODE" dataType="CHAR"/>
+			 <param idx="6" dataName="SCHEDULE_LOG.ERR_MSG" dataType="CHAR"/>
+			 <param idx="7" dataName="SCHEDULE_LOG.START_DATE" dataType="CHAR"/>
+			 <param idx="8" dataName="SCHEDULE_LOG.END_DATE" dataType="CHAR"/>
+			 <param idx="9" dataName="SCHEDULE_LOG.IP" dataType="CHAR"/>
+		</input>
+	</SFSqlDefine>
+	
+	
+	
+	
+</SF_SqlDefine_SCHEDULE.xml>

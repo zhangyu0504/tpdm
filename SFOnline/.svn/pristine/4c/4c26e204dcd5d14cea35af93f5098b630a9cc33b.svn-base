@@ -1,0 +1,703 @@
+package core.communication.format;
+
+import java.io.ByteArrayOutputStream;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.DataElement;
+import com.ecc.emp.data.DataField;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.format.EMPFormatException;
+import com.ecc.emp.format.FormatElement;
+
+import common.util.AmtUtil;
+
+import core.service.PBankExpressCalculate;
+
+/**
+ * 对应数据域的格式化处理器基类。
+ * 
+ * @author zhongmc
+ * @version 2.1
+ * @since 1.0 2006-12-4
+ * @lastmodified 2008-7-2
+ */
+public class FormatField extends PBankFormatElement {
+
+	/**
+	 * 数据域名
+	 */
+	private String dataName;
+
+	/**
+	 * 是否常量
+	 */
+	private boolean constant = false;
+
+	/**
+	 * 乘以的倍数
+	 */
+	private int multiple = 1;
+
+	/**
+	 * 乘以的倍数
+	 */
+	private int scale = 0;
+
+	/**
+	 * 是否需要转换主机金额
+	 */
+	private boolean transferAmt = false;
+
+	/**
+	 * 格式化修饰符
+	 */
+	private List decorators = new ArrayList(3);
+
+	public FormatField() {
+		super();
+	}
+
+	public FormatField(String name) {
+		super(name);
+	}
+
+	/**
+	 * 二进制格式报文的打包入口。
+	 * 
+	 * @param out 字节输出流
+	 * @param context 交易上下文
+	 * @throws Exception
+	 */
+	public void format(ByteArrayOutputStream out, Context context) throws Exception {
+		DataField element = null;
+		if (!isConstant()) {
+			if (!this.isExpression()){
+				element = (DataField) context.getDataElement(getDataName());
+			}
+			else {
+				PBankExpressCalculate aPBankExpCal = new PBankExpressCalculate();
+				element = new DataField("EXP_RESULT", aPBankExpCal.execute(getDataName(), context));
+			}
+		}
+		
+		element = fbsTransfer(element); 
+		
+		Object value = this.format(element);
+		value = this.addDecoration(value);
+
+		if (value.getClass().isArray()) {
+			out.write((byte[]) value);
+		}
+		else {
+			out.write(value.toString().getBytes(this.getEncoding()));
+		}
+		
+		return;
+	}
+
+	/**
+	 * 字符串格式报文的打包入口。
+	 * 
+	 * @param output 字符串缓存
+	 * @param context 交易上下文
+	 * @throws Exception
+	 */
+	public void format(StringBuffer output, Context context) throws Exception {
+		DataField element = null;
+		if (!isConstant()) {
+			if (!this.isExpression()){
+				element = (DataField) context.getDataElement(getDataName());
+			}
+			else {
+				PBankExpressCalculate aPBankExpCal = new PBankExpressCalculate();
+				element = new DataField("EXP_RESULT", aPBankExpCal.execute(getDataName(), context));
+			}
+		}
+	
+		element = fbsTransfer(element);
+		
+		Object value = this.format(element);
+		value = this.addDecoration(value);
+
+		if (value.getClass().isArray()) {
+			output.append(new String((byte[])value, this.getEncoding()));
+		}
+		else {
+			output.append((String) value);
+		}
+
+		return;
+	}
+
+	/**
+	 * 二进制格式报文的打包入口。
+	 * 
+	 * @param out 字节输出流
+	 * @param dataElement 数据模型(kColl)
+	 * @throws Exception
+	 */
+	public void format(ByteArrayOutputStream out, DataElement dataElement) throws Exception {
+		DataField element = null;
+		if (!isConstant()) {
+			if (!this.isExpression()){
+				element = (DataField) ((KeyedCollection) dataElement).getDataElement(getDataName());
+			}
+			else {
+				PBankExpressCalculate aPBankExpCal = new PBankExpressCalculate();
+				element = new DataField("EXP_RESULT", aPBankExpCal.execute(getDataName(), (KeyedCollection) dataElement));
+			}
+		}
+
+		element = fbsTransfer(element);
+		
+		Object value = this.format(element);
+		value = this.addDecoration(value);
+		
+		if (value.getClass().isArray()) {
+			out.write((byte[]) value);
+		}
+		else {
+			out.write(value.toString().getBytes(this.getEncoding()));
+		}
+		
+		return;
+	}
+
+	/**
+	 * 字符串格式报文的打包入口。
+	 * 
+	 * @param output 字符串缓存
+	 * @param dataElement 数据模型(kColl)
+	 * @throws Exception
+	 */
+	public void format(StringBuffer output, DataElement dataElement) throws Exception {
+		DataField element = null;
+		if (!isConstant()) {
+			if (!this.isExpression()){
+				element = (DataField) ((KeyedCollection) dataElement).getDataElement(getDataName());
+			}
+			else {
+				PBankExpressCalculate aPBankExpCal = new PBankExpressCalculate();
+				element = new DataField("EXP_RESULT", aPBankExpCal.execute(getDataName(), (KeyedCollection) dataElement));
+			}
+		}
+
+		element = fbsTransfer(element);
+		
+		Object value = this.format(element);
+		value = this.addDecoration(value);
+		if (value.getClass().isArray()) {
+			output.append(new String((byte[])value, this.getEncoding()));
+		}
+		else {
+			output.append(String.valueOf(value));
+		}
+
+		return;
+	}
+
+	/**
+	 * 二进制格式报文解包入口。
+	 * 
+	 * @param src 待解报文(字节数组)
+	 * @param offset 起始位置
+	 * @param context 交易上下文
+	 * @return 解包长度
+	 * @throws Exception
+	 */
+	public int unformat(byte[] src, int offset, Context context) throws Exception {
+		String dataName = getDataName(src);
+
+		DataField field = null;
+		if (!isConstant())
+			field = (DataField) context.getDataElement(dataName, DataField.class);
+		int len = this.extract(src, offset);
+
+		if (len > 0) {
+			byte[] dst = new byte[len];
+			System.arraycopy(src, offset, dst, 0, len);
+			dst = (byte[]) removeDecoration(dst);
+
+			dst = (byte[])fbsUntransfer(dst);
+			this.unformat(dst, field);
+		}
+		return len;
+	}
+
+	/**
+	 * 字符串格式报文解包入口。
+	 * 
+	 * @param src 待解报文(字符串)
+	 * @param offset 起始位置
+	 * @param context 交易上下文
+	 * @return 解包长度
+	 * @throws Exception
+	 */
+	public int unformat(String src, int offset, Context context) throws Exception {
+		String dataName = getDataName(src);
+		DataField field = null;
+		
+		if (this.isAppend()) {
+			//((KeyedCollection)dataElement).setAppend(this.isAppend());不改变父亲的DataElement的属性
+			if (!(context.containsKey(dataName))){
+				DataElement theAppendDataElement = (DataElement) (this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass())).newInstance();
+				theAppendDataElement.setName(dataName);
+				theAppendDataElement.setAppend(this.isAppend());
+				context.addDataElement(theAppendDataElement);
+			}
+		}
+		
+		
+		if (!isConstant())
+			field = (DataField) context.getDataElement(dataName, DataField.class);
+		int len = this.extract(src, offset);
+
+		if (len > 0) {
+			String dst = src.substring(offset, offset + len);
+			dst = (String) removeDecoration(dst);
+			dst = (String)fbsUntransfer(dst);
+			this.unformat(dst, field);
+		}
+		return len;
+	}
+
+	/**
+	 * 二进制格式报文解包入口。
+	 * 
+	 * @param src 待解报文(字节数组)
+	 * @param offset 起始位置
+	 * @param element 数据模型(kColl)
+	 * @return 解包长度
+	 * @throws Exception
+	 */
+	public int unformat(byte[] src, int offset, DataElement element) throws Exception {
+
+		String dataName = getDataName(src);
+		DataField field = null;
+		
+		if (this.isAppend()) {
+			//((KeyedCollection)dataElement).setAppend(this.isAppend());不改变父亲的DataElement的属性
+			if (!(((KeyedCollection)element).containsKey(dataName))){
+				DataElement theAppendDataElement = (DataElement) (this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass())).newInstance();
+				theAppendDataElement.setName(dataName);
+				theAppendDataElement.setAppend(this.isAppend());
+				((KeyedCollection)element).addDataElement(theAppendDataElement);
+			}
+		}
+		
+		
+		if (!isConstant()) {
+			field = (DataField) ((KeyedCollection) element).getDataElement(dataName, DataField.class);
+			if (field == null)
+				throw new EMPFormatException("FormatField unformat failed! Can't find DataField [" + dataName + "]");
+		}
+
+		int len = this.extract(src, offset);
+
+		if (len > 0) {
+			byte[] dst = new byte[len];
+			System.arraycopy(src, offset, dst, 0, len);
+			dst = (byte[]) removeDecoration(dst);
+			dst = (byte[])fbsUntransfer(dst);
+			this.unformat(dst, field);
+		}
+		return len;
+	}
+
+	/**
+	 * 字符串格式报文解包入口。
+	 * 
+	 * @param src 待解报文(字符串)
+	 * @param offset 起始位置
+	 * @param element 数据模型(kColl)
+	 * @return 解包长度
+	 * @throws Exception
+	 */
+	public int unformat(String src, int offset, DataElement element) throws Exception {
+		String dataName = getDataName(src);
+		DataField field = null;
+		
+		if (this.isAppend()) {
+			//((KeyedCollection)dataElement).setAppend(this.isAppend());不改变父亲的DataElement的属性
+			if (!(((KeyedCollection)element).containsKey(dataName))){
+				DataElement theAppendDataElement = (DataElement) (this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass())).newInstance();
+				theAppendDataElement.setName(dataName);
+				theAppendDataElement.setAppend(this.isAppend());
+				((KeyedCollection)element).addDataElement(theAppendDataElement);
+			}
+		}
+		
+		
+		if (!isConstant()){
+			
+			field = (DataField) ((KeyedCollection) element).getDataElement(dataName, DataField.class);
+			if (field == null)
+				throw new EMPFormatException("FormatField unformat failed! Can't find DataField [" + dataName + "]");
+		}
+			
+		int len = this.extract(src, offset);
+
+		if (len > 0) {
+			String dst = src.substring(offset, offset + len);
+			if(dst!=null){
+				dst = dst.trim();
+			}
+			dst = (String) removeDecoration(dst);
+			dst = (String)fbsUntransfer(dst);
+			this.unformat(dst, field);
+		}
+		return len;
+	}
+
+	/**
+	 * 从源数据src的偏移Offset起，得到本格式化元素需要的数据，返回数据长度。
+	 * 
+	 * @param src 源报文
+	 * @param offset 起始位置
+	 * @return int 所需长度
+	 * @throws EMPFormatException
+	 */
+	public int extract(Object src, int offset) throws EMPFormatException {
+		int len = 0;
+		for (int i = 0; i < this.decorators.size(); i++) {
+			Decorator decorator = (Decorator) decorators.get(i);
+			int aLen = decorator.extract(src, offset + len);
+			if (aLen == -1)
+				return -1;
+			len = len + aLen;
+		}
+		return len;
+	}
+
+	/**
+	 * 向已格式化好的数据src加入修饰，如分割符等。
+	 * 
+	 * @param src 格式化后的报文
+	 * @return Object 修饰后的报文
+	 */
+	public Object addDecoration(Object src) {
+
+		for (int i = 0; i < getDecorators().size(); i++) {
+			Decorator decorator = (Decorator) getDecorators().get(i);
+			src = decorator.addDecoration(src);
+		}
+
+		return src;
+	}
+
+	/**
+	 * 将数据元素去掉修饰。
+	 * 
+	 * @param src 报文
+	 * @return Object 去修饰后的报文
+	 */
+	public Object removeDecoration(Object src) throws EMPFormatException {
+		for (int i = getDecorators().size() - 1; i >= 0; i--) {
+			Decorator decorator = (Decorator) getDecorators().get(i);
+			src = decorator.removeDecoration(src);
+		}
+		return src;
+	}
+
+	/**
+	 * 得到数据格式化后的数值（纯数值，不包含修饰）。
+	 * 
+	 * @param dataField 数据域
+	 * @return Object 
+	 */
+	public Object format(DataField dataField) throws EMPFormatException {
+		Object tmpValue = dataField.getValue();
+		if (tmpValue == null)
+			return "";
+		else
+			return tmpValue;
+
+	}
+
+	/**
+	 * 反格式化并将数据设定到数据域中。
+	 * 
+	 * @param src 报文
+	 * @param dataField 数据域
+	 */
+	public void unformat(Object src, DataField dataField) throws EMPFormatException {
+		try {
+			/* 看是否需要转换为二进制保存 */
+			if (this.isBin()) {
+				if (src.getClass().isArray())
+					dataField.setValue(src);
+				else
+					dataField.setValue(((String)src).getBytes(this.getEncoding()));
+			}
+			else {
+				if (src.getClass().isArray())
+					dataField.setValue(new String((byte [])src, this.getEncoding()));
+				else
+					dataField.setValue(src);
+			}
+		}
+		catch (Exception e) {
+			throw new EMPFormatException("FormatField unformat failed: invalid charset code!", e);
+		}
+	}
+
+	/**
+	 * 判断是否需要修饰符。若需要，则在打包/解包的时候会对修饰符进行处理。
+	 * 
+	 * @return 是否需要修饰符
+	 */
+	public boolean isNeedDecorator() {
+		if (this.decorators.size() > 0)
+			return true;
+		return false;
+	}
+
+	/**
+	 * 判断是否为常量，若为常量则在打包/解包时将不去取数据域。
+	 * 
+	 * @return 是否常量
+	 */
+	public boolean isConstant() {
+		return constant;
+	}
+
+	/**
+	 * 添加一个修饰符。
+	 * 
+	 * @param dectorator 待添加的修饰符
+	 */
+	public void addDecorator(Decorator dectorator) {
+		this.decorators.add(dectorator);
+	}
+
+	/**
+	 * PBank金额转换。
+	 * 
+	 * @param DataField dataField
+	 */
+	public DataField fbsTransfer(DataField dataField) throws EMPFormatException{
+		DataField tmpDataField = null;
+		Object value = null;
+		
+		if (multiple == 1 && !transferAmt)
+			return dataField;
+		
+		if (dataField == null || dataField.getValue() == null)
+			return dataField;
+		
+		tmpDataField = (DataField)dataField.clone();
+		value = tmpDataField.getValue();
+		try {
+			if (value.getClass().isArray()) {
+				value = new String((byte [])value, this.getEncoding());
+			}
+			
+			value = ((String) value).trim();
+			/*数字乘以倍数或做金额转换*/
+			if (multiple != 1) {
+				BigDecimal decimal = new BigDecimal((String)value);
+				value = decimal.multiply(new BigDecimal(multiple)).setScale(scale, BigDecimal.ROUND_HALF_UP).toString();
+			}
+			if (transferAmt) {
+				value = AmtUtil.transferHostAmt((String)value, "0");
+			}
+			
+			tmpDataField.setValue(value);
+		}
+		catch (Exception e) {
+			throw new EMPFormatException("FormatField fbsTransfer failed!", e);
+		}
+		
+		return tmpDataField;
+	}
+
+	/**
+	 * PBank金额转换。
+	 * 
+	 * @param DataField dataField
+	 */
+	public Object fbsUntransfer(Object value) throws EMPFormatException{
+		Object tmpValue = value;
+		if (multiple == 1 && !transferAmt)
+			return value;
+
+		if (value == null)
+			return value;
+		
+		try {
+			if (tmpValue.getClass().isArray()) {
+				tmpValue = new String((byte [])tmpValue, this.getEncoding());
+			}
+			
+			tmpValue = ((String) tmpValue).trim();
+			/*数字乘以倍数或做金额转换*/
+			if (transferAmt) {
+				tmpValue = AmtUtil.transferHostAmt((String)tmpValue, "1");
+			}
+			if (multiple != 1) {
+				BigDecimal decimal = new BigDecimal((String)tmpValue);
+				tmpValue = decimal.divide((new BigDecimal(multiple)), scale, BigDecimal.ROUND_HALF_UP).toString();
+			}
+
+			if (value.getClass().isArray()) 
+				return ((String)tmpValue).getBytes(this.getEncoding());
+			else 
+				return tmpValue;
+		}
+		catch (Exception e) {
+			throw new EMPFormatException("FormatField fbsUntransfer failed!", e);
+		}
+		
+	}
+
+	/**
+	 * 获得该格式化元素对应的数据域名。
+	 * 
+	 * @return 数据域名
+	 */
+	public String getDataName() {
+		return dataName;
+	}
+
+	/**
+	 * 根据报文内容，获得该格式化元素对应的数据域名，
+	 * 用于某些情况下由报文指定数据名称的情况。
+	 * 
+	 * @param src 报文
+	 * @return 数据域名
+	 */
+	public String getDataName(Object src) throws EMPFormatException {
+		return dataName;
+	}
+
+	/**
+	 * 设置该格式化元素对应的数据域名。
+	 * 
+	 * @param dataName 数据域名
+	 */
+	public void setDataName(String dataName) {
+		this.dataName = dataName;
+	}
+
+	/**
+	 * 获得修饰符列表。
+	 * 
+	 * @return 修饰符列表
+	 */
+	public List getDecorators() {
+		return decorators;
+	}
+
+	/**
+	 * 获得该类的字符串表现。
+	 * 
+	 * @return 该类的字符串表现
+	 */
+	public String toString() {
+		return toString(0);
+	}
+
+	/**
+	 * 获得该类的字符串表现。
+	 * 
+	 * @param tabCount 缩进量
+	 * @return 该类的字符串表现
+	 */
+	public String toString(int tabCount) {
+		StringBuffer buf = new StringBuffer();
+		for (int i = 0; i < tabCount; i++)
+			buf.append("\t");
+
+		buf.append("<fmtField dataName=\"");
+		buf.append(getDataName());
+		buf.append("\">\n");
+
+		for (int i = 0; i < this.getDecorators().size(); i++) {
+			FormatElement fmt = (FormatElement) getDecorators().get(i);
+			buf.append(fmt.toString(tabCount));
+
+		}
+
+		return buf.toString();
+	}
+
+	/**
+	 * 设置是否常量。
+	 * 
+	 * @param constant 是否常量
+	 */
+	public void setConstant(boolean constant) {
+		this.constant = constant;
+	}
+
+	public int getMultiple() {
+		return multiple;
+	}
+
+	/**
+	 * 设置乘的倍数。
+	 * 
+	 * @param multiple 乘的倍数
+	 */
+	public void setMultiple(int multiple) {
+		this.multiple = multiple;
+	}
+
+	public boolean isTransferAmt() {
+		return transferAmt;
+	}
+
+	/**
+	 * 设置转换主机金额的标志。
+	 * 
+	 * @param transferAmt 是否需要转换
+	 */
+	public void setTransferAmt(boolean transferAmt) {
+		this.transferAmt = transferAmt;
+	}
+
+	public int getScale() {
+		return scale;
+	}
+
+	public void setScale(int scale) {
+		this.scale = scale;
+	}
+
+	public void addFormatToContext(DataElement element) throws Exception{
+		
+
+		if (this.isAppend()) {
+			//((KeyedCollection)dataElement).setAppend(this.isAppend());不改变父亲的DataElement的属性
+			if (!(((KeyedCollection)element).containsKey(dataName))){
+				DataElement theAppendDataElement = (DataElement) (this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass())).newInstance();
+				theAppendDataElement.setName(dataName);
+				theAppendDataElement.setAppend(this.isAppend());
+				((KeyedCollection)element).addDataElement(theAppendDataElement);
+			}
+		}
+		
+			
+	
+		
+	}
+
+	public void addFormatToContext(Context context) throws Exception{
+		
+		if (this.isAppend()) {
+			//((KeyedCollection)dataElement).setAppend(this.isAppend());不改变父亲的DataElement的属性
+			if (!(context.containsKey(dataName))){
+				DataElement theAppendDataElement = (DataElement) (this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass())).newInstance();
+				theAppendDataElement.setName(dataName);
+				theAppendDataElement.setAppend(this.isAppend());
+				context.addDataElement(theAppendDataElement);
+			}
+		}
+		
+	
+		
+	}
+}

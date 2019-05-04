@@ -1,0 +1,1392 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+<empDataType.xml>
+
+	<dataType id="Byte" name="Byte" implClass="com.ecc.emp.datatype.ByteType" >
+		<attributes>		
+			<attr id="max" name="最大值" defaultValue="127" editable="true"/>
+			<attr id="min" name="最小值" defaultValue="-128" editable="true"/>
+			<attr id="keepStringValue" name="后台是否转化为字符串形式" attrType="boolean" defaultValue="false" editable="true"/>
+		</attributes>
+		<validateJS function="validateByte(curField, $max;, $min;, formatErrorMsg, rangeErrorMsg)">
+			<script><![CDATA[
+   	function validateByte(field, max, min, formatMsg, rangeMsg )
+    {
+        var bValid = true;
+        var msg = "";
+        
+           if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio')) 
+            {
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) 
+                {
+                  if (!jcv_isDecimalDigits(value)) 
+                 	{
+												msg = formatMsg;
+                        bValid = false;
+	                } 
+    	            else 
+        	        {
+                        var iValue = parseInt(value, 10);
+                        if (isNaN(iValue) || !(iValue >= -128 && iValue <= 127) || min!=""&&max!=""&&!(iValue>=min && iValue <= max)) 
+                        {
+                        	msg = rangeMsg;
+                          bValid = false;
+                        }
+                    }
+                }
+            }
+               
+        return msg;
+    }
+			
+
+  /**
+   * Check a value only contains valid decimal digits
+   * @param argvalue The value to check.
+   */
+  function jcv_isDecimalDigits(argvalue) {
+      argvalue = argvalue.toString();
+      var validChars = "0123456789";
+
+      var startFrom = 0;
+      if (argvalue.charAt(0) == "-") {
+          startFrom = 1;
+      }
+
+      for (var n = startFrom; n < argvalue.length; n++) {
+          if (validChars.indexOf(argvalue.substring(n, n+1)) == -1) return false;
+      }
+      return true;
+  }
+
+			
+			]]></script>
+		</validateJS>
+		<document>字节型类型数据</document>
+	</dataType>
+	
+	
+	
+	<dataType id="Short" name="Short" implClass="com.ecc.emp.datatype.ShortType" >
+		<attributes>		
+			<attr id="max" name="最大值" defaultValue="32767" editable="true"/>
+			<attr id="min" name="最小值" defaultValue="-32768" editable="true"/>
+			<attr id="keepStringValue" name="后台是否转化为字符串形式" attrType="boolean" defaultValue="false" editable="true"/>
+		</attributes>
+		<validateJS function="validateShort(curField, $max;, $min;, formatErrorMsg, rangeErrorMsg)">
+			<script><![CDATA[
+   	function validateShort(field, max, min, formatMsg, rangeMsg )
+    {
+        var bValid = true;
+        var msg = "";
+        
+           if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio')) 
+            {
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) 
+                {
+                  if (!jcv_isDecimalDigits(value)) 
+                 	{
+												msg = formatMsg;
+                        bValid = false;
+	                } 
+    	            else 
+        	        {
+                        var iValue = parseInt(value, 10);
+                        if (isNaN(iValue) || !(iValue >= -32768 && iValue <= 32767) || min!=""&&max!=""&&!(iValue>=min && iValue <= max)) 
+                        {
+                        	msg = rangeMsg;
+                          bValid = false;
+                        }
+                    }
+                }
+            }
+               
+        return msg;
+    }
+    			
+      /**
+   * Check a value only contains valid decimal digits
+   * @param argvalue The value to check.
+   */
+  function jcv_isDecimalDigits(argvalue) {
+      argvalue = argvalue.toString();
+      var validChars = "0123456789";
+
+      var startFrom = 0;
+      if (argvalue.charAt(0) == "-") {
+          startFrom = 1;
+      }
+
+      for (var n = startFrom; n < argvalue.length; n++) {
+          if (validChars.indexOf(argvalue.substring(n, n+1)) == -1) return false;
+      }
+      return true;
+  }			
+			]]></script>
+		</validateJS>
+		<document>短整型类型数据</document>
+	</dataType>	
+	
+	
+	
+	<dataType id="Int" name="Int" implClass="com.ecc.emp.datatype.IntegerType" >
+		<attributes>		
+			<attr id="max" name="最大值" defaultValue="2147483647" editable="true"/>
+			<attr id="min" name="最小值" defaultValue="-2147483648" editable="true"/>
+			<attr id="keepStringValue" name="后台是否转化为字符串形式" attrType="boolean" defaultValue="false" editable="true"/>
+		</attributes>
+		<validateJS function="validateInteger(curField, $max;, $min;, formatErrorMsg, rangeErrorMsg)">
+			<script><![CDATA[
+   	function validateInteger(field, max, min, formatMsg, rangeMsg )
+    {
+        var bValid = true;
+        var msg = "";
+        
+           if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio')) 
+            {
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) 
+                {
+                  if (!jcv_isDecimalDigits(value)) 
+                 	{
+												msg = formatMsg;
+                        bValid = false;
+	                } 
+    	            else 
+        	        {
+                        var iValue = parseInt(value);
+                        if (isNaN(iValue) || !(iValue >= -2147483648 && iValue <= 2147483647) || min!=""&&max!=""&&!(iValue>=min && iValue <= max)) 
+                        {
+                        	msg = rangeMsg;
+                          bValid = false;
+                        }
+                    }
+                }
+            }
+               
+        return msg;
+    }
+  
+    /**
+   * Check a value only contains valid decimal digits
+   * @param argvalue The value to check.
+   */
+  function jcv_isDecimalDigits(argvalue) {
+      argvalue = argvalue.toString();
+      var validChars = "0123456789";
+
+      var startFrom = 0;
+      if (argvalue.charAt(0) == "-") {
+          startFrom = 1;
+      }
+
+      for (var n = startFrom; n < argvalue.length; n++) {
+          if (validChars.indexOf(argvalue.substring(n, n+1)) == -1) return false;
+      }
+      return true;
+  }  			
+			]]></script>
+		</validateJS>
+		<document>整型类型数据</document>
+	</dataType>	
+	
+	
+	
+		<dataType id="Long" name="Long" implClass="com.ecc.emp.datatype.LongType" >
+		<attributes>		
+			<attr id="max" name="最大值" defaultValue="2147483647" editable="true"/>
+			<attr id="min" name="最小值" defaultValue="-2147483648" editable="true"/>
+			<attr id="keepStringValue" name="后台是否转化为字符串形式" attrType="boolean" defaultValue="false" editable="true"/>
+		</attributes>
+		<validateJS function="validateLong(curField, $max;, $min;, formatErrorMsg, rangeErrorMsg)">
+			<script><![CDATA[
+   	function validateLong(field, max, min, formatMsg, rangeMsg )
+    {
+        var bValid = true;
+        var msg = "";
+        
+           if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio')) 
+            {
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) 
+                {
+                  if (!jcv_isDecimalDigits(value)) 
+                 	{
+												msg = formatMsg;
+                        bValid = false;
+	                } 
+    	            else 
+        	        {
+                        var iValue = parseInt(value);
+                        if (isNaN(iValue) || !(iValue >= -2147483648 && iValue <= 2147483647)|| min!=""&&max!=""&&!(iValue>=min && iValue <= max)) 
+                        {
+                        	msg = rangeMsg;
+                          bValid = false;
+                        }
+                    }
+                }
+            }
+               
+        return msg;
+    }
+   
+     /**
+   * Check a value only contains valid decimal digits
+   * @param argvalue The value to check.
+   */
+  function jcv_isDecimalDigits(argvalue) {
+      argvalue = argvalue.toString();
+      var validChars = "0123456789";
+
+      var startFrom = 0;
+      if (argvalue.charAt(0) == "-") {
+          startFrom = 1;
+      }
+
+      for (var n = startFrom; n < argvalue.length; n++) {
+          if (validChars.indexOf(argvalue.substring(n, n+1)) == -1) return false;
+      }
+      return true;
+  } 			
+			]]></script>
+		</validateJS>
+		<document>长整型类型数据</document>
+	</dataType>	
+	
+	
+	
+	<dataType id="Float" name="Float" implClass="com.ecc.emp.datatype.FloatType" >
+		<attributes>		
+			<attr id="max" name="最大值" defaultValue="2147483647" editable="true"/>
+			<attr id="min" name="最小值" defaultValue="-2147483648" editable="true"/>
+			<attr id="keepStringValue" name="后台是否转化为字符串形式" attrType="boolean" defaultValue="false"/>
+		</attributes>
+		<validateJS function="validateFloat(curField, $max;, $min;, formatErrorMsg, rangeErrorMsg)">
+			<script><![CDATA[
+   	function validateFloat(field, max, min, formatMsg, rangeMsg )
+    {
+        var bValid = true;
+        var msg = "";
+        
+           if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio')) 
+            {
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) 
+                {
+                  if (!jcv_isCurrencyDigits(value)) 
+                 	{
+												msg = formatMsg;
+                        bValid = false;
+	                } 
+    	            else 
+        	        {
+                        var iValue = parseFloat(value);
+                        if (isNaN(iValue) || !(iValue >= -3.402823E38 && iValue <= 3.402823E38)|| min!=""&&max!=""&&!(iValue>=min && iValue <= max)) 
+                        {
+                        	msg = rangeMsg;
+                          bValid = false;
+                        }
+                    }
+                }
+            }
+               
+        return msg;
+    }
+   
+    /**
+   * Check a value only contains valid currency digits
+   * @param argvalue The value to check.
+   */
+  function jcv_isCurrencyDigits(argvalue) {
+      argvalue = argvalue.toString();
+      var validChars = "0123456789.";
+
+      var startFrom = 0;
+      if (argvalue.charAt(0) == "-") {
+          startFrom = 1;
+      }
+
+      for (var n = startFrom; n < argvalue.length; n++) {
+          if (validChars.indexOf(argvalue.substring(n, n+1)) == -1) return false;
+      }
+      
+      if(argvalue.indexOf(".")!=argvalue.lastIndexOf("."))
+      	return false;
+      
+      return true;
+  } 			
+			]]></script>
+		</validateJS>
+		<document>浮点型类型数据</document>
+	</dataType>	
+
+	
+	
+	
+	<dataType id="Double" name="Double" implClass="com.ecc.emp.datatype.DoubleType" >
+		<attributes>		
+			<attr id="max" name="最大值" defaultValue="2147483647" editable="true"/>
+			<attr id="min" name="最小值" defaultValue="-2147483648" editable="true"/>
+			<attr id="keepStringValue" name="后台是否转化为字符串形式" attrType="boolean" defaultValue="false"/>
+		</attributes>
+		<validateJS function="validateDouble(curField, $max;, $min;, formatErrorMsg, rangeErrorMsg)">
+			<script><![CDATA[
+   	function validateDouble(field, max, min, formatMsg, rangeMsg )
+    {
+        var bValid = true;
+        var msg = "";
+        
+           if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio')) 
+            {
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) 
+                {
+                  if (!jcv_isCurrencyDigits(value)) 
+                 	{
+												msg = formatMsg;
+                        bValid = false;
+	                } 
+    	            else 
+        	        {
+                        var iValue = parseFloat(value);
+                        if (isNaN(iValue) || !(iValue >= Number.MIN_VALUE && iValue <= Number.MAX_VALUE)|| min!=""&&max!=""&&(iValue>=min && iValue <= max)) 
+                        {
+                        	msg = rangeMsg;
+                          bValid = false;
+                        }
+                    }
+                }
+            }
+               
+        return msg;
+    }
+    
+     /**
+   * Check a value only contains valid currency digits
+   * @param argvalue The value to check.
+   */
+  function jcv_isCurrencyDigits(argvalue) {
+      argvalue = argvalue.toString();
+      var validChars = "0123456789.";
+
+      var startFrom = 0;
+      if (argvalue.charAt(0) == "-") {
+          startFrom = 1;
+      }
+
+      for (var n = startFrom; n < argvalue.length; n++) {
+          if (validChars.indexOf(argvalue.substring(n, n+1)) == -1) return false;
+      }
+      
+      if(argvalue.indexOf(".")!=argvalue.lastIndexOf("."))
+      	return false;
+      
+      return true;
+  }			
+			]]></script>
+		</validateJS>
+		<document>双浮点型类型数据</document>
+	</dataType>	
+	
+
+
+	<dataType id="Currency" name="金额数据" implClass="com.ecc.emp.datatype.CurrencyType" >
+		<attributes>
+			<attr id="precision" name="精度"/>
+			<attr id="scale" name="小数点后位数"/>
+			<attr id="showDot" name="输入/输出是否有小数点" attrType="boolean"/>
+			<attr id="keepDot" name="后台是否保留小数点" attrType="boolean"/>
+			<attr id="showSymbol" name="是否有金融符号" attrType="boolean"/>
+			<attr id="min" name="最小值" editable="true"/>
+			<attr id="max" name="最大值" editable="true"/>
+			<attr id="keepStringValue" name="后台是否转化为字符串形式" attrType="boolean" defaultValue="false"/>
+		</attributes>
+		<validateJS function="validateCurrency(curField, $max;, $min;, $precision;, $scale;, $showSymbol;, formatErrorMsg, rangeErrorMsg)">
+			<script><![CDATA[
+   	function validateCurrency(field, max, min, precision, scale, showSymbol, formatMsg, rangeMsg )
+    {
+        var bValid = true;        
+        var msg ="";
+        
+           if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio')) 
+            {
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) 
+                {
+                	if(showSymbol == "true"||showSymbol == true){
+                		var c = value.charAt(0);
+                		if(c!='￥'){
+                			msg = formatMsg;
+                      bValid = false;
+                		}
+                		else
+        	        		value = value.substring(1);		
+        	        }
+                	var str='';
+                	for(var i=0;i<value.length;i++){
+                		var c = value.charAt(i);
+                		if(c!=',')
+                		  str += c;
+                	}
+                	value = str;               	
+                  if (!jcv_isCurrencyDigits(value)) 
+                  {
+												msg = formatMsg;
+                        bValid = false;
+	                } 
+    	            else 
+        	        {       	        			
+                        var iValue = parseFloat(value);
+                        if (isNaN(iValue) || (max!=""&&min!="")&&!(iValue>=min && iValue <= max)) 
+                        {
+                        	msg = rangeMsg;
+                          bValid = false;
+                        }
+                        if(max==""||min==""){
+                        	if(value.charAt(0)=="-")
+                        		var tmp = value.substring(1);
+                        var idx = tmp.indexOf(".");
+                        if(idx != -1){
+                        	tmp = tmp.substring(0,idx);
+                        }
+                        if(tmp.length > (precision - scale)){
+                        	msg = rangeMsg;
+                          bValid = false;
+                        }
+                        
+                    }
+                }
+            }
+          } 
+              
+        return msg;
+    }
+			
+
+ /**
+   * Check a value only contains valid currency digits
+   * @param argvalue The value to check.
+   */
+  function jcv_isCurrencyDigits(argvalue) {
+      argvalue = argvalue.toString();
+      var validChars = "0123456789.";
+
+      var startFrom = 0;
+      if (argvalue.charAt(0) == "-") {
+          startFrom = 1;
+      }
+
+      for (var n = startFrom; n < argvalue.length; n++) {
+          if (validChars.indexOf(argvalue.substring(n, n+1)) == -1) return false;
+      }
+      
+      if(argvalue.indexOf(".")!=argvalue.lastIndexOf("."))
+      	return false;
+      
+      return true;
+  }
+			
+	  ]]></script>
+		</validateJS>
+
+		<convertorJS  function="convertCurrency(this,$scale;, '$showDot;', '$showSymbol;')">
+			<script><![CDATA[
+			
+function convertCurrency( element,scale,showDot,showSymbol )
+{
+   var tonumber;
+   var re = /,/g;
+   var txt_money = element;
+   
+   if ((txt_money.type == 'hidden' ||
+                txt_money.type == 'text' ||
+                txt_money.type == 'textarea' ||
+                txt_money.type == 'select-one' ||
+                txt_money.type == 'radio')) 
+            {
+                // get field's value
+                if (txt_money.type == "select-one") {
+                    var si = txt_money.selectedIndex;
+                    if (si >= 0) {
+                        tonumber = txt_money.options[si].value;
+                    }
+                } else {
+                    tonumber = txt_money.value;
+                }
+              }
+   if(tonumber == null || tonumber == "")
+   		return;
+   	
+   tonumber = tonumber.replace(re,"");
+   
+   txt_value = "";	
+   txt_money.value = "";
+  
+   if (tonumber =="")
+   {
+      alert("金额不能为空！");
+      txt_money.focus(); 
+   }
+   else if (parseFloat(tonumber)<0)
+   {
+      alert("nagtive not allowed!"); //输入的金额不能小于0！
+      txt_money.focus(); 
+    } 
+    else 
+    {    		    				
+     		var tail = ".";    		
+     		for(var i=0;i<scale;i++){
+     			tail +="0";
+     		}
+     		if(scale == 0)
+     			tail = "";
+     		
+      	var numberlen = tonumber.indexOf(".");
+      	var numberdot = "";
+      	if(numberlen != -1){
+      		numberdot = tonumber.slice(0,numberlen);     		
+      		var misnumber = tonumber.slice(numberlen+1,tonumber.length);
+      		tail = tonumber.slice(numberlen);
+      		
+      		if(misnumber.length > scale){
+      			misnumber = misnumber.substring(0,scale);
+      			tail = tail.substring(0,scale+1);
+      		}
+      		
+      		for(var i=0;i<scale-misnumber.length;i++){
+      			tail += "0";
+      		}
+      		if(scale == 0)
+     				tail = "";
+      	}else{
+      		numberdot = tonumber;
+      		tail = ".";    		
+     			for(var i=0;i<scale;i++){
+     				tail +="0";
+     			}
+     			if(scale == 0)
+     				tail = "";
+      	}
+      	
+      	tonumber = "";
+      	var idx = 0;
+      	var len = numberdot.length;
+      	for(idx=0;idx<parseInt(numberdot.length/3);idx++){
+      		var tmp = numberdot.substring(len-3,len);
+      		if(idx ==0)
+      			tonumber = tmp + tonumber;
+      		else
+      			tonumber = tmp+","+tonumber;
+      		len = len - 3;
+      	}
+      	
+      	if(len != 0){
+      		var tmp = numberdot.substring(0,len);
+      		if(idx ==0)
+      			tonumber = tmp + tonumber;
+      		else
+      			tonumber = tmp+","+tonumber;
+      	}
+      	
+      	txt_value = tonumber + tail;
+      	
+      if(showDot == "false"||showDot == false){
+      	var tmp = "";
+      	for(var i=0;i<txt_value.length;i++){
+      		var c = txt_value.substring(i,i+1);
+      		if('0'<=c&&c<='9')
+      				tmp += c;
+      	}
+      	txt_value = tmp;
+      }
+      if((showSymbol == "true"||showSymbol == true)&&txt_value.charAt(0) != '￥')
+      	txt_value = "￥" + txt_value;
+      txt_money.value = txt_value;
+    }
+  }
+
+ ]]></script>
+		</convertorJS>
+
+		<document>金额型类型数据</document>
+	</dataType>
+	
+	
+	
+	
+	<dataType id="String" name="字符串数据" implClass="com.ecc.emp.datatype.StringType" >
+		<attributes>
+			<attr id="length" name="最大长度" editable="true"/>
+			<attr id="type" name="类型" editable="true"/>
+			<attr id="padChar" name="补齐字符" editable="true"/>
+			<attr id="align" name="对齐方式" editable="true"/>
+		</attributes>
+		<validateJS function="validateString(curField, $length;, '$type;', formatErrorMsg, rangeErrorMsg)">
+			<script><![CDATA[
+   	function validateString(field, length, type, formatMsg, rangeMsg )
+    {
+				var bValid = true;        
+        var msg ="";
+        
+           if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio')) 
+            {
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) 
+                {
+                	if(value.length > length){
+                		msg = rangeMsg;
+                    bValid = false;
+                  }else{
+                  	if(type == "9"&&!jcv_isDecimalDigits(value)){
+											msg = formatMsg;
+                       bValid = false;
+                  	}else if(type == "A"){
+                  		for(var i=0;i<value.length;i++){
+                  			var tmp = value.charAt(i);
+                  			if(!('A'<=tmp&&tmp<='Z')){
+                  				msg = formatMsg;
+                       		bValid = false;
+                  			}
+                  		}
+                  	}
+                  }
+                }
+              }
+	return msg;
+	
+	  }
+	
+	  /**
+   * Check a value only contains valid decimal digits
+   * @param argvalue The value to check.
+   */
+  function jcv_isDecimalDigits(argvalue) {
+      argvalue = argvalue.toString();
+      var validChars = "0123456789";
+
+      var startFrom = 0;
+      if (argvalue.charAt(0) == "-") {
+          startFrom = 1;
+      }
+
+      for (var n = startFrom; n < argvalue.length; n++) {
+          if (validChars.indexOf(argvalue.substring(n, n+1)) == -1) return false;
+      }
+      return true;
+  }		
+	  ]]></script>
+		</validateJS>
+
+		<convertorJS  function="convertString(this,$length;,'$padChar;','$align;')">
+			<script><![CDATA[
+			
+function convertString( element,length,padChar,align )
+{
+		var txt_value = '';
+		if ((element.type == 'hidden' ||
+                element.type == 'text' ||
+                element.type == 'textarea' ||
+                element.type == 'select-one' ||
+                element.type == 'radio')) 
+            {
+                
+                // get field's value
+                if (element.type == "select-one") {
+                    var si = element.selectedIndex;
+                    if (si >= 0) {
+                        txt_value = element.options[si].value;
+                    }
+                } else {
+                    txt_value = element.value;
+                }
+              }
+		if(txt_value.length < length){
+			var len = txt_value.length;
+			if(align.toLowerCase() == "right"){
+				for(var i=0;i<(length-len)/padChar.length;i++){
+					txt_value = padChar + txt_value;
+				}
+			}else if(align.toLowerCase() == "left"){
+				for(var i=0;i<(length-len)/padChar.length;i++){
+					txt_value = txt_value + padChar;
+				}
+			}
+		}
+	
+	element.value = txt_value;
+	  }
+
+ ]]></script>
+		</convertorJS>
+
+		<document>字符串类型数据</document>
+	</dataType>
+	
+	
+	
+	
+	<dataType id="MaskString" name="格式化类型" implClass="com.ecc.emp.datatype.MaskDataType" >
+		<attributes>
+			<attr id="mask" name="页面端显示格式" mustSet="true" editable="true" />
+			<attr id="regExp" name="校验正则表达式" mustSet="true" editable="true" />
+			<attr id="showSeparator" name="显示格式是否包含分隔符" attrType="boolean" editable="true"/>
+			<attr id="keepSeparator" name="值格式是否包含分隔符" attrType="boolean" editable="true" />
+			<attr id="keepFlag" name="是否使用屏蔽符号" attrType="boolean" editable="false" />				
+			<attr id="flag" name="屏蔽符号" defaultValue="*" editable="false"/>			
+		</attributes>
+		
+		<validateJS function="validateMask(curField, '$regExp;' ,formatErrorMsg, rangeErrorMsg)">
+			<script><![CDATA[
+function validateMask(field, regExp, formatMsg, rangeMsg){
+				var bValid = true;        
+        var msg ="";
+        
+           if ((field.type == 'hidden' ||
+                field.type == 'text' ||
+                field.type == 'textarea' ||
+                field.type == 'select-one' ||
+                field.type == 'radio')) 
+            {
+                var value = '';
+                // get field's value
+                if (field.type == "select-one") {
+                    var si = field.selectedIndex;
+                    if (si >= 0) {
+                        value = field.options[si].value;
+                    }
+                } else {
+                    value = field.value;
+                }
+
+                if (value.length > 0) {
+                	var re = new RegExp(regExp);
+                	if(!re.test(value)){
+                		msg = formatMsg;
+                    bValid = false;
+                	}
+                }
+              }
+              
+              return msg;             	
+		}			
+			]]>
+			</script>
+		</validateJS>
+		
+		<inputJS function="convertMask(curField, '$regExp;')">
+			<script><![CDATA[
+			
+			]]></script>
+			</inputJS>
+			
+		<convertorJS function="convertMask(this, '$mask;', '$showSeparator;', '$keepFlag;', '$flag;')">
+			<script><![CDATA[
+function convertMask( element,mask,showSeparator,keepFlag, flag ){
+	
+		var txt_value = '';
+		if ((element.type == 'hidden' ||
+                element.type == 'text' ||
+                element.type == 'textarea' ||
+                element.type == 'select-one' ||
+                element.type == 'radio')) 
+            {
+                
+                // get field's value
+                if (element.type == "select-one") {
+                    var si = element.selectedIndex;
+                    if (si >= 0) {
+                        txt_value = element.options[si].value;
+                    }
+                } else {
+                    txt_value = element.value;
+                }
+              }
+	if(txt_value == null || txt_value == "")
+		return;
+	
+	var tmp = "";
+	for(var i=0;i<txt_value.length;i++){
+		var c = txt_value.charAt(i);
+		if('0'<=c&&c<='9'||jcv_isCheckFlag(c,flag))
+			tmp += c;
+	}
+	txt_value = tmp;
+	
+	tmp = "";
+	var idx = 0;
+	for(var i=0;i<mask.length;i++){
+		var c = mask.charAt(i);
+		if('0'<=c&&c<='9'||jcv_isCheckFlag(c,flag)&&keepFlag=="false"){
+			tmp += txt_value.charAt(idx);
+			idx++;
+		}else if(jcv_isCheckFlag(c,flag)&&keepFlag=="true"){
+			tmp += c;
+			idx++;
+		}else{
+			if(showSeparator == "true"||showSeparator == true)
+				tmp += c;
+			c = txt_value.charAt(idx);
+			if(!('0'<=c&&c<='9'||jcv_isCheckFlag(c,flag)))
+				idx++;
+		}		
+	}		
+	
+	txt_value = tmp;
+	
+	element.value = txt_value;	
+}    
+
+ /**
+   * Check a value whether is in the flag
+   * @param argvalue The value to check.
+   */
+  function jcv_isCheckFlag(argchar,argflag) {
+      argchar = argchar.toString();
+      argflag = argflag.toString();
+
+      for (var n = 0; n < argchar.length; n++) {
+          if (argflag.indexOf(argchar.substring(n, n+1)) == -1) return false;
+      }
+     
+      return true;
+  }
+
+			]]></script>
+		</convertorJS>
+		<document>正则表达式类型数据</document>
+	</dataType>
+
+
+	<dataType id="Date" name="日期" implClass="com.ecc.emp.datatype.DateTimeType" >
+		<attributes>
+			<attr id="inputFormat" name="输入/输出格式" dftValue="yyyyMMdd"/>
+			<attr id="valueFormat" name="后台格式" dftValue="yyyyMMdd"/>
+			<attr id="inputAmPm" name="输入/输出的Am/Pm显示字符" dftValue="am|pm"/>
+			<attr id="valueAmPm" name="后台的Am/Pm显示字符" dftValue="am|pm"/>
+			<attr id="type" name="日期/时间格式" valueList="DateType=日期格式;TimeType=时间格式;DateTimeType=日期时间格式;" dftValue="DateTimeType"/>
+			<attr id="keepStringValue" name="后台是否转化为字符串形式" attrType="boolean" defaultValue="false" editable="true"/>
+		</attributes>
+	
+	<validateJS function = "validateDate(curField, '$inputFormat;', formatErrorMsg, rangeErrorMsg)">
+			<script><![CDATA[
+   function validateDate(field, inputFormat, formatMsg, rangeMsg)
+  {
+  	
+  			var bValid = true;        
+        var msg ="";
+        var txt_date = field;
+  			var date_value = "";
+        
+       if ((txt_date.type == 'hidden' ||
+                txt_date.type == 'text' ||
+                txt_date.type == 'textarea' ||
+                txt_date.type == 'select-one' ||
+                txt_date.type == 'radio')) 
+       {
+          if (txt_date.type == "select-one") {
+              var si = txt_date.selectedIndex;
+              if (si >= 0) {
+                 date_value = txt_date.options[si].value;
+              }
+          } else {
+              date_value = txt_date.value;
+          }
+
+          if (date_value.length > 0) {
+	
+	var value = "";
+	var delim=0;
+	var year="";
+	var month="";
+	var day="";
+	var hour="";
+	var minute="";
+	var second="";
+	for(var i=0;i<inputFormat.length;i++){
+		
+		var c=inputFormat.charAt(i);
+		if(c=='y'){
+			var idx = inputFormat.indexOf("yyyy");
+			var tmp = 4;
+			if(idx==-1)
+				tmp = 2;
+			i += tmp-1;
+			for(var n=0;n<tmp&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				year+=c;				
+			}			
+		}else if(c=='M'){
+			var idx = inputFormat.indexOf("MM");
+			if(idx!=-1)
+				i++;
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				month+=c;
+			}
+		}else if(c=='d'){
+			var idx = inputFormat.indexOf("dd");
+			if(idx!=-1)
+				i++;
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				day+=c;
+			}
+		}else if(c=='H'){
+			var idx = inputFormat.indexOf("HH");
+			if(idx!=-1)
+				i++;
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;				
+				hour+=c;				
+			}
+		}else if(c=='h'){
+			var idx = inputFormat.indexOf("hh");
+			if(idx!=-1)
+				i++;
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				hour += c;
+			}
+		}else if(c=='k'){
+			var idx = inputFormat.indexOf("kk");
+			if(idx!=-1)
+				i++;
+			var tmp = "";
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);				
+				if(!('0'<=c&&c<='9'))
+					break;				
+				hour+=c;			
+			}
+		}else if(c=='K'){
+			var idx = inputFormat.indexOf("KK");
+			if(idx!=-1)
+				i++;
+			var tmp = "";
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				hour += c;
+			}
+		}else if(c=='m'){
+			var idx = inputFormat.indexOf("mm");
+			if(idx!=-1)
+				i++;
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				minute+=c;
+			}
+		}else if(c=='s'){
+			var idx = inputFormat.indexOf("ss");
+			if(idx!=-1)
+				i++;
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				second+=c;
+			}
+		}
+		for(var n=0;n<date_value.length;n++){
+			c = date_value.charAt(delim);
+			if('0'<=c&&c<='9')
+				break;
+			delim++;
+		}
+	}
+		
+  if (month < 1 || month > 12){
+		msg = rangeMsg;
+    bValid = false;
+	}					
+	if (day < 1 || day > 31){
+		msg = rangeMsg;
+    bValid = false;
+	}			
+	if ((month == 4 || month == 6 || month == 9 || month == 11)
+					&& day == 31){
+		msg = rangeMsg;
+    bValid = false;
+	}		
+	if (month == 2) {
+			var leap = (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
+			if (day > 29 || (day == 29 && !leap)){
+					msg = rangeMsg;
+    			bValid = false;
+			}		
+		}
+		if(hour<0||hour>24||minute<0||minute>59||second<0||second>59){
+			msg = rangeMsg;
+    	bValid = false;
+		}
+		if(inputFormat.indexOf("h")!=-1&&hour>12){
+			msg = rangeMsg;
+    	bValid = false;
+		}
+		if(inputFormat.indexOf("H")!=-1&&hour==24){
+			msg = rangeMsg;
+    	bValid = false;
+		}
+		if(inputFormat.indexOf("K")!=-1&&hour==12){
+			msg = rangeMsg;
+    	bValid = false;
+		}
+		if((inputFormat.indexOf("y") != -1 && year == "")||(inputFormat.indexOf("M") != -1 && month == "")||(inputFormat.indexOf("d") != -1 && day == "")
+				||((inputFormat.indexOf("h")!=-1||inputFormat.indexOf("H")!=-1||inputFormat.indexOf("K")!=-1||inputFormat.indexOf("k")!=-1)&&hour=="")
+				||(inputFormat.indexOf("m")!=-1&&minute=="")||(inputFormat.indexOf("s")!=-1&&second=="")){
+			msg = formatMsg;
+    	bValid = false;
+		}
+	}	
+}
+	return msg;	
+		
+ }		
+	 ]]></script>
+		</validateJS>
+		
+		<convertorJS function="convertDate(this, '$inputFormat;', '$inputAmPm;')">
+			<script><![CDATA[
+function convertDate( element,inputFormat,inputAmPm )
+{	  
+  var txt_date = element;
+  var date_value = "";
+
+	if ((txt_date.type == 'hidden' ||
+                txt_date.type == 'text' ||
+                txt_date.type == 'textarea' ||
+                txt_date.type == 'select-one' ||
+                txt_date.type == 'radio')) 
+       {
+          if (txt_date.type == "select-one") {
+              var si = txt_date.selectedIndex;
+              if (si >= 0) {
+                 date_value = txt_date.options[si].value;
+              }
+          } else {
+              date_value = txt_date.value;
+          }
+        }
+	if(date_value == null || date_value == "")
+		return;
+	
+	var value = "";
+	var delim=0;
+	var timeFlag = false;
+	for(var i=0;i<date_value.length;i++){
+		var c = date_value.charAt(i);
+		if('0'<=c&&c<='9')
+			break;
+		delim++;
+	}
+	for(var i=0;i<inputFormat.length;i++){
+		
+		var c=inputFormat.charAt(i);
+		if(c=='y'){
+			var idx = inputFormat.indexOf("yyyy");
+			var tmp = 4;
+			if(idx==-1)
+				tmp = 2;
+			i += tmp-1;
+			for(var n=0;n<tmp&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				value+=c;				
+			}			
+		}else if(c=='M'){
+			var idx = inputFormat.indexOf("MM");
+			if(idx!=-1)
+				i++;
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				value+=c;
+			}
+		}else if(c=='d'){
+			var idx = inputFormat.indexOf("dd");
+			if(idx!=-1)
+				i++;
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				value+=c;
+			}
+		}else if(c=='H'){
+			var idx = inputFormat.indexOf("HH");
+			if(idx!=-1)
+				i++;
+			var tmp = "";
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);				
+				if(!('0'<=c&&c<='9'))
+					break;				
+				tmp+=c;			
+			}
+			if(tmp!=""){
+				idx = inputAmPm.indexOf("|");
+				var pm = inputAmPm.substring(idx+1);
+				var tmpTime = parseInt(tmp);	
+				if(date_value.indexOf(pm)!=-1&&tmpTime<12){
+					tmpTime += 12;
+					timeFlag = true;
+				}
+				if(12<=tmpTime&&tmpTime<24)
+					timeFlag = true;
+				if(tmpTime == 24)
+					tmpTime = 0;				
+				value+=tmpTime.toString();
+			}
+		}else if(c=='h'){
+			var idx = inputFormat.indexOf("hh");
+			if(idx!=-1)
+				i++;
+			var tmp = "";
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				tmp += c;
+			}
+			if(tmp!=""){
+				idx = inputAmPm.indexOf("|");
+				var pm = inputAmPm.substring(idx+1);
+				var tmpTime = parseInt(tmp);
+				if(tmpTime>12){
+					tmpTime -= 12;
+					timeFlag = true;				
+				}
+				if(date_value.indexOf(pm)!=-1)
+					timeFlag = true;
+				value+=tmpTime.toString();
+			}
+		}else if(c=='k'){
+			var idx = inputFormat.indexOf("kk");
+			if(idx!=-1)
+				i++;
+			var tmp = "";
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);				
+				if(!('0'<=c&&c<='9'))
+					break;				
+				tmp+=c;			
+			}
+			if(tmp!=""){
+				idx = inputAmPm.indexOf("|");
+				var pm = inputAmPm.substring(idx+1);
+				var tmpTime = parseInt(tmp);	
+				if(date_value.indexOf(pm)!=-1&&tmpTime<12){
+					tmpTime += 12;
+					timeFlag = true;
+				}
+				if(12<=tmpTime&&tmpTime<24)
+					timeFlag = true;				
+				value+=tmpTime.toString();
+			}
+		}else if(c=='K'){
+			var idx = inputFormat.indexOf("KK");
+			if(idx!=-1)
+				i++;
+			var tmp = "";
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				tmp += c;
+			}
+			if(tmp!=""){
+				idx = inputAmPm.indexOf("|");
+				var pm = inputAmPm.substring(idx+1);
+				var tmpTime = parseInt(tmp);
+				if(tmpTime>12){
+					tmpTime -= 12;
+					timeFlag = true;				
+				}
+				if(date_value.indexOf(pm)!=-1)
+					timeFlag = true;
+				if(tmpTime == 12)
+					tmpTime = 0;
+				value+=tmpTime.toString();
+			}
+		}else if(c=='a'){
+			idx = inputAmPm.indexOf("|");
+			var am = inputAmPm.substring(0,idx);
+			var pm = inputAmPm.substring(idx+1);
+			if(timeFlag == true||date_value.indexOf("下午")!=-1||date_value.indexOf("pm")!=-1)
+				value += pm;
+			else
+				value += am;						
+		}else if(c=='m'){
+			var idx = inputFormat.indexOf("mm");
+			if(idx!=-1)
+				i++;
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				value+=c;
+			}
+		}else if(c=='s'){
+			var idx = inputFormat.indexOf("ss");
+			if(idx!=-1)
+				i++;
+			for(var n=0;n<2&&delim<date_value.length;n++,delim++){
+				c = date_value.charAt(delim);
+				if(!('0'<=c&&c<='9'))
+					break;
+				value+=c;
+			}
+		}else{
+			value+=c;
+		}
+		for(var n=0;n<date_value.length;n++){
+			c = date_value.charAt(delim);
+			if('0'<=c&&c<='9')
+				break;
+			delim++;
+		}
+	}
+	var idx = inputAmPm.indexOf("|");
+	var am = inputAmPm.substring(0,idx);
+	var pm = inputAmPm.substring(idx+1);
+	if(value.indexOf(am)!=-1&&timeFlag==true){
+		value = value.replace(am,pm);
+		alert("end:"+value);
+	}
+	txt_date.value=value;
+  }
+			]]></script>
+		</convertorJS>
+		<document>年月日的日期型数据类型</document>
+	</dataType>
+</empDataType.xml>

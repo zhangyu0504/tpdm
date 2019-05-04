@@ -1,0 +1,538 @@
+package module.batch;
+
+import java.sql.Connection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import module.bean.AcctDetail;
+import module.bean.AcctJour;
+import module.bean.AgtTranList;
+import module.bean.LocalInfo;
+import module.bean.Reverse;
+import module.bean.ReverseLog;
+import module.bean.SecCompData;
+import module.bean.SignAccountData;
+import module.cache.ParamCache;
+import module.dao.AcctDetailDao;
+import module.dao.AcctJourDao;
+import module.dao.AgtTranListDao;
+import module.dao.LocalInfoDao;
+import module.dao.ReverseDao;
+import module.dao.ReverseLogDao;
+import module.dao.SecCompDataDao;
+import module.dao.SignAccountDataDao;
+import module.trans.sf2bankchl.ReverseClient;
+import module.trans.sf2cobank.T810023Client;
+import module.trans.sf2secu.S2BReverseClient;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.BizUtil;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+import core.schedule.ScheduleActionInterface;
+/**
+ * 冲正管理器
+ * @author 汪华
+ *
+ */
+public class T888888 implements ScheduleActionInterface{
+	private static final int DEFAULT_MAX_REVERSE_NUM = 3;// 最多可冲正次数
+	private static final String SYS_TYPE_ONLINE = "0";// 交易类型: 0:联机交易1:批量
+	private static final String SYS_TYPE_BATCH = "1";// 交易类型: 0:联机交易1:批量
+	private static final String REVERSE_STATUS_SUCCESS = "1";//1：冲正成功
+	private static final String REVERSE_STATUS_FAIL = "2";//2：冲正失败
+	private static final String REVERSE_STATUS_ARTIFICIAL = "3";//3：待人工处
+	private ReverseDao rsDao=new ReverseDao();
+	private ReverseLogDao rsLogDao=new ReverseLogDao();
+	private AcctJourDao jourDao=new AcctJourDao();
+	private AcctDetailDao  acctDetailDao=new AcctDetailDao();
+	private SecCompDataDao secDao=new SecCompDataDao();
+	private SignAccountDataDao signAccountDataDao = new SignAccountDataDao();
+	private LocalInfoDao localInfoDao = new LocalInfoDao();
+	
+
+	@Override
+	public boolean init(Context context) throws SFException {
+		Connection connection =DBHandler.getConnection(context);
+		try{
+			DBHandler.beginTransaction(context, connection);
+			/*
+			 * 查询待冲正记录
+			 */
+			int reverseNum=0;	
+			String reverseTimes=ParamCache.getValue2("SF_REVERSE", "MAX_TIMES");//从缓存中获取冲正次数
+			if(SFUtil.isEmpty(reverseTimes)){
+				reverseNum=DEFAULT_MAX_REVERSE_NUM;
+			}else{
+				reverseNum=Integer.parseInt(reverseTimes.trim());
+			}
+			
+			long cutReverse=0;
+			if("SFOnline".equalsIgnoreCase(SFConst.SYS_SYSNAME)){
+				cutReverse=rsDao.cutReverse(context, connection, reverseNum, SYS_TYPE_ONLINE);
+			}else{
+				cutReverse=rsDao.cutReverse(context, connection, reverseNum, SYS_TYPE_BATCH);		
+			}
+			/*
+			 * 不存在待冲正记录
+			 */
+			if(cutReverse<=0){
+				return false;
+			}			
+			DBHandler.commitTransaction(context, connection);
+		}catch(SFException e){
+			DBHandler.rollBackTransaction(context, connection);
+			throw e;
+		}catch(Exception e){
+			DBHandler.rollBackTransaction(context, connection);
+			throw new SFException("ST7898",e.getMessage(),e);
+		}finally{
+			DBHandler.releaseConnection(context, connection);
+		}
+		return true;
+	}
+
+	@Override
+	public void execute(Context context) throws SFException {
+		SFLogger.info(context,"冲正测试开始->");
+		Connection connection =DBHandler.getConnection(context);
+		AgtTranListDao agtTranListDao = new AgtTranListDao();
+		SFUtil.setDataValue(context, SFConst.PUBLIC_TRAN_CONNECTION, connection);//公共上下文初始将由批量调度平台处理，私有交易将当前批量的数据库联接放到上下文中即可
+		try{
+			/*
+			 * 查询待冲正记录
+			 */
+			int reverseNum=0;	
+			String reverseTimes=ParamCache.getValue2("SF_REVERSE", "MAX_TIMES");//从缓存中获取冲正次数
+			if(SFUtil.isEmpty(reverseTimes)){
+				reverseNum=DEFAULT_MAX_REVERSE_NUM;
+			}else{
+				reverseNum=Integer.parseInt(reverseTimes.trim());
+			}
+			
+			/*
+			 * 获取营业时间
+			 */
+			LocalInfo localInfo = localInfoDao.qryLocalInfo(context,connection);
+			SFUtil.setDataValue(context, SFConst.PUBLIC_LOCAL_INFO,localInfo);// 在上下文中存入系统工作对象
+			
+			/*
+			 * 设置工作模式
+			 */
+			BizUtil.setWorkMode(context,connection);
+			
+			//获取时间
+			String sqlCondition="";
+			String workDate=localInfo.getWorkdate();//营业日期
+//			String time=DateUtil.getMacTime();
+//			if(time.startsWith("00")){
+//				String strTime=ParamCache.getValue2("SF_REVERSE", "TIME");
+//				if(SFUtil.isNotEmpty(strTime)){
+//					if(Integer.parseInt(time)<=Integer.parseInt(strTime)){
+//						String yestody=DateUtil.getYestoday(DateUtil.strToDate("yyyyMMdd", workDate));
+//						sqlCondition=" AND TXDATE IN('"+yestody+"','"+workDate+"')";
+//					}else{
+//						sqlCondition=" AND TXDATE IN('"+workDate+"')";
+//					}
+//				}else{
+//					sqlCondition=" AND TXDATE IN('"+workDate+"')";
+//				}
+//			}
+			sqlCondition=" AND TXDATE IN('"+workDate+"')";
+			/*
+			 * 查询待处理的冲正记录
+			 */
+			List<Reverse> reverses=null;
+			if("SFOnline".equalsIgnoreCase(SFConst.SYS_SYSNAME)){
+				reverses=rsDao.queryReverses(context, connection,sqlCondition, reverseNum, SYS_TYPE_ONLINE);
+			}else{
+				reverses=rsDao.queryReverses(context, connection,sqlCondition, reverseNum, SYS_TYPE_BATCH);				
+			}
+			
+			
+			
+			
+			
+			/*
+			 * 迭代冲正
+			 */
+			if(reverses!=null&&reverses.size()>0){
+				for(Reverse rev:reverses){
+					SFLogger.info(context,String.format("冲正开始:交易号【%s】,冲正流水号【%s】,业务流水号【%s】",rev.getTxCode(),rev.getSeqId(),rev.getSubTxSeqId()));
+					
+					DBHandler.beginTransaction(context, connection);//冲正服务是相互隔离，每迭代一次开启一次事务
+					/*
+					 * 锁定冲正记录
+					 */
+					//rsDao.updateForLock(context, connection, rev);
+					/*
+					 * 查询当前冲下记录
+					 */
+					Reverse reverse=rsDao.queryReverse(context,connection,rev.getTxDate(),rev.getSubTxSeqId(),rev.getSeqId());
+					if(reverse==null||reverse.getReverseNum()>=reverseNum){
+						continue;
+					}
+					
+					/*
+					 * 查询原交易流水记录
+					 */
+					AcctJour acctJour=jourDao.qryAcctJour(context,connection,reverse.getTxDate(),reverse.getSubTxSeqId());
+					if(acctJour==null||SFUtil.isEmpty(acctJour.getSubTxSeqId())){//检查原交易流水是否存在
+						SFLogger.error(context, String.format("冲正管理器:查询原交易流水记录失败,交易流水号【%s】,交易日期【%s】",reverse.getSubTxSeqId(),reverse.getTxDate()));
+						reverse.setStatus(REVERSE_STATUS_ARTIFICIAL);//自动冲无法解决需人工处理
+						reverse.setRespMsg(String.format("查询原交易流水记录失败,交易流水号【%s】,交易日期【%s】",reverse.getSubTxSeqId(),reverse.getTxDate()));
+						rsDao.updateForRes(context,connection,reverse);
+						continue;
+					}
+					acctJour.resetChangedFlag();
+					
+					/*
+					 * 记录冲正日志信息
+					 */
+					//String seqId=SFUtil.getDataValue(context, SFConst.PUBLIC_LOG_ID);
+					String seqId=BizUtil.getInitSeqId(context);//生成定长ID（系统初始流水号16位）
+					
+					ReverseLog reverseLog=new ReverseLog();
+					reverseLog.setMacDate(DateUtil.getMacDate());
+					reverseLog.setMacTime(DateUtil.getMacTimeFormat());
+					reverseLog.setTxSeqId(seqId);
+					reverseLog.setSubTxSeqId(reverse.getSubTxSeqId());//原交易流水号
+					reverseLog.setSeqId(reverse.getSeqId());//冲正任务的序号
+					rsLogDao.saveReverseLog(context, connection, reverseLog);
+					
+					/*
+					 * 判断冲正渠道
+					 */
+					String reverseFlag=null;//冲正返回标识：-2=返回原流水不存在；-1=失败；0=超时；1=冲正成功；2=已冲正
+					String respCode=null;
+					String respMsg=null;
+					String reverseSeqId=null;//冲正交易流水号
+					if("HOST".equalsIgnoreCase(reverse.getChannel())){
+						ReverseClient client=new ReverseClient();
+						Map<String,Object> msg=new HashMap<String,Object>();
+						msg.put("OLD_BUSS_SEQ_NO", acctJour.getBusiSeqId());
+						msg.put("OLD_TRAN_SEQ_NO", acctJour.getTranSeqId());
+						msg.put("REASON", acctJour.getRespMsg());
+						msg.put("FLAG", "0");
+						Context msgContext=client.send(context, msg);
+						
+						//获取返回值
+						String retFlag=SFUtil.getDataValue(msgContext,SFConst.PUBLIC_RET_FLAG);
+						respCode = SFUtil.getDataValue(msgContext,SFConst.CTX_ERRCODE);
+						respMsg = SFUtil.getDataValue(msgContext,SFConst.CTX_ERRMSG);//响应信息
+						if(SFConst.RET_SUCCESS.equals(retFlag)){
+							reverseFlag="1";				            
+							reverseSeqId=SFUtil.getDataValue(msgContext,"MSG_O.REVERSE_SEQ_NO");//冲正流水号
+						}else if (SFConst.RET_FAILURE.equals(retFlag)) {//冲正失败
+							if("AE0002".equals(respCode)){//已冲正
+								reverseFlag="2";								
+							}else if("AE0003".equals(respCode)){//返回原流水不存在
+								reverseFlag="-2";								
+							}else{//其它失败原因
+								reverseFlag="-1";
+							}
+						} else if (SFConst.RET_OVERTIME.equals(retFlag)) {//冲正超时
+							reverseFlag="0";
+						}
+					}else if("COBANK".equalsIgnoreCase(reverse.getChannel())){
+						/*
+						 * 通过合作行流水号查询合作行编号
+						 */
+						AgtTranList agtTranList = agtTranListDao.qryAgtTranListByBankId(context, connection, "MS999" ,acctJour.getAcctDealId());
+						if(agtTranList==null){
+							SFLogger.error(context, String.format("查询合作行银行行号失败,交易流水号【%s】,交易日期【%s】",reverse.getSubTxSeqId(),reverse.getTxDate()));
+							reverse.setStatus(REVERSE_STATUS_ARTIFICIAL);//自动冲无法解决需人工处理
+							reverse.setRespMsg(String.format("查询合作行银行行号失败,交易流水号【%s】,交易日期【%s】",reverse.getSubTxSeqId(),reverse.getTxDate()));
+							rsDao.updateForRes(context,connection,reverse);
+							continue;
+						}
+						String bankNo = agtTranList.getBankId();//合作行编号
+						
+						/*
+						 * 合作行冲下
+						 */
+						Map<String,Object> msg = new HashMap<String, Object>();
+						msg.put("PICS_LOG_NO", agtTranList.getAgentLogNo());//原平台流水号serial_no
+						T810023Client reverseClient=new T810023Client();
+						Context msgContext =reverseClient.send(context, msg, bankNo);
+						respCode = SFUtil.getDataValue(msgContext,SFConst.CTX_ERRCODE);
+						respMsg = SFUtil.getDataValue(msgContext,SFConst.CTX_ERRMSG);//响应信息
+						//获取返回值
+						String retFlag=SFUtil.getDataValue(msgContext,SFConst.PUBLIC_RET_FLAG);
+						if(SFConst.RET_SUCCESS.equals(retFlag)){
+							reverseFlag="1";				            
+							reverseSeqId=SFUtil.getDataValue(msgContext,"810023_O.AGENT_LOG_NO");//冲正流水号
+						}else if (SFConst.RET_FAILURE.equals(retFlag)) {//冲正失败
+							if("".equals(respCode)){//已冲正
+								reverseFlag="2";								
+							}else if("".equals(respCode)){//返回原流水不存在
+								reverseFlag="-2";								
+							}else{//其它失败原因
+								reverseFlag="-1";
+							}
+						} else if (SFConst.RET_OVERTIME.equals(retFlag)) {//冲正超时
+							reverseFlag="0";
+						}
+					}else if("SECU".equalsIgnoreCase(reverse.getChannel())){
+						
+						/*
+						 * 查询券商信息
+						 */
+						SecCompData secData=secDao.qrySecCompData(context, connection, acctJour.getSecCompCode());
+						if(secData==null||SFUtil.isEmpty(secData.getSecCompCode())){
+							SFLogger.error(context, String.format("冲正管理器:查询券商信息失败,券商代码【%s】",acctJour.getSecCompCode()));
+							reverse.setStatus(REVERSE_STATUS_ARTIFICIAL);//自动冲无法解决需人工处理
+							reverse.setRespMsg(String.format("查询券商信息失败,券商代码【%s】",acctJour.getSecCompCode()));
+							rsDao.updateForRes(context,connection,reverse);
+							continue;
+						}
+						SFUtil.setDataValue(context,SFConst.PUBLIC_SECU,secData);//券商信息
+						SFUtil.setDataValue(context, SFConst.PUBLIC_SECU_TYPE,secData.getSztFlag());//券商类型
+										
+						Map<String,Object> msg = new HashMap<String, Object>();
+						String newTxSeqId = BizUtil.getInitSeqId(context);
+				 		msg.put("INV_NAME", acctJour.getInvName());
+				 		msg.put("ID_TYPE", acctJour.getIdType());//上送本系统证件类型，公共交易里面会自动转换证件类型 		
+				 		msg.put("INV_ID_CODE", acctJour.getInvIdCode());
+						msg.put("INV_TYPE", acctJour.getInvType());
+				 		msg.put("ACCT_ID", acctJour.getAcctId());
+				 		msg.put("SEC_ACCT", acctJour.getSecAcct());
+				 		msg.put("SEC_COMP_CODE", acctJour.getSecCompCode());
+				 		msg.put("CAP_ACCT", acctJour.getCapAcct());
+						msg.put("ORG_TX_SEQ_ID", acctJour.getSecSeqId());//原交易流水号			
+						msg.put("ORG_TX_ISSRTYPE", "B");//原交易流水号类型
+						msg.put("CUR_CODE", acctJour.getCurCode());
+						msg.put("CASH_REMIT_FLAG", SFConst.CASH_FLAG);// 钞汇标志 2-钞
+						
+						
+						//直连券商金额乘100处理
+						String txAmount=BizUtil.conv2SecuMulAmout(context,acctJour.getTxAmount());						
+				 		msg.put("TX_AMOUNT",txAmount);
+				 		msg.put("UNIT_TELLER_ID", acctJour.getUserId());
+				 		msg.put("REPT_FLAG", "0");
+				 		msg.put("SUB_TX_SEQ_ID", newTxSeqId);
+						msg.put("DGST", "银行端证券转银行冲正");			
+				 		msg.put("CHANNEL", "0002");
+						// 报文头特殊处理
+						BizUtil.setSecBrchId(acctJour.getSecCompCode(), msg, acctJour.getBranchId());
+						// 发报冲正
+						S2BReverseClient reverseClient = new S2BReverseClient();
+						Context msgContext = reverseClient.send(context, msg);// 发送报文
+						String retFlag=SFUtil.getDataValue(msgContext,SFConst.PUBLIC_RET_FLAG);
+						/*
+						 * 根据券商信息判断原流水是直联模式/深证通模式
+						 */
+						if(SFConst.SECU_SZT.equals(secData.getSztFlag())){//深证通模式:冲正成功与已冲正券商都以成功返回
+							respCode = SFUtil.getDataValue(msgContext,SFConst.CTX_ERRCODE);
+							respMsg = SFUtil.getDataValue(msgContext,SFConst.CTX_ERRMSG);//响应信息
+							
+							if(SFUtil.isEmpty(respCode)){//原C逻辑
+								SFUtil.chkCond(context,  "ST4035", String.format("深证通券商返回码为空"));
+							}
+							if(SFConst.RET_SUCCESS.equals(retFlag)){
+								reverseSeqId=SFUtil.getDataValue(msgContext,"MsgHdr.Ref.Ref");//冲正流水号
+								if(SFUtil.isEmpty(reverseSeqId)){
+									SFUtil.chkCond(context,  "ST4206", String.format("深证通券商返回拆解报文失败"));
+								}
+								reverseFlag="1";				            
+							}else if (SFConst.RET_FAILURE.equals(retFlag)) {//冲正失败
+								if("".equals(respCode)){//返回原流水不存在
+									reverseFlag="-2";								
+								}else{//其它失败原因
+									reverseFlag="-1";
+								}
+							} else if (SFConst.RET_OVERTIME.equals(retFlag)) {//冲正超时
+								reverseFlag="0";
+							}
+						}else{//直联模式
+							respCode = SFUtil.getDataValue(msgContext,SFConst.CTX_ERRCODE);
+							respMsg = SFUtil.getDataValue(msgContext,SFConst.CTX_ERRMSG);//响应信息
+							
+							if(SFUtil.isEmpty(respCode)){//原C逻辑
+								SFUtil.chkCond(context,  "ST4035", String.format("直联券商返回码为空"));
+							}
+							if(SFConst.RET_SUCCESS.equals(retFlag)){
+								reverseSeqId=SFUtil.getDataValue(msgContext,"MSG_O.SEC_SEQ_ID");//冲正流水号
+								if(SFUtil.isEmpty(reverseSeqId)){
+									SFUtil.chkCond(context,  "ST4206", String.format("直联券商返回拆解报文失败"));
+								}
+								reverseFlag="1";				            
+							}else if (SFConst.RET_FAILURE.equals(retFlag)) {//冲正失败
+								if("".equals(respCode)){//已冲正
+									reverseFlag="2";								
+								}else if("".equals(respCode)){//返回原流水不存在
+									reverseFlag="-2";								
+								}else{//其它失败原因
+									reverseFlag="-1";
+								}
+							} else if (SFConst.RET_OVERTIME.equals(retFlag)) {//冲正超时
+								reverseFlag="0";
+							}
+						}
+					}
+					
+					/*
+					 * 冲正结果处理
+					 */
+					if("1".equals(reverseFlag)||"2".equals(reverseFlag)){
+						/*
+						 * 冲正成功；已冲正；都以冲正成功处理并解锁
+						 */
+						reverse.setStatus(REVERSE_STATUS_SUCCESS);
+						reverse.setRespCode(respCode);
+						reverse.setRespMsg(respMsg);
+						reverse.setReverseSeqId(reverseSeqId);
+						rsDao.updateForRes(context,connection,reverse);
+						
+					}else if("-2".equals(reverseFlag)||"-1".equals(reverseFlag)||"0".equals(reverseFlag)){
+						/*
+						 * 返回原流水不存在；失败；超时；都以冲正失败处理并解锁
+						 */
+						reverse.setStatus(REVERSE_STATUS_FAIL);
+						reverse.setRespCode(respCode);
+						reverse.setRespMsg(respMsg);
+						reverse.setReverseSeqId(reverseSeqId);
+						rsDao.updateForRes(context,connection,reverse);
+					}
+					/*
+					 * 不管成功与失败都需要回写冲正日志响应报文信息
+					 */
+					reverseLog.setRespCode(respCode);
+					reverseLog.setRespMsg(respMsg);
+					reverseLog.setReverseSeqId(reverseSeqId);
+					rsLogDao.updateReverseLog(context, connection,reverseLog);
+
+					/*
+					 * 冲正成功后回置业务信息:根据场景码更新原交易业务信息
+					 */
+					if("1".equals(reverseFlag)||"2".equals(reverseFlag)){
+						reverseBusiness(context,reverse,acctJour,connection);
+					}				
+					DBHandler.commitTransaction(context, connection);//冲正服务是相互隔离，所以完成一次冲正就提交一次事务
+
+					SFLogger.info(context,String.format("冲正结束:交易号【%s】,冲正流水号【%s】,业务流水号【%s】",reverse.getTxCode(),reverse.getSeqId(),reverse.getSubTxSeqId()));
+				}
+			}
+		}catch(SFException e){
+			DBHandler.rollBackTransaction(context, connection);
+			throw e;
+		}catch(Exception e){
+			DBHandler.rollBackTransaction(context, connection);
+			throw new SFException("ST7898",e.getMessage(),e);
+		}finally{
+			DBHandler.releaseConnection(context, connection);
+		}
+		SFLogger.info(context,"冲正测试结束->");
+	}
+	/**
+	 * 冲正成功后回置业务信息
+	 * 102 银行冲主机   302  银行冲券商 
+	 * 103  合作行冲主机  203 合作行冲合作行  303 合作行冲券商
+	 * @param context
+	 * @param rev
+	 * @param acctJour
+	 * @param connection
+	 * @throws SFException 
+	 */
+	public void reverseBusiness(Context context,Reverse rev,AcctJour acctJour,Connection connection) throws SFException{
+		if("302".equals(rev.getSceneCode())){//银行端冲正券商
+			//锁定记录
+			SignAccountData signAccountData = signAccountDataDao.signAccountDataLock(context, connection, acctJour.getSecCompCode(),acctJour.getCapAcct());
+ 			SFUtil.chkCond(context,signAccountData == null, "ST4440",String.format("客户签约信息查询失败"));
+ 			signAccountData.resetChangedFlag();
+			 /*
+			  * 回置账务流水
+			  */
+			double acctBal = SFUtil.add(signAccountData.getAcctBal(),acctJour.getTxAmount());
+	        acctJour.setAcctBal(acctBal);
+	        acctJour.setJourFlag("44");
+	        acctJour.setTxDate(acctJour.getTxDate());
+	        acctJour.setMemo(rev.getReverseSeqId());
+	        jourDao.saveAcctJour(context, connection, acctJour);
+	        
+	        /*
+	         * 回置流水明细
+	         */
+	        AcctDetail acctDetail = new AcctDetail();
+	        acctDetail.setAcctBal(acctBal);
+	        acctDetail.setJourFlag("44");
+ 			acctDetail.setTxDate(acctJour.getTxDate());
+ 			acctDetail.setSubTxSeqId(acctJour.getSubTxSeqId());
+ 			acctDetailDao.saveAcctDetail(context, connection, acctDetail);
+ 			
+ 			/*
+ 			 * 回置金额
+ 			 */
+ 			double txAmount=SFUtil.mul(acctJour.getTxAmount(), -1.0d);//扣减本次冲正的交易金额
+			signAccountData.setSecCompCode(acctJour.getSecCompCode());
+			signAccountData.setCapAcct(acctJour.getCapAcct());
+			signAccountDataDao.updSignAccoutData(context, connection,txAmount);
+		}else if("102".equals(rev.getSceneCode())){//银行端冲正主机
+			SFLogger.info(context,String.format("银转证券商返回失败交易冲正成功"));
+			acctJour.setRespMsg("冲正成功");
+			acctJour.setMemo(rev.getReverseSeqId());
+			acctJour.setJourFlag("32");
+ 			jourDao.saveAcctJour(context, connection, acctJour);
+ 			
+ 			/*
+ 			 * 查询TRDSignAccountData锁定记录
+ 			 */
+ 			SignAccountData signAccountData = signAccountDataDao.signAccountDataLock(context, connection, acctJour.getSecCompCode(),acctJour.getCapAcct());
+			/*
+			 * 修改流水详情
+			 */
+ 			AcctDetail acctDetail=acctDetailDao.qryAcctDetail(context,connection,acctJour.getSubTxSeqId(),acctJour.getTxDate());
+ 			double acctBal = signAccountData.getAcctBal(); 			
+ 			acctDetail.setJourFlag("44");
+ 			acctDetail.setAcctBal(acctBal);
+ 			acctDetailDao.saveAcctDetail(context, connection, acctDetail);
+ 			/*
+ 			 * 修改客户签约信息
+ 			 */
+			SFUtil.chkCond(context,signAccountData == null, "ST4440", "客户签约账号信息查询失败!");
+ 			signAccountData.setAcctBal(acctBal);
+			signAccountData.setSecCompCode(acctJour.getSecCompCode());
+			signAccountData.setCapAcct(acctJour.getCapAcct());
+			signAccountDataDao.saveSignAccountData(context, connection, signAccountData);
+		}else if("203".equals( rev.getReverseSeqId() )){//合作行冲正合作行
+			SFLogger.info( context, "进入合作行冲正合作行后续处理" );
+			acctJour.setRespMsg("冲正成功");
+			acctJour.setMemo(rev.getReverseSeqId());
+			acctJour.setJourFlag("32");
+ 			jourDao.saveAcctJour(context, connection, acctJour);
+		}else if("103".equals( rev.getReverseSeqId() )){//合作行冲正主机
+			SFLogger.info( context, "进入合作行冲正主机后续处理" );
+			acctJour.setRespMsg("冲正成功");
+			acctJour.setMemo(rev.getReverseSeqId());
+			acctJour.setJourFlag("32");
+ 			jourDao.saveAcctJour(context, connection, acctJour);
+		}else if("303".equals( rev.getReverseSeqId() )){//合作行冲券商
+			SFLogger.info( context, "进入合作行冲正券商后续处理" );
+			// 回置账务流水
+			// 锁定表记录
+			SignAccountData signAccountData = signAccountDataDao.signAccountDataLock(context, connection, acctJour.getSecCompCode(), acctJour.getCapAcct());	
+ 			SFUtil.chkCond(context,signAccountData == null, "ST4440",String.format("客户签约信息查询失败"));
+ 			signAccountData.resetChangedFlag();
+			acctJour.setAcctBal(acctJour.getAcctBal() + acctJour.getTxAmount());
+			acctJour.setJourFlag("44");
+			jourDao.saveAcctJour(context, connection, acctJour);
+			
+			//根据流水查询交易明细
+	        AcctDetail acctDetail = acctDetailDao.qryAcctDetail( context, connection, acctJour.getSubTxSeqId(), acctJour.getTxDate() );
+ 			SFUtil.chkCond(context,acctDetail == null, "ST4440",String.format("流水明细查询失败"));
+			acctDetail.setAcctBal(acctDetail.getAcctBal() + acctJour.getTxAmount());
+			acctDetail.setJourFlag("44");
+			acctDetailDao.saveAcctDetail(context, connection, acctDetail);
+			
+			// 回置金额
+			signAccountDataDao.updSignAccoutData(context, connection,signAccountData.getAcctBal()+acctJour.getTxAmount());
+		}
+		
+	}
+}

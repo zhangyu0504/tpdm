@@ -1,0 +1,149 @@
+package module.trans.bankchl2sf;
+
+import module.bean.AcctDetail;
+import module.bean.InvestData;
+import module.bean.LocalInfo;
+import module.bean.SignAccountData;
+import module.trans.Page;
+import module.trans.TranBase;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * (银行渠道发起) 查询交易明细
+ * 交易码 : 200302
+ * @author ex_kjkfb_zhumingtao
+ *
+ */
+
+public class T200302 extends TranBase {
+	
+	/**
+	 * 初始化BIZ参数
+	 * @param context
+	 * @throws SFException
+	 */
+	public void initialize(Context context) throws SFException{
+
+	}
+	@Override
+	public void doHandle(Context context) throws SFException {
+		SFLogger.info( context, String.format("qryAcctDetail()开始") );
+		qryAcctDetail(context);	//查询交易明细
+		SFLogger.info( context, String.format("qryAcctDetail()结束") );
+	}
+
+	@Override
+	public void doHost(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+
+	@Override
+	public void doSecu(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+
+	@Override	
+	protected void chkStart(Context context) throws SFException {
+		String acctId = SFUtil.getReqDataValue(context, "ACCT_ID");//卡号
+		String startDate = SFUtil.getReqDataValue(context, "START_DATE");	//开始日期
+		String endDate = SFUtil.getReqDataValue(context, "END_DATE");		//结束日期
+		String capAcct = SFUtil.getReqDataValue(context, "CAP_ACCT");		
+		String secCompCode = SFUtil.getReqDataValue(context, "SEC_COMP_CODE");	
+		DateUtil dateUtil = new DateUtil();
+		LocalInfo localInfo = new LocalInfo();
+		if(SFUtil.isEmpty(endDate) || SFUtil.isEmpty(startDate)){
+			endDate = localInfo.getBankDate();
+			startDate = localInfo.getBankDate();		
+		}	
+		int days = dateUtil.getBetweenDays(dateUtil.formatToHyphenDate(startDate), dateUtil.formatToHyphenDate(endDate));		
+		SignAccountData signAccountData = new SignAccountData();
+		try{		
+			if (startDate.length()!=8 || endDate.length()!=8) {
+				SFUtil.chkCond(context, "ST4012", "查询日期长度只能为8位");
+			}
+			if(days>90){
+				SFUtil.chkCond(context, "ST4012", "查询日期跨度不能超过90天");			
+			}
+			if(SFUtil.isNotEmpty(capAcct) || SFUtil.isNotEmpty(secCompCode)){//选输参数CapAcct、SecCompCode要么都不输入，要么都要输入
+				signAccountData = signAccountDataDao.qrySignAccountData(context, tranConnection, capAcct,secCompCode,false );
+				SFUtil.chkCond(context, signAccountData==null, "ST4785", "资金帐号签约关系不存在");	
+				if(!signAccountData.getAcctId().equals(acctId)){
+					SFUtil.chkCond(context, signAccountData==null, "ST4045", "传入的银行卡号与资金帐号签约的银行卡号不符");	
+				}	
+			}else{//根据acctId查询是否签约关系
+				signAccountData = signAccountDataDao.qrySignAccountDataByAcctId(context, tranConnection, acctId);
+				SFUtil.chkCond(context, signAccountData==null, "ST4785", "签约关系不存在");
+			}
+
+			//交易手工插入客户信息至上下文
+			if (signAccountData!=null){
+				InvestData investData = investDataDao.qryInvestDataBySecAcct(context,tranConnection, signAccountData.getSecAcct());
+				SFUtil.setDataValue(context, SFConst.PUBLIC_INVEST_DATA,investData);// 在上下文中存入客户信息对象
+				SFUtil.setDataValue(context, SFConst.PUBLIC_INV_TYPE,investData.getInvType());//客户类型
+			}
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context,"ST4895",String.format("交易失败",e.getMessage()));
+		}	
+	}
+
+	@Override
+	protected void chkEnd(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+	
+	private void qryAcctDetail(Context context) throws SFException{
+		String acctId = SFUtil.getReqDataValue(context, "ACCT_ID");//卡号
+		String secCompCode = SFUtil.getReqDataValue(context, "SEC_COMP_CODE");//券商代码
+		String capAcct = SFUtil.getReqDataValue(context, "CAP_ACCT");	//证券资金账号
+		String startDate = SFUtil.getReqDataValue(context, "START_DATE");	//开始日期
+		String endDate = SFUtil.getReqDataValue(context, "END_DATE");		//结束日期
+		String strPageNum = SFUtil.getReqDataValue(context, "PAGE_NUM");	//查询页数	
+		LocalInfo localInfo = localInfoDao.qryLocalInfo(context, tranConnection);
+		String workDate = localInfo.getBankDate();	//获取营业时间
+		int pageNum=0;
+		try {	
+			if(SFUtil.isNotEmpty(strPageNum)){
+				pageNum=Integer.parseInt(strPageNum);
+			}
+			Page<AcctDetail> page=new Page<AcctDetail>(SFConst.SF_PERPAGE_NUM_BANK,pageNum);	
+			page = acctDetailDao.qryAcctDetailInfo(context,tranConnection,startDate,endDate,acctId,capAcct,secCompCode,workDate,page);
+			if(page.getPageData()==null||page.getPageData().size()==0){
+				SFUtil.chkCond(context,"ST4069",String.format("查询无记录"));
+			}
+			IndexedCollection indexColl = SFUtil.getDataElement(context, "200302_O_ICOLL");
+			for (AcctDetail acctdetail : page.getPageData()) {					
+				//组装返回数据
+				KeyedCollection keyColl = new KeyedCollection();
+				SFUtil.addDataField(context, keyColl, "CUR_CODE", acctdetail.getCurCode());
+				SFUtil.addDataField(context, keyColl, "TX_AMOUNT", acctdetail.getTxAmount());
+				SFUtil.addDataField(context, keyColl, "TX_DATE", acctdetail.getTxDate());
+				SFUtil.addDataField(context, keyColl, "CAP_ACCT", acctdetail.getCapAcct());
+				SFUtil.addDataField(context, keyColl, "SEC_COMP_CODE", acctdetail.getSecCompCode());
+				SFUtil.addDataField(context, keyColl, "SEC_COMP_NAME", acctdetail.getSecCompName());		
+				SFUtil.addDataField(context, keyColl, "INIT_SIDE", acctdetail.getInitSideCN());	 
+				SFUtil.addDataField(context, keyColl, "BUSI_TYPE", acctdetail.getBusiTypeCN());
+				indexColl.add(keyColl);	
+			}			
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context,"ST4895",String.format("交易失败",e.getMessage()));
+		}			
+	}
+}

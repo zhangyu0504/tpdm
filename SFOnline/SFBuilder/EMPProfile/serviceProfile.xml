@@ -1,0 +1,690 @@
+<?xml version="1.0" encoding="GBK" ?>
+
+<EditorProfile rootElement="Services">
+	<elementCatalog id="rootCatalog" name="rootCatalog" showInToolPanel="false">
+		<Element id="Services" name="Services">
+			<childElements>
+				<child id="TCPIPService" allowedCount="*"/>
+				<child id="JDBCSQLExecService" allowedCount="*"/>
+				<child id="JDBCTableService" allowedCount="*"/>
+				<child id="SendMailService" allowedCount="*"/>
+				<child id="FtpFileService" allowedCount="*"/>
+				<child id="MQConnectionPoolService" allowedCount="*" />
+				
+				<child id="HttpResource" allowedCount="*"/>				
+				<child id="ProcedureAccessService" allowedCount="*"/>
+				<child id="JDBCProcedureDefine" allowedCount="*"/>
+				<child id="JDBCDriverDataSource" allowedCount="*"/>
+				<child id="PooledJDBCDriverDataSource" allowedCount="*"/>
+				<child id="JNDIDataSource" allowedCount="*"/>
+				<child id="DataSourceTransactionManager" allowedCount="*"/>
+				<child id="JDBCBatchSQLService" allowedCount="*"/>
+				<child id="EJournalService" allowedCount="*"/>
+				<child id="JTATransactionManager" allowedCount="*"/>
+				<child id="CICSResource" allowedCount="*"/>
+				<child id="EMPCommonJScheduleManager" allowedCount="*"/>
+				<child id="EMPQuartzScheduleManager" allowedCount="*"/>
+				<child id="EMPTimerScheduleManager" allowedCount="*"/>
+				<child id="SQLDefine" allowedCount="*"/>
+				<child id="SQLExecService" allowedCount="*"/>
+				<child id="TableDefine" allowedCount="*"/>
+				<child id="TableService" allowedCount="*"/>
+				<child id="EMPSessionManager" allowedCount="1"/>
+				<child id="HTTPSessionManager" allowedCount="1"/>
+				<child id="AccessManager" allowedCount="1"/>
+				<child id="EMPReversalController" allowedCount="1"/>
+			</childElements>
+			<document/>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="transactionManager" name="事务处理类服务">
+		<Element id="DataSourceTransactionManager" name="数据源事务管理" implClass="com.ecc.emp.transaction.DataSourceTransactionManager" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="id" defaultValue="transactionManager">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+			</attributes>
+			<document>基于数据源的数据库事务管理器服务。</document>
+		</Element>
+		<Element id="JTATransactionManager" name="JTA事务管理" implClass="com.ecc.emp.transaction.JTATransactionManager" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="id" defaultValue="transactionManager">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+				<attr id="initialContextFactory" attrName="initialContextFactory">
+						</attr>
+				<attr id="securityCredentials" attrName="securityCredentials">
+						</attr>
+				<attr id="securityProncipal" attrName="securityProncipal">
+						</attr>
+				<attr id="urlPkgPrefixes" attrName="urlPkgPrefixes">
+						</attr>
+				<attr id="providerUrl" attrName="providerUrl">
+						</attr>
+				<attr id="cacheUserTransaction" attrName="cacheUserTransaction" attrType="boolean" defaultValue="true">
+						</attr>
+				<attr id="transactionManagerName" attrName="transactionManagerName">
+						</attr>
+				<attr id="userTransactionName" attrName="userTransactionName">
+						</attr>
+			</attributes>
+			<document>基于JTA的事务管理器服务。</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="DBAccess" name="数据库访问类服务" showInToolPanel="false">		
+		<Element id="JDBCSQLExecService" name="执行SQL语句服务" implClass="com.ecc.emp.jdbc.sql.JDBCSQLExecService" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.jdbc.JDBCSQLServiceWizard">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+			</attributes>
+			<childElements>
+				<child id="JDBCSQLDef" allowedCount="*"/>
+			</childElements>
+			<document>执行SQL语句服务，实现在一个事务中顺序执行多条SQL语句的操作。</document>
+		</Element>
+		<Element id="JDBCSQLDef" name="SQL定义" implClass="com.ecc.emp.jdbc.sql.JDBCSQLDef" iconName="/images/table.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+				<attr id="SQLStr" attrName="SQL语句" desc= "待执行的SQL语句。"/>
+				<attr id="iCollName" attrName="iColl名称" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "输出结果集所对应的IndexedCollection名称。"/>
+				<attr id="errorCode" attrName="错误码" desc= "该SQL出错时的产生的错误码。"/>
+				<attr id="errorMessage" attrName="错误信息" desc= "该SQL出错时的产生的错误信息。"/>
+				<attr id="sqlType" attrName="操作类型" mustSet="true" valueList="insert=添加;delete=删除;update=更新;select=查询;" desc= "SQL语句的操作类型。"/>
+				<attr id="maxRecords" attrName="最大记录数" desc= "返回数据集合的最大记录数限制。"/>
+			</attributes>
+			<childElements>
+				<child id="input" allowedCount="1"/>
+				<child id="output" allowedCount="1"/>
+			</childElements>
+			<document>执行SQL语句服务的下属标签，定义一条SQL语句。</document>
+		</Element>
+		<Element id="input" name="输入" implClass="com.ecc.emp.jdbc.sql.SQLParameterCollection" iconName="/images/table_column.gif">
+			<childElements>
+				<child id="param" allowedCount="*"/>
+			</childElements>
+			<document>SQL或存储过程的输入定义。</document>
+		</Element>
+		<Element id="output" name="输出" implClass="com.ecc.emp.jdbc.sql.SQLParameterCollection" iconName="/images/table_column.gif">
+			<childElements>
+				<child id="param" allowedCount="*"/>
+			</childElements>
+			<document>SQL或存储过程的输出定义。</document>
+		</Element>
+		<Element id="param" name="数据域与字段映射" implClass="com.ecc.emp.jdbc.sql.SQLParameter" iconName="/images/table_column.gif">
+			<attributes>
+				<attr id="idx" attrName="序号" mustSet="true" desc= "参数序号，与SQL语句中的?以及结果字段依次对应。"/>
+				<attr id="dataName" attrName="数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "该条映射的数据域名称。"/>
+				<attr id="dataType" attrName="字段类型" defaultValue="VARCHAR" valueList="CHAR;VARCHAR;LONGVARCHAR;INTEGER;DECIMAL;" desc= "该条映射的字段类型。"/>
+			</attributes>
+			<document>EMP数据域与数据库表字段映射(input,output,resultSet用)。</document>
+		</Element>
+		<Element id="JDBCTableService" name="访问数据库表服务" implClass="com.ecc.emp.jdbc.table.JDBCTableService" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.jdbc.JDBCTableServiceWizard">
+			<attributes>
+				<attr id="id" attrName="id">
+						</attr>
+				<attr id="access" attrName="access">
+						</attr>
+				<attr id="tableSequenceColumn" attrName="表索引字段" desc= "分页查找时，使用此字段索引排序。"/>
+				<attr id="tableName" attrName="表名" mustSet="true" desc= "要操作的数据库表名称。"/>
+				<attr id="schema" attrName="模式名" mustSet="true" desc= "要操作的模式名。"/>
+				<attr id="maxLine" attrName="最大记录数" desc= "分页查询时，一次返回的最大记录数。"/>
+				<attr id="sequenceNoColumn" attrName="oracle顺序号列名" desc= "oracle顺序号列名。"/>
+				<attr id="sequenceNoName" attrName="oracle顺序号对象名" desc= "oracle顺序号对象名。"/>
+			</attributes>
+			<childElements>
+				<child id="column" allowedCount="*"/>
+			</childElements>
+			<document>数据库表访问服务，实现了对数据记录的新增、修改、删除和查询等操作，并提供了翻页查询的功能。</document>
+		</Element>
+		<Element id="column" name="数据域与字段映射" implClass="com.ecc.emp.jdbc.table.TableColumn" iconName="/images/table.gif">
+			<attributes>
+				<attr id="id" attrName="id">
+						</attr>
+				<attr id="access" attrName="access">
+						</attr>
+				<attr id="columnName" attrName="字段名" mustSet="true" desc= "该条映射的字段名。"/>
+				<attr id="columnType" attrName="字段类型" defaultValue="VARCHAR" valueList="CHAR;VARCHAR;LONGVARCHAR;INTEGER;DECIMAL;" desc= "该条映射的字段类型。"/>
+				<attr id="dataName" attrName="数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "该条映射的数据域名称。"/>
+				<attr id="padChar" attrName="填充字符" enableFormula="length!=''" desc= "填充字符。"/>
+				<attr id="align" attrName="对齐方式" enableFormula="length!=''" valueList="left=左对齐;right=右对齐;" desc= "对齐方式。"/>
+				<attr id="length" attrName="长度" defaultValue="0" desc= "固定长度。"/>
+			</attributes>
+			<document>EMP数据域与数据库表字段映射(访问数据库表服务用)。</document>
+		</Element>		
+	</elementCatalog>
+	<elementCatalog id="networkServices" name="通讯类服务">
+		<Element id="SendMailService" name="发送邮件服务" implClass="com.ecc.emp.comm.mail.SendMailService" iconName="/images/hostAccess.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="id" attrName="id" editable="false">
+						</attr>
+				<attr id="mailFrom" attrName="发件人" desc= "发件人(当操作步骤组件的相关属性未配置时，则使用服务组件这边的相关配置)。"/>
+				<attr id="mailToList" attrName="收件人列表" desc= "收件人列表(当操作步骤组件的相关属性未配置时，则使用服务组件这边的相关配置)。"/>
+				<attr id="smtpHost" attrName="SMTP服务器地址" desc= "SMTP服务器地址(当操作步骤组件的相关属性未配置时，则使用服务组件这边的相关配置)。"/>
+				<attr id="password" attrName="密码" desc= "密码(当操作步骤组件的相关属性未配置时，则使用服务组件这边的相关配置)。"/>
+				<attr id="userName" attrName="用户名" desc= "用户名(当操作步骤组件的相关属性未配置时，则使用服务组件这边的相关配置)。"/>
+				<attr id="debug" attrName="debug信息" attrType="boolean" desc= "是否需要debug信息。"/>
+				<attr id="mailEncode" attrName="邮件编码" mustSet="true" defaultValue="ISO-8859-1" desc= "邮件编码。"/>
+			</attributes>
+			<document>邮件发送服务，支持发件人/收件人（中文/英文）格式。</document>
+		</Element>
+		<Element id="HttpCommService" name="HTTP通信服务" implClass="com.ecc.emp.comm.http.HttpCommService" iconName="/images/hostAccess.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="id" attrName="id" editable="false"/>
+				<attr id="reqMethod" attrName="请求方式" mustSet="true" defaultValue="POST" valueList="GET;POST;" desc= "HTTP请求方式"/>				
+				<attr id="httpURL" attrName="httpURL" desc= "HTTP通信URL地址，可以是诸如Servlet、JSP等等可以接收参数传递的URL。该参数可以是一个合法的地址(以Http://开头)，也可以是一个存储了合法URL的数据域名称"/>
+				<attr id="reqHead" attrName="请求头部信息" desc= "可以设置http连接的多个头部信息（以'|'符号分隔，每一个头部信息对的格式都是：'头部信息名称:内容|'。如：Accept-Language:zh-cn|）"/>
+				<attr id="maxConnection" attrName="最大连接数" desc="设置最大连接数"/>
+				<attr id="useProxyAuthor" attrName="代理权限模式" attrType="boolean" desc= "是否使用代理服务器"/>
+				<attr id="reqProxyIP" attrName="代理IP地址" desc= "代理服务器地址" enableFormula="$useProxyAuthor='true'"/>
+				<attr id="reqProxyPort" attrName="代理端口" desc= "代理服务器端口" enableFormula="$useProxyAuthor='true'"/>
+				<attr id="proxyUserName" attrName="登陆代理用户名" desc= "登陆代理服务器用户名" enableFormula="$useProxyAuthor='true'"/>
+				<attr id="proxyUserPass" attrName="登陆代理密码" desc= "登陆代理服务器密码" enableFormula="$useProxyAuthor='true'"/>	
+			</attributes>
+			<document>通过http协议直接或通过代理服务器与web服务器通信的服务。</document>
+		</Element>
+		<Element id="HttpResource" name="HTTP通信缓冲池" implClass="com.ecc.emp.comm.http.HttpResource" iconName="/images/hostAccess.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="id" attrName="id"/>
+			</attributes>
+			<childElements>
+				<child id="HttpCommService" allowedCount="*"/>
+			</childElements>
+			<document>HTTP通信的缓冲池，对HttpCommService连接进行管理。</document>
+		</Element>
+		<Element id="FtpFileService" name="FTP传送文件服务" implClass="com.ecc.emp.comm.ftp.FtpFileService" iconName="/images/hostAccess.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="ftpServer" attrName="FTP服务器地址" mustSet="true" desc= "FTP服务器地址"/>
+				<attr id="port" attrName="FTP服务器端口" mustSet="false" desc= "FTP服务器端口(缺省21)"/>
+				<attr id="userName" attrName="用户名" mustSet="false" desc= "登陆FTP服务器用户名(缺省匿名)"/>
+				<attr id="password" attrName="密码" mustSet="false" desc= "登陆FTP服务器密码(缺省匿名)"/>
+			</attributes>
+			<document>FTP传送文件服务，提供通过FTP传输文件的服务</document>
+		</Element>
+		
+		<Element id="MQConnectionPoolService" name="MQ连接缓冲池管理服务"
+			implClass="com.ecc.emp.comm.MQ.MQConnectionPoolService"
+			iconName="/images/hostAccess.gif">
+			<attributes>
+			</attributes>
+			<childElements>
+				<child id="QManager" allowedCount="*" />
+				<child id="MQResource" allowedCount="*" />
+			</childElements>
+			<document>向MQ服务器发送和接收消息数据包的通信实现服务。</document>
+		</Element>
+		<Element id="MQResource" name="MQ连接缓冲池"
+			implClass="com.ecc.emp.comm.MQ.MQResource"
+			iconName="/icons/empservices/service.gif">
+			<attributes>
+				<attr id="resourceID" attrName="资源ID" desc="MQ资源ID" />
+				<attr id="QMgrName" attrName="MQ管理器名称" desc="MQ管理器名称" />
+				<attr id="sendToQ" attrName="MQ发送队列名称" desc="MQ发送队列名称" />
+				<attr id="replyToQ" attrName="MQ返回队列名称" desc="MQ返回队列名称" />
+				<attr id="getMessageOption" attrName="getMessageOption"
+					desc="缺省为MQC.MQGMO_WAIT" />
+				<attr id="putMessageOptions"
+					attrName="putMessageOptions" desc="缺省为MQC.MQPMO_NO_SYNCPOINT" />
+				<attr id="replyToQOptions" attrName="replyToQOptions"
+					desc="缺省为MQC.MQOO_INPUT_SHARED" />
+				<attr id="sendToQOptions" attrName="sendToQOptions"
+					desc="缺省为MQC.MQOO_OUTPUT" />
+				<attr id="timeOut" attrName="超时时间" desc="超时时间(缺省为1秒)" />
+			</attributes>
+			<document>MQ连接缓冲池，供MQ通信接收、发送服务使用。</document>
+		</Element>
+		<Element id="QManager" name="Qmanager定义"
+			implClass="com.ecc.emp.comm.MQ.QManagerConnectionManager"
+			iconName="/icons/empservices/service.gif">
+			<attributes>
+				<attr id="QMgrName" attrName="MQ管理器名称"
+					desc="MQ管理器名称" />
+				<attr id="channel" attrName="连接通道" desc="MQ服务器连接通道" />
+				<attr id="hostName" attrName="主机地址"
+					desc="主机名称或ip(缺省为127.0.0.1)" />
+				<attr id="port" attrName="端口" desc="主机端口(缺省1414)" />
+				<attr id="charSet" attrName="代码页" desc="代码页(缺省为936)" />
+				<attr id="maxConnections" attrName="最大连接数"
+					desc="最大连接数(缺省是10)" />
+			</attributes>
+			<document>所有mq管理器Qmanager的定义。</document>
+		</Element>
+		
+		<Element id="MQReceiveService" name="MQ通信接收服务" implClass="com.ecc.emp.comm.MQ.MQReceiveService" iconName="/images/hostAccess.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="timeOut" attrName="超时时间" desc= "MQ消息超时时间。"/>
+			</attributes>
+			<childElements>
+				<child id="MQResource" allowedCount="*"/>
+			</childElements>
+			<document>接收来自MQ服务器的消息数据包的通信实现服务。</document>
+		</Element>
+		
+		<Element id="MQSendtoService" name="MQ通信发送服务" implClass="com.ecc.emp.comm.MQ.MQSendtoService" iconName="/images/hostAccess.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="timeOut" attrName="超时时间" desc= "MQ消息超时时间。"/>
+			</attributes>
+			<childElements>
+				<child id="MQResource" allowedCount="*"/>
+			</childElements>
+			<document>向MQ服务器发送消息数据包的通信实现服务。</document>
+		</Element>
+		<Element id="MQResource" name="MQ连接缓冲池" implClass="com.ecc.emp.comm.MQ.MQResource" iconName="/images/hostAccess.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="sendToQ" attrName="MQ发送队列名称" desc= "MQ发送队列名称。"/>
+				<attr id="replyToQ" attrName="MQ返回队列名称" desc= "MQ返回队列名称。"/>
+				<attr id="resourceID" attrName="资源ID" desc= "MQ资源ID。"/>
+				<attr id="hostName" attrName="主机地址" desc= "主机名称或ip(缺省为127.0.0.1)。"/>
+				<attr id="port" attrName="端口" desc= "主机端口(缺省1414)。"/>
+				<attr id="channel" attrName="连接通道" desc= "MQ服务器连接通道。"/>
+				<attr id="maxConnections" attrName="最大连接数" desc= "最大连接数(缺省是20)。"/>
+				<attr id="qManagerName" attrName="MQ管理器名称" desc= "MQ管理器名称。"/>
+				<attr id="charSet" attrName="代码页" desc= "代码页(缺省为936)。"/>
+				<attr id="getMessageOption" attrName="getMessageOption" desc= "缺省为MQC.MQGMO_WAIT。"/>
+				<attr id="putMessageOptions" attrName="putMessageOptions" desc= "缺省为MQC.MQPMO_NO_SYNCPOINT。"/>
+				<attr id="replyToQOptions" attrName="replyToQOptions" desc= "缺省为MQC.MQOO_INPUT_SHARED。"/>
+				<attr id="sendToQOptions" attrName="sendToQOptions" desc= "缺省为MQC.MQOO_OUTPUT。"/>
+				<attr id="timeOut" attrName="超时时间" desc= "超时时间(缺省为1秒)。"/>
+			</attributes>
+			<document>MQ连接缓冲池，供MQ通信接收、发送服务使用。</document>
+		</Element>
+		<Element id="PackageProcessor" name="报文包处理器" iconName="/images/hostAccess.gif">
+			<attributes>
+				<attr id="implClass" attrName="实现类" mustSet="true" desc= "实现PackageProcessor接口的类名。"/>
+			</attributes>
+			<document>接收报文包的处理器。</document>
+		</Element>
+		<Element id="CICSResource" name="CICS通信服务" implClass="com.ecc.emp.comm.CICS.CICSResource" iconName="/images/hostAccess.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="size" attrName="缓冲池初始尺寸" defaultValue="0" desc= "缓冲池当前（初始）尺寸。"/>
+				<attr id="maxPoolSize" attrName="缓冲池最大尺寸" defaultValue="0" desc= "缓冲池最大尺寸（0表示不限）。"/>
+				<attr id="timeBetweenRetries" attrName="重试时间" defaultValue="2000" desc= "重试时间（单位：毫秒）。"/>
+				<attr id="spare" attrName="缓冲比例" defaultValue="0" desc= "缓冲比例。"/>
+				<attr id="cleanupTime" attrName="清理间隔时间" defaultValue="0" desc= "清理间隔时间（0表示不启动清理线程）。"/>
+				<attr id="gatewayName" attrName="网关地址" mustSet="true" desc= "网关地址。"/>
+				<attr id="gatewayPort" attrName="端口" mustSet="true" desc= "端口。"/>
+				<attr id="serverName" attrName="服务器名" mustSet="true" desc= "服务器名。"/>
+				<attr id="userId" attrName="用户名" mustSet="true" desc= "用户名。"/>
+				<attr id="password" attrName="密码" mustSet="true" desc= "密码。"/>
+				<attr id="programName" attrName="请求程序名" mustSet="true" desc= "请求程序名。"/>
+				<attr id="synchronousMode" attrName="同步模式" attrType="boolean" mustSet="true" editable="false" defaultValue="false" desc= "同步模式。"/>
+				<attr id="commAreaLength" attrName="COMMAREA大小" mustSet="true" desc= "COMMAREA大小。"/>
+			</attributes>
+			<document>用于CICS协议基础上的通信实现服务。</document>
+		</Element>
+		<Element id="TCPIPService" name="TCPIP访问服务" implClass="com.ecc.emp.tcpip.TCPIPService" iconName="/images/hostAccess.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="dual" attrName="双工通讯" attrType="boolean" desc= "是否使用双工方式通讯。"/>
+				<attr id="keepAlive" attrName="持久连接" attrType="boolean" desc= "是否保持连接持久性。"/>
+			</attributes>
+			<childElements>
+				<child id="ConnectToHost" allowedCount="*"/>
+				<child id="ListenPort" allowedCount="*"/>
+				<child id="CommProcessor" allowedCount="1"/>
+				<child id="PackageIdentity" allowedCount="1"/>
+			</childElements>
+			<document>访问TCPIP主机服务。</document>
+		</Element>
+		<Element id="PackageIdentity" name="PackageIdentity" iconName="/images/hostAccess.gif">
+			<attributes>
+				<attr id="implClass" attrName="实现类" mustSet="true" desc= "实现PackageIdentity接口的类" editorClass="com.ecc.ide.editor.ClassNamePropertyEditor"/>
+			</attributes>
+			<document>实现PackageIdentity接口的类，在异步单工通讯时用来识别请求对应的返回包</document>
+		</Element>
+		<Element id="CommProcessor" name="通信处理器" implClass="com.ecc.emp.tcpip.CommProcessor" iconName="/images/hostAccess.gif">
+			<attributes>
+				<attr id="implClass" attrName="实现类" mustSet="true" desc= "实现CommProcessor接口的类" editorClass="com.ecc.ide.editor.ClassNamePropertyEditor"/>
+			</attributes>
+			<document>通信协议处理器接口。</document>
+		</Element>
+		<Element id="ConnectToHost" name="连接主机" implClass="com.ecc.emp.tcpip.ConnectToHost" iconName="/images/hostAccess.gif">
+			<attributes>
+				<attr id="port" attrName="端口" desc= "要连接的端口。"/>
+				<attr id="hostAddr" attrName="主机地址" desc= "要连接的主机地址。"/>
+				<attr id="keepAlive" attrName="持久连接" desc= "是否保持连接的持久性。"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="ListenPort" name="监听端口" implClass="com.ecc.emp.tcpip.ListenPort" iconName="/images/hostAccess.gif">
+			<attributes>
+				<attr id="port" attrName="端口" mustSet="true" desc= "需要监听的端口。"/>
+				<attr id="keepAlive" attrName="持久连接" attrType="boolean" desc= "是否保持连接的持久性。"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="TCPIPServerService" name="TCPIPServerService" implClass="com.ecc.emp.tcpip.TCPIPServerService" iconName="/images/hostAccess.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="dual" attrName="双工通讯" attrType="boolean" desc= "是否使用双工方式通讯。"/>
+				<attr id="keepAlive" attrName="持久连接" attrType="boolean" desc= "是否保持连接持久性。"/>
+			</attributes>
+			<document/>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="ScheduleServices" name="计划任务类服务">
+		<Element id="EMPTimerScheduleManager" name="Java2SE定时器实现的计划任务服务" implClass="com.ecc.emp.schedule.timer.EMPTimerScheduleManager" iconName="/images/genAction.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<childElements>
+				<child id="CronTimerJob" allowedCount="*"/>
+				<child id="SimpleTimerJob" allowedCount="*"/>
+			</childElements>
+			<document>基于Java2SE Timer的EMP定时任务管理器实现</document>
+		</Element>
+		<Element id="EMPQuartzScheduleManager" name="Quartz实现的计划任务服务" implClass="com.ecc.emp.schedule.quartz.EMPQuartzScheduleManager" iconName="/images/genAction.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<childElements>
+				<child id="CronTimerJob" allowedCount="*"/>
+				<child id="SimpleTimerJob" allowedCount="*"/>
+			</childElements>
+			<document>基于Quartz的EMP定时任务管理器实现</document>
+		</Element>
+		<Element id="EMPCommonJScheduleManager" name="CommonJ实现的计划任务服务" implClass="com.ecc.emp.schedule.commonj.EMPCommonJScheduleManager" iconName="/images/genAction.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<childElements>
+				<child id="CronTimerJob" allowedCount="*"/>
+				<child id="SimpleTimerJob" allowedCount="*"/>
+			</childElements>
+			<document>基于CommonJ的EMP定时任务管理器实现</document>
+		</Element>
+		<Element id="SimpleTimer" name="简单周期定义" implClass="com.ecc.emp.schedule.EMPSimpleTimerSchedule" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="repeatCount" attrName="重复次数" defaultValue="-1" desc= "任务执行重复次数，-1为不限次数。"/>
+				<attr id="delay" attrName="延迟" defaultValue="0" desc= "任务首次执行前的延迟时间。"/>
+				<attr id="period" attrName="周期" defaultValue="0" desc= "任务执行周期。"/>
+			</attributes>
+			<document>简单周期任务的周期定义</document>
+		</Element>
+		<Element id="CronTimer" name="复杂周期定义" implClass="com.ecc.emp.schedule.EMPCronTimerSchedule" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="cronType" attrName="复杂周期类型" mustSet="true" defaultValue="0" valueList="0=每天;1=每周;2=每月;" desc= "复杂周期类型（每天、每周、每月的某些天）。"/>
+				<attr id="startTime" attrName="执行时间" mustSet="true" desc= "任务的执行时间。格式为HH:mm:ss。"/>
+				<attr id="crondays" attrName="执行日期" mustSet="true" enableFormula="($cronType='1') or ($cronType='2')" mustInputFormula="($cronType='1') or ($cronType='2')" desc= "以','分割的日期列表 1-7 每周; 1-31 每月；L 代表最后一天，允许2-4代表从2到4。"/>
+				<attr id="onlyWorkingDay" attrName="工作日" attrType="boolean" defaultValue="false" desc= "是否只在工作日执行。"/>
+				<attr id="autoDelay" attrName="自动顺延" attrType="boolean" defaultValue="false" desc= "若遇上非工作日，自动顺延到下个工作日执行，否则忽略该次任务。"/>
+				<attr id="cronYears" attrName="执行年份"/>
+				<attr id="cronExpression" attrName="Cron表达式"/>
+			</attributes>
+			<document>复杂周期任务的周期定义</document>
+		</Element>
+		<Element id="SimpleTimerJob" name="简单周期任务" implClass="com.ecc.emp.schedule.EMPSimpleTimerScheduledJob" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="name" attrName="名称" desc= "任务名称。"/>
+			</attributes>
+			<childElements>
+				<child id="SimpleTimer" allowedCount="1"/>
+				<child id="EMPClassMethodInvorkWork" allowedCount="1"/>
+				<child id="EMPFlowExecuteWork" allowedCount="1"/>
+			</childElements>
+			<document>简单周期任务定义，包含简单周期定义和任务执行定义</document>
+		</Element>
+		<Element id="CronTimerJob" name="复杂周期任务" implClass="com.ecc.emp.schedule.EMPCronTimerScheduledJob" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="name" attrName="名称" desc= "任务名称。"/>
+			</attributes>
+			<childElements>
+				<child id="CronTimer" allowedCount="1"/>
+				<child id="EMPClassMethodInvorkWork" allowedCount="1"/>
+				<child id="EMPFlowExecuteWork" allowedCount="1"/>
+				<child id="WorkingDaysDefine" allowedCount="1"/>
+			</childElements>
+			<document>复杂周期任务定义，包含复杂周期定义和任务执行定义</document>
+		</Element>
+		<Element id="EMPFlowExecuteWork" name="执行一个Flow任务" implClass="com.ecc.emp.schedule.EMPFlowExecuteWork" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="factoryName" attrName="组件工厂名称" mustSet="true" desc= "组件工厂名称。"/>
+				<attr id="flowId" attrName="业务逻辑名称" mustSet="true" desc= "要执行的业务逻辑名称。"/>
+				<attr id="opId" attrName="流程名称" mustSet="true" desc= "要执行的业务逻辑中的流程名称。"/>
+			</attributes>
+			<document>EMP 平台实现的调用某个业务流程的任务执行</document>
+		</Element>
+		<Element id="EMPClassMethodInvorkWork" name="执行一个类方法任务" implClass="com.ecc.emp.schedule.EMPClassMethodInvorkWork" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="className" attrName="类名" mustSet="true" desc= "要执行的类名。"/>
+				<attr id="methodName" attrName="方法名" mustSet="true" desc= "要执行的方法名。"/>
+			</attributes>
+			<document>EMP 平台实现的调用某个类的指定方法的任务执行</document>
+		</Element>
+		<Element id="WorkingDaysDefine" name="工作日定义服务" implClass="com.ecc.emp.schedule.WorkingDaysDefine" iconName="/images/genAction.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="defaultWorkingDaysOfWeek" attrName="缺省工作日" defaultValue="23456" desc= "缺省的工作日，1代表周日，以此类推"/>
+			</attributes>
+			<childElements>
+				<child id="WorkingDaysException" allowedCount="*"/>
+				<child id="NonWorkingDaysException" allowedCount="*"/>
+			</childElements>
+			<document>为CronTimerJob定义一系列工作日，可用WorkingDaysException定义特殊的工作日(例如周末加班)，或用NonWorkingDaysException定义特殊的非工作日(例如节日)</document>
+		</Element>
+		<Element id="WorkingDaysException" name="特殊的工作日" implClass="com.ecc.emp.schedule.WorkingDaysExceptions" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="date" attrName="日期" mustSet="true" desc= "定义特殊的工作日日期。格式为yyyy-MM-dd。"/>
+			</attributes>
+			<document>特殊的工作日定义(例如周末加班)</document>
+		</Element>
+		<Element id="NonWorkingDaysException" name="特殊的非工作日" implClass="com.ecc.emp.schedule.WorkingDaysExceptions" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="date" attrName="日期" mustSet="true" desc= "定义特殊的非工作日日期。格式为yyyy-MM-dd。"/>
+			</attributes>
+			<document>特殊的非工作日定义(例如节日)</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="logServices" name="日志类服务">
+		<Element id="EJournalService" name="访问日志表服务" implClass="com.ecc.emp.ej.EJournalService" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="workingTableField" attrName="当前表名数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "当前使用中的日志表名所对应的数据域名称。"/>
+				<attr id="lastingTableField" attrName="空闲表名数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "空闲的备用日志表名所对应的数据域名称。"/>
+				<attr id="historyTableName" attrName="备份表名" mustSet="true" desc= "用于备份日志表的数据库表名称。"/>
+				<attr id="splitForChannel" attrName="渠道分离" attrType="boolean" defaultValue="false" desc= "各种渠道使用不同的日志表，或所有渠道使用统一的日志表。"/>
+				<attr id="channelDataField" attrName="渠道名称数据域" defaultValue="clientType" enableFormula="$splitForChannel='true'" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "不同渠道类型的日志表名称后缀数据域，当splitForChannel = true时使用。"/>
+				<attr id="tableSequenceColumn" attrName="分页查询索引字段" desc= "用于翻页查询时，数据库表中的顺序索引字段名称，当调用其翻页查询时，会根据此列的值来进行查询结果的翻页控制。"/>
+				<attr id="tableName" attrName="数据表名" mustSet="true" desc= "数据表名。"/>
+				<attr id="schema" attrName="模式名" mustSet="true" desc= "模式名。"/>
+				<attr id="maxLine" attrName="最大记录数" desc= "翻页查询时，每次返回的最大记录条数。"/>
+			</attributes>
+			<document>日志表访问服务，实现了对日志表的初始化、切换和备份等操作，并通过继承JDBCTableService的属性和方法，实现了对日志表记录的新增、修改、删除和查询等操作，并提供了翻页查询的功能</document>
+		</Element>
+	</elementCatalog>	
+	<elementCatalog id="Database" name="数据库访问类服务">
+		<Element id="JDBCDriverDataSource" name="JDBC数据源" implClass="com.ecc.emp.jdbc.JDBCDriverDataSource" iconName="/images/genAction.gif" wizardClass="com.ecc.ide.editor.wizard.jdbc.JDBCDataSourceWizard">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+				<attr id="driverName" attrName="jdbc驱动名称" mustSet="true" desc= "jdbc驱动名称。"/>
+				<attr id="dbURL" attrName="数据库地址" mustSet="true" desc= "数据库地址。"/>
+				<attr id="userName" attrName="用户名" mustSet="true" desc= "用户名。"/>
+				<attr id="password" attrName="密码" mustSet="true" desc= "密码。"/>
+			</attributes>
+			<document>基于JDBC的数据库连接数据源，在申请数据库联接时将直接建立新的连接。</document>
+		</Element>
+		<Element id="PooledJDBCDriverDataSource" name="带缓冲池JDBC数据源" implClass="com.ecc.emp.jdbc.EMPPooledDataSource" iconName="/images/genAction.gif" wizardClass="com.ecc.ide.editor.wizard.jdbc.JDBCDataSourceWizard">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+				<attr id="driverName" attrName="jdbc驱动名称" mustSet="true" desc= "jdbc驱动名称。"/>
+				<attr id="dbURL" attrName="数据库地址" mustSet="true" desc= "数据库地址。"/>
+				<attr id="userName" attrName="用户名" mustSet="true" desc= "用户名。"/>
+				<attr id="password" attrName="密码" mustSet="true" desc= "密码。"/>
+				<attr id="size" attrName="缓冲池大小" mustSet="true" desc= "缓冲池大小"/>
+			</attributes>
+			<document>基于JDBC的数据库连接数据源，在申请数据库联接时将直接建立新的连接。</document>
+		</Element>
+
+
+		<Element id="JNDIDataSource" name="JNDI数据源" implClass="com.ecc.emp.jdbc.JNDIDataSource" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+				<attr id="jndiName" attrName="jndiName" mustSet="true">
+						</attr>
+				<attr id="initialContextFactory">
+						</attr>
+				<attr id="securityProncipal">
+						</attr>
+				<attr id="securityCredentials">
+						</attr>
+				<attr id="urlPkgPrefixes">
+						</attr>
+				<attr id="providerUrl">
+						</attr>
+			</attributes>
+			<document>基于JNDI的数据源访问。</document>
+		</Element>
+		<Element id="ProcedureAccessService" name="访问存储过程服务" implClass="com.ecc.emp.jdbc.procedure.ProcedureAccessService" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="id" attrName="id">
+						</attr>
+				<attr id="access" attrName="access" valueList="common;session;private;" desc= ""/>
+				<attr id="opClass" attrName="辅助类" mustSet="true" editorClass="com.ecc.ide.editor.ClassNamePropertyEditor" desc= "对于不同数据库，选择访问存储过程的辅助类。"/>
+			</attributes>
+			<document>访问存储过程服务，调用并执行本地数据库的存储过程。</document>
+		</Element>
+		<Element id="JDBCProcedureDefine" name="存储过程定义服务" implClass="com.ecc.emp.jdbc.procedure.JDBCProcedureDefine" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.jdbc.JDBCProcedureServiceWizard">
+			<attributes>
+				<attr id="id" attrName="id">
+						</attr>
+				<attr id="access" attrName="access" valueList="common;session;private;" desc= ""/>
+				<attr id="procedureName" attrName="存储过程名称" mustSet="true" desc= "要执行的存储过程名称。"/>
+				<attr id="retCodeName" attrName="返回值数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存储过程返回值在结果定义中对应的数据域名称。"/>
+			</attributes>
+			<childElements>
+				<child id="input" allowedCount="1"/>
+				<child id="output" allowedCount="1"/>
+				<child id="resultSet" allowedCount="*"/>
+			</childElements>
+			<document>存储过程定义服务，定义了存储过程的输入和返回数据集。</document>
+		</Element>
+		<Element id="resultSet" name="结果集" implClass="com.ecc.emp.jdbc.procedure.ResultSetDefine" iconName="/images/table_column.gif">
+			<childElements>
+				<child id="param" allowedCount="*"/>
+			</childElements>
+			<attributes>
+				<attr id="iCollName" attrName="iColl名称" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放结果集的iColl数据集合名称。"/>
+				<attr id="isAppend" attrName="追加" attrType="boolean" desc= "将结果集追加到iColl或覆盖原有内容。"/>
+			</attributes>
+			<document>存储过程的结果集定义。</document>
+		</Element>
+		<Element id="JDBCBatchSQLService" name="批量执行SQL服务" implClass="com.ecc.emp.jdbc.batchsql.JDBCBatchSQLService" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="executeInOnce" attrName="批量执行" attrType="boolean" defaultValue="true" desc= "是否用一个statement进行批量执行。"/>
+				<attr id="ignoreError" attrName="跳过错误" attrType="boolean" defaultValue="false" desc= "将执行出错的SQL跳过，或者中断执行。"/>
+			</attributes>
+			<document>批量执行SQL服务，根据外部参数配置，实现读取并执行SQL文件脚本的操作。</document>
+		</Element>
+		<Element id="SQLExecService" name="执行SQL语句服务" implClass="com.ecc.emp.jdbc.sql.SQLExecService" iconName="/images/table.gif" >
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+			</attributes>
+			<childElements>
+			</childElements>
+			<document>执行SQL语句服务，实现在一个事务中顺序执行多条SQL语句的操作。</document>
+		</Element>
+		<Element id="SQLDefine" name="SQL定义服务" implClass="com.ecc.emp.jdbc.sql.SQLDefine" wizardClass="com.ecc.ide.editor.wizard.jdbc.renewal.SQLDefineWizard" iconName="/images/table.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+				<attr id="SQLStr" attrName="SQL语句" desc= "待执行的SQL语句。"/>
+				<attr id="iCollName" attrName="iColl名称" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "输出结果集所对应的IndexedCollection名称。"/>
+				<attr id="errorCode" attrName="错误码" desc= "该SQL出错时的产生的错误码。"/>
+				<attr id="errorMessage" attrName="错误信息" desc= "该SQL出错时的产生的错误信息。"/>
+				<attr id="sqlType" attrName="操作类型" mustSet="true" valueList="insert=添加;delete=删除;update=更新;select=查询;" desc= "SQL语句的操作类型。"/>
+				<attr id="maxRecords" attrName="最大记录数" desc= "返回数据集合的最大记录数限制。"/>
+			</attributes>
+			<childElements>
+				<child id="input" allowedCount="1"/>
+				<child id="output" allowedCount="1"/>
+			</childElements>
+			<document>执行SQL语句服务的下属标签，定义一条SQL语句。</document>
+		</Element>
+		<Element id="TableDefine" name="数据库表定义服务" implClass="com.ecc.emp.jdbc.table.TableDefine" wizardClass="com.ecc.ide.editor.wizard.jdbc.renewal.TableDefineWizard" iconName="/images/table.gif">
+			<attributes>
+				<attr id="id" attrName="id">
+						</attr>
+				<attr id="access" attrName="access">
+						</attr>
+				<attr id="tableName" attrName="表名" mustSet="true" desc= "要操作的数据库表名称。"/>
+				<attr id="schema" attrName="模式名" mustSet="true" desc= "要操作的模式名。"/>
+				<attr id="sequenceNoColumn" attrName="oracle顺序号列名" desc= "oracle顺序号列名。"/>
+				<attr id="sequenceNoName" attrName="oracle顺序号对象名" desc= "oracle顺序号对象名。"/>
+			</attributes>
+			<childElements>
+				<child id="column" allowedCount="*"/>
+			</childElements>
+			<document>数据库表访问服务，实现了对数据记录的新增、修改、删除和查询等操作，并提供了翻页查询的功能。</document>
+		</Element>
+		<Element id="TableService" name="访问数据库表服务" implClass="com.ecc.emp.jdbc.table.TableService" iconName="/images/table.gif">
+			<attributes>
+				<attr id="id" attrName="id" mustSet="true" desc= ""/>
+				<attr id="implClass" attrName="implClass" desc= "实现类名称"/>
+			</attributes>
+			<document/>
+		</Element>
+	</elementCatalog>
+
+	
+	<elementCatalog id="sessionmanager" name="SESSION管理器">
+		<Element id="EMPSessionManager" name="EMP Session管理器" implClass="com.ecc.emp.session.EMPSessionManager" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="sessionTraceType"/>
+				<attr id="sessionCheckInterval"/>
+				<attr id="sessionTimeOut"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="HTTPSessionManager" name="HTTP Session管理器" implClass="com.ecc.emp.session.HTTPSessionManager" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="sessionCheckInterval"/>
+				<attr id="sessionTimeOut"/>
+			</attributes>
+			<document></document>
+		</Element>
+	</elementCatalog>
+	
+	<elementCatalog id="accessmanager" name="访问管理器">
+		<Element id="AccessManager" name="EMP访问管理器" implClass="com.ecc.emp.accesscontrol.EMPAccessManager" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<childElements>
+				<child id="AccessController" allowedCount="*"/>
+			</childElements>
+			<document></document>
+		</Element>
+		<Element id="AccessController" name="访问控制器接口" implClass="com.ecc.emp.accesscontrol.EMPAccessController" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="implClass" attrName="实现类名称" desc="自定义的AccessController实现类名称"/>
+			</attributes>
+			<document></document>
+		</Element>
+	</elementCatalog>
+	
+	<elementCatalog id="reversalcontroller" name="冲正控制器">
+		<Element id="EMPReversalController" name="EMP冲正控制器" implClass="com.ecc.emp.flow.reversal.EMPReversalController" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="factoryName" attrName="组建工厂名称"/>
+			</attributes>
+			<childElements>
+				<child id="EMPReversalHandler" allowedCount="*"/>
+			</childElements>
+			<document></document>
+		</Element>
+		<Element id="EMPReversalHandler" name="冲正控制器接口" implClass="com.ecc.emp.flow.reversal.EMPReversalHandler" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="hostId" attrName="冲正主机Id"/>
+				<attr id="bizId"/>
+				<attr id="opId"/>
+				<attr id="reversalFormulaStr"/>
+				<attr id="globalReversalFormulaStr"/>
+			</attributes>
+			<document></document>
+		</Element>
+	</elementCatalog>
+</EditorProfile>

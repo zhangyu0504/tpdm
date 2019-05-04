@@ -1,0 +1,165 @@
+package core.schedule.job;
+
+import java.net.InetAddress;
+import java.sql.Connection;
+import java.util.Date;
+import java.util.HashMap;
+
+import org.quartz.JobExecutionContext;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+
+import com.ecc.emp.core.Context;
+import common.sql.dao.DBHandler;
+import common.util.BizUtil;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+import core.schedule.ScheduleTaskInfo;
+import core.schedule.bean.ScheduleLog;
+import core.schedule.dao.ScheduleDao;
+/**
+ * 抽象任务Action
+ * @author 汪华
+ *
+ */
+public abstract class AbstractScheduleAction {
+	private SFLogger logger=SFLogger.getLogger(SFConst.DEFAULT_TRXCODE);
+	public static HashMap<String, Integer> errorCoutMap = new HashMap<String, Integer>(); //存放调度任务错误次数
+	private ScheduleDao scheduleDao=new ScheduleDao();//任务调度dao
+    /**
+     * 执行调度Class,该class实现接口ScheduleActionInterface
+     * @param jobDataMap
+     * @param jobContext
+     * @throws SchedulerException
+     */
+	public void doJob(JobExecutionContext jobContext,Context context,String scheduleid) throws Exception {
+		Connection connection=null;
+		Date startTime =DateUtil.getDate();
+		String jobName = "";
+		try {
+			jobName = jobContext.getJobDetail().getJobDataMap().getString(ScheduleTaskInfo.JOB_TASKNAME);
+			if (SFUtil.isEmpty(jobName)) {
+        		throw new Exception("paramter ["+scheduleid+"] config ["+jobName+"] error!");
+        	}
+			
+			logger.debug("start job : [" + scheduleid + "/" + jobName + "].................................");
+			
+			/*
+			 * 公共参数预设置
+			 */
+			connection=DBHandler.getConnection(context);//获取数据库连接
+			DBHandler.beginTransaction(context, connection);//开启事务
+			
+			SFUtil.setDataValue(context, SFConst.PUBLIC_TRAN_CONNECTION, connection);
+			String logId=BizUtil.getInitSeqId(context);//生成定长ID（系统初始流水号16位）
+			SFUtil.setDataValue(context, SFConst.PUBLIC_LOG_ID, logId);//流水编号			
+			SFUtil.setDataValue(context, SFConst.PUBLIC_TX_CODE, scheduleid);//交易号
+			DBHandler.releaseConnection(context, connection);//批量调度中数据库连接即用即释放******即用即释放
+			
+			/*
+			 * 执行私有逻辑：先检查私有交易是否达到执行条件，满足检查后执行私有逻辑
+			 */
+			this.doHandle(context, jobName);
+			
+			//回置交易号
+			SFUtil.setDataValue(context, SFConst.PUBLIC_TX_CODE, SFConst.DEFAULT_TRXCODE);//交易号
+			
+			/*
+			 * 重新设置错误次数
+			 */
+			errorCoutMap.put(scheduleid, 0);
+			
+			/*
+			 * 插入批量日志
+			 */			
+			connection=DBHandler.getConnection(context);//获取数据库连接
+			ScheduleLog scheduleLog=new ScheduleLog();
+			scheduleLog.setScheduleid(scheduleid);
+			scheduleLog.setStartdate(DateUtil.dateToString(startTime, "yyyyMMdd"));
+			scheduleLog.setStarttime(DateUtil.dateToString(startTime, "HHmmss"));
+			String content = "finish job : [" + scheduleid + "/" + jobName + "],commit the transaction.................................";
+			scheduleLog.setEnddate(DateUtil.getMacDate());
+			scheduleLog.setEndtime(DateUtil.getMacTime());
+			scheduleLog.setMemo(content);
+			scheduleLog.setErrcode((String)SFUtil.getDataValue(context, SFConst.CTX_ERRCODE));
+			scheduleLog.setErrmsg((String)SFUtil.getDataValue(context, SFConst.CTX_ERRMSG));
+			scheduleLog.setIp(InetAddress.getLocalHost().getHostAddress());
+			scheduleDao.saveScheduleLog(context, connection, scheduleLog);
+			DBHandler.commitTransaction(context, connection);
+			//commit the transaction if exist对于要求建立新的交易事务的Action，只在单一请求中完成
+			logger.debug(content);
+		} catch (Exception e) {
+			DBHandler.rollBackTransaction(context, connection);//事务回滚			
+			//回置交易号
+			SFUtil.setDataValue(context, SFConst.PUBLIC_TX_CODE, SFConst.DEFAULT_TRXCODE);//交易号
+			try {
+				logger.error("Failed to execute class error", e);
+				if(connection==null){
+					connection=DBHandler.getConnection(context);//获取数据库连接					
+				}
+				/*
+				 * 插入批量日志
+				 */
+				DBHandler.beginTransaction(context, connection);//开启事务
+				String content = "excute job : [" + scheduleid + "/" + jobName + "] error,roll back the transaction:"+e.getMessage();
+				ScheduleLog scheduleLog=new ScheduleLog();
+				scheduleLog.setScheduleid(scheduleid);
+				scheduleLog.setStartdate(DateUtil.dateToString(startTime, "yyyyMMdd"));
+				scheduleLog.setStarttime(DateUtil.dateToString(startTime, "HHmmss"));
+				scheduleLog.setEnddate(DateUtil.getMacDate());
+				scheduleLog.setEndtime(DateUtil.getMacTime());
+				scheduleLog.setMemo(content);
+				scheduleLog.setIp(InetAddress.getLocalHost().getHostAddress());
+				scheduleLog.setErrcode((String)SFUtil.getDataValue(context, SFConst.CTX_ERRCODE));
+				scheduleLog.setErrmsg((String)SFUtil.getDataValue(context, SFConst.CTX_ERRMSG));
+				scheduleDao.saveScheduleLog(context, connection, scheduleLog);
+				DBHandler.commitTransaction(context, connection);
+
+				
+	        	logger.error(content, e);
+        	
+            	int sErrCount = errorCoutMap.containsKey(scheduleid) ? errorCoutMap.get(scheduleid) : 0;
+                int maxErrCount = jobContext.getJobDetail().getJobDataMap().getInt(ScheduleTaskInfo.JOB_MAXERRCOUNT);
+                logger.debug("jobName:["+scheduleid+"], current error count:[" + sErrCount + "], max error count:[" + maxErrCount + "]");
+
+                //如果设置为-1，则不会因为错误而中断
+                if (maxErrCount == -1) return;
+                
+                int errCount = sErrCount + 1;
+                errorCoutMap.put(scheduleid, errCount);
+                if (errCount >= maxErrCount) {
+                	//暂停当前任务
+                	//暂时不处理，交由具体业务逻辑处理
+                	//ScheduleUtils.stopScheduleJob(new Context(), schName);
+                	//EMPLog.log(SFConstance.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "The schedule task [" + schName + "/" + jobName + "] is paused beasuse of too many error times:[" + errCount + "]");
+                }
+            } catch (Exception e2) {
+    			DBHandler.rollBackTransaction(context, connection);//事务回滚
+    			
+	            Trigger trigger = jobContext.getTrigger();
+	            Scheduler scheduler = jobContext.getScheduler();
+    			scheduler.pauseTrigger(trigger.getName(), ScheduleTaskInfo.GROUP); 
+    			scheduler.unscheduleJob(trigger.getName(),ScheduleTaskInfo.GROUP); 
+    			scheduler.deleteJob(trigger.getName(), ScheduleTaskInfo.GROUP); 
+    			
+    			logger.error("stop job : [" + scheduleid + "/" + jobName + "].................................");
+    			logger.error("Error count handle fail" + e.getMessage(), e2);
+            }
+        } finally {
+			DBHandler.releaseConnection(context, connection);//批量调度中数据库连接即用即释放
+		}
+	}
+	
+	/**
+	 * 各不同调度任务Action的私有逻辑处理
+	 * @param jobContext
+	 * @param context
+	 * @param scheduleid
+	 * @throws Exception
+	 */
+	protected abstract void doHandle(Context context,String jobName) throws Exception;	
+}

@@ -1,0 +1,682 @@
+package module.trans.cobank2sf;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import module.bean.AcctAdmDetail;
+import module.bean.AcctJour;
+import module.bean.AgtAgentBranch;
+import module.bean.AgtAgentInfo;
+import module.bean.AgtCustomerInfo;
+import module.bean.BankUnit;
+import module.bean.InvestData;
+import module.bean.LocalInfo;
+import module.bean.SecCompData;
+import module.bean.SignAccountData;
+import module.communication.SecuClientBase;
+import module.dao.AgtAgentBranchDao;
+import module.dao.AgtCustomerInfoDao;
+import module.trans.TranBase;
+import module.trans.sf2secu.SignContractClient;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.BizUtil;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * 此类为合作行发起确认签约关系
+ * @author ex_kjkfb_songshimin
+ * 交易码:300100
+ */
+public class T300100 extends TranBase {
+
+	/* 定义在交易中不会变动的值，在chkEnd的时候进行赋值操作 */
+	private String depId = null;
+
+	private String branchId = null;
+
+	private String secAcct = null;
+
+	private String interFlag = null;
+
+	private int secAcctSeq;
+
+	private String secCompName = null;
+
+	/**
+	 * 初始化参数定义
+	 * @param context
+	 * @throws SFException
+	 */
+	public void initialize( Context context ) throws SFException {}
+
+	@Override
+	public void doHandle( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "addAcctJour()开始" ) );
+		String respMsg = addAcctJour( context );
+		SFLogger.info( context, String.format( "addAcctJour()结束" ) );
+		if( !SFConst.RESPCODE_SUCCCODE.equals( respMsg ) ) {
+			SFLogger.info( context, String.format( "doSecu()开始" ) );
+			doSecu( context );
+			SFLogger.info( context, String.format( "doSecu()结束" ) );
+		}
+
+	}
+
+	@Override
+	public void doHost( Context context ) throws SFException {}
+
+	@Override
+	public void doSecu( Context context ) throws SFException {
+		try {
+			Context msgContext = null;
+			String capAcctPwd = SFUtil.getReqDataValue( context, "CAP_ACCT_PWD" );// 券商证券资金密码
+			String secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" );// 券商代码
+			String invType = SFUtil.getReqDataValue( context, "INV_TYPE" );// 客户类型
+			String signFlag = ( ( SignAccountData )SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA ) ).getSignFlag();// 从签约对象获取签约标志
+			String invName = SFUtil.getReqDataValue( context, "INV_NAME" );// 客户名称
+			String invIdCode = SFUtil.getReqDataValue( context, "INV_ID_CODE" );// 证件号码
+			String trnName = SFUtil.getReqDataValue( context, "TRN_NAME" );
+			String trnIdType = SFUtil.getReqDataValue( context, "TRN_ID_TYPE" );
+			String trnIdCode = SFUtil.getReqDataValue( context, "TRN_ID_CODE" );
+			String emailAddr = SFUtil.getReqDataValue( context, "EMAIL_ADDR" );
+			String zip = SFUtil.getReqDataValue( context, "ZIP" );
+			String address = SFUtil.getReqDataValue( context, "ADDR" );
+			String phone = SFUtil.getReqDataValue( context, "PHONE" );
+			String mobile = SFUtil.getReqDataValue( context, "MOBILE" );
+			String fax = SFUtil.getReqDataValue( context, "FAX" );
+			String memo = SFUtil.getReqDataValue( context, "MEMO" );
+			String acctId = SFUtil.getReqDataValue( context, "ACCT_ID" );// 银行账号
+			String secAcct = ( ( InvestData )SFUtil.getDataValue( context, SFConst.PUBLIC_INVEST_DATA ) ).getSecAcct();// 检查投资人信息通过后才可以在上下文中取到保证金管理帐号
+			String capAcct = SFUtil.getReqDataValue( context, "CAP_ACCT" );// 证券资金台账号
+			String curCode = SFUtil.getReqDataValue( context, "CUR_CODE" );// 币种
+			String sfIdType = SFUtil.getDataValue( context, SFConst.PUBLIC_ID_TYPE );
+			double beginBal = 0;
+			String initSide = SFUtil.getDataValue( context, SFConst.PUBLIC_INIT_SIDE );
+			String tranDate = ( ( LocalInfo )SFUtil.getDataValue( context, SFConst.PUBLIC_LOCAL_INFO ) ).getWorkdate();
+			String subTxSeqId = SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID );
+			AcctAdmDetail acctAdmDetail = new AcctAdmDetail();
+			SignAccountData signAccountData = null;
+			//转加密资金密码
+	   	    String secAcctPwd = BizUtil.convEncryptPwd(context,secCompCode,initSide, capAcctPwd);
+			String sztFlag = ( ( SecCompData )SFUtil.getDataValue( context, SFConst.PUBLIC_SECU ) ).getSztFlag();// 获取深证通标识
+			// 定义全局map集合，将深证通和直连所有参数需要参数放入map中
+			Map<String, Object> map = new HashMap<String, Object>();
+			SecuClientBase secuClient = new SignContractClient();
+			String signMode = null;
+			if( SFConst.SIGN_FLAG_SECU_PRE.equals( signFlag ) || SFConst.SIGN_FLAG_CONFIRM_IN_PROCESS.equals( signFlag ) ) {
+				signMode = "0";//
+			} else {
+				signMode = "1";//
+			}
+			BizUtil.setSecBrchId( secCompCode, map, ( ( SignAccountData )SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA ) ).getFlags() );
+			map.put( "BIZ_SEQ_NO",  subTxSeqId);
+			map.put( "SIGN_FLAG", signFlag ); // 深证通根据signFlag分别调用11003 11001接口
+			map.put( "INV_TYPE", invType );
+			map.put( "INV_NAME", invName );
+			map.put( "ID_TYPE", sfIdType );
+			map.put( "INV_ID_CODE", invIdCode );
+			map.put( "ACCT_ID", acctId );
+			map.put( "DEP_NAME", SFConst.SYS_BANK_CNAME );
+			map.put( "SEC_ACCT", secAcct );
+			map.put( "SEC_COMP_CODE", secCompCode );
+			map.put( "CAP_ACCT", capAcct );
+			map.put( "CAP_ACCT_PWD", secAcctPwd );
+			map.put( "CUR_CODE", curCode );
+			map.put( "STH_CODE", "" );// 股东代码
+			map.put( "SIGN_MODE", signMode );
+			map.put( "TRN_NAME", trnName );
+			map.put( "TRN_ID_TYPE", trnIdType );
+			map.put( "TRN_ID_CODE", trnIdCode );
+			map.put( "ZIP", zip );
+			map.put( "ADDR", address );
+			map.put( "EMAIL_ADDR", emailAddr );
+			map.put( "PHONE", phone );
+			map.put( "FAX", fax );
+			map.put( "MOBILE", mobile );
+			map.put( "SUB_TX_SEQ_ID", subTxSeqId );
+			msgContext = secuClient.send( context, map );
+			String retFlag = SFUtil.getDataValue( msgContext, SFConst.PUBLIC_RET_FLAG );
+			String secSeqId = null;
+			String retMsg = null;
+			String retCode = null;
+			// 从券商返回，区分深证通和直联取出需要参数
+			KeyedCollection kColl = null;
+			if( SFConst.SECU_SZT.equals( sztFlag ) ) {// 深证通方式
+				kColl = SFUtil.getDataElement( msgContext, "Acmt00201" );
+				KeyedCollection rstKcoll = SFUtil.getDataElement( context, kColl, "Rst" );
+				KeyedCollection msgKcoll = SFUtil.getDataElement( msgContext, "MsgHdr" );// 取出响应报文头
+				KeyedCollection rltKcoll = SFUtil.getDataElement( context, msgKcoll, "RltdRef" );
+				retCode = SFUtil.getDataValue( context, rstKcoll, "RESP_CODE" );// 深证通返回错误码
+				retMsg = SFUtil.getDataValue( context, rstKcoll, "RESP_MSG" );// 深证通返回错误信息
+				KeyedCollection scBalKcoll = SFUtil.getDataElement( context, kColl, "ScBal" );
+				if( SFConst.RESPCODE_SUCCCODE_SZTSECU.equals( retCode ) ) {// 深证通返回成功
+					// 公共函数
+					beginBal = SFUtil.div(SFUtil.object2Double(SFUtil.objectToString( SFUtil.getDataValue( context, scBalKcoll, "BEGIN_BAL" ))), 100 );
+					secSeqId = SFUtil.getDataValue( context, rltKcoll, "Ref" );// 取出券商流水号
+				}
+			} else {// 直联方式
+				if( SFConst.SECU_GUOTAIJAXY.equals( secCompCode ) || SFConst.SECU_GUOTAIJAZQ.equals( secCompCode ) ) {// 国泰证券返回
+					kColl = SFUtil.getDataElement( msgContext, "100100_O" );
+				} else {
+					kColl = SFUtil.getDataElement( msgContext, "6022_O" );
+				}
+				retMsg = SFUtil.getDataValue( context, kColl, "RESP_MSG" );// 直联返回错误信息
+				retCode = SFUtil.getDataValue( context, kColl, "RESP_CODE" );// 直联返回错误码
+				if( retCode.startsWith("M") ) {// 直联返回成功
+					secSeqId = SFUtil.getDataValue( context, kColl, "SEC_SEQ_ID" );// 取出券商流水号
+					if( SFUtil.isEmpty( secSeqId ) ) {
+						secSeqId = "0";
+					}
+					if( SFUtil.isNotEmpty( SFUtil.getDataValue( context, kColl, "BEGIN_BAL" ) ) )
+						beginBal = SFUtil.div(SFUtil.object2Double(SFUtil.objectToString( SFUtil.getDataValue( context, kColl, "BEGIN_BAL" ))), 100 );
+				}
+
+			}
+			if( SFConst.RET_OVERTIME.equals( retFlag ) ) {// 超时
+				SFUtil.chkCond( context, "ST4035", String.format( "与券商[%s]通讯异常", secCompCode ) );
+			} else if( SFConst.RET_FAILURE.equals( retFlag ) ) {/* 失败后回滚数据 */
+				DBHandler.beginTransaction( context, tranConnection );// 开启事务6
+				acctAdmDetailDao.delAcctAdmDetail( context, tranConnection, tranDate, subTxSeqId );
+				/* 原签约状态为未签约、签约处理中, 删除签约记录 */
+				if( SFConst.SIGN_FLAG_SIGN_IN_PROCESS.equals( signFlag ) || SFConst.SIGN_FLAG_CANCEL.equals( signFlag ) ) {
+					signAccountDataDao.delSignAccountData( context, tranConnection, secCompCode, capAcct );
+				} else if( SFConst.SIGN_FLAG_SECU_PRE.equals( signFlag ) || SFConst.SIGN_FLAG_CONFIRM_IN_PROCESS.equals( signFlag ) ) {/* 原签约记录为-券商预指定 */
+					signAccountData = new SignAccountData();
+					signAccountData.setInitSide( SFConst.INIT_SIDE_SECU );
+					signAccountData.setAcctId( " " );
+					signAccountData.setOpenDepId( " " );
+					signAccountData.setOpenBranchId( " " );
+					signAccountData.setSignFlag( SFConst.SIGN_FLAG_SECU_PRE );
+					signAccountData.setStatFlag( "0" );
+					signAccountData.setSignDate( " " );
+					signAccountData.setSecCompCode( secCompCode );
+					signAccountData.setCapAcct( capAcct );
+					signAccountDataDao.saveSignAccountData( context, tranConnection, signAccountData );
+				}
+				DBHandler.commitTransaction( context, tranConnection );// 提交事务6
+
+				DBHandler.beginTransaction( context, tranConnection );// 开启事务7
+				investDataDao.delInvestDataBySecAcct( context, tranConnection, secAcct );// 删除在签约数据没有记录的投资人信息
+				DBHandler.commitTransaction( context, tranConnection );// 提交事务7
+				if("2001".equals( retCode ) || "E1218".equals( retCode )){//错误码2001（深证通）或者E1218(直联)  资金密码错误
+					SFUtil.chkCond( context, "ST4110", retMsg);
+				}
+				SFUtil.chkCond( context, "ST4398", retMsg );
+
+			}
+			DBHandler.beginTransaction( context, tranConnection );// 开启事务8
+			// 更新流水标识
+			AcctJour acctJour = new AcctJour();
+			acctJour.setJourFlag( "00" );
+			acctJour.setSecSeqId( secSeqId );
+			acctJour.setSecAcctSeq( secAcctSeq );
+			acctJour.setTxDate( tranDate );
+			acctJour.setSubTxSeqId( subTxSeqId );
+			acctJourDao.saveAcctJour( context, tranConnection, acctJour );
+
+			// 更新账户交易明细
+			acctAdmDetail.setJourFlag( "00" );
+			acctAdmDetail.setTxAmount( beginBal );
+			acctAdmDetail.setSecSeqId( secSeqId );
+			acctAdmDetail.setnSignFlag( SFConst.SIGN_FLAG_SIGN );
+			acctAdmDetail.setTxDate( tranDate );
+			acctAdmDetail.setSubTxSeqId( subTxSeqId );
+			acctAdmDetailDao.saveAcctAdmDetail( context, tranConnection, acctAdmDetail );
+
+			// 更新签约信息
+			signAccountData = new SignAccountData();
+			signAccountData.setInitSide( initSide );
+			signAccountData.setSignFlag( SFConst.SIGN_FLAG_SIGN );
+			signAccountData.setUnitTellerId( "99999" );
+			signAccountData.setSecCompCode( secCompCode );
+			signAccountData.setCapAcct( capAcct );
+			signAccountDataDao.saveSignAccountData( context, tranConnection, signAccountData );
+			DBHandler.commitTransaction( context, tranConnection );// 提交事务8
+
+			// 更新客户状态
+			DBHandler.beginTransaction( context, tranConnection );// 开启事务9
+			AgtCustomerInfo agtCustomerInfo = new AgtCustomerInfo();
+			agtCustomerInfo.setStatus( "0" );
+			agtCustomerInfo.setStkAcct( capAcct );
+			agtCustomerInfo.setStkCode( secCompCode );
+			agtCustomerInfoDao.saveAgtCustomerInfo( context, tranConnection, agtCustomerInfo );
+			DBHandler.commitTransaction( context, tranConnection );// 提交事务9
+			/**
+			 * 组返回节点参数
+			 */
+			SFUtil.setResDataValue( context, "ACCT_ID", acctId );
+			SFUtil.setResDataValue( context, "INV_NAME", invName );
+			SFUtil.setResDataValue( context, "ID_TYPE", sfIdType );
+			SFUtil.setResDataValue( context, "INV_ID_CODE", invIdCode );
+			SFUtil.setResDataValue( context, "SEC_COMP_NAME", secCompName );
+			SFUtil.setResDataValue( context, "CUR_CODE", curCode );
+			SFUtil.setResDataValue( context, "CAP_ACCT", capAcct );
+			SFUtil.setResDataValue( context, "REMARK", memo );
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+	}
+
+	@Override
+	protected void chkStart( Context context ) throws SFException {
+
+	}
+
+	@Override
+	protected void chkEnd( Context context ) throws SFException {
+		AgtAgentBranch agtAgentBranch = new AgtAgentBranch();
+		AgtAgentBranchDao agtAgentBranchDao = new AgtAgentBranchDao();
+		String bankId = SFUtil.getDataValue( context, "A_REQUEST_HEAD.BANKNO" );// 合作行号
+		String openBranch = SFUtil.getReqDataValue( context, "OPEN_BRANCH_ID" );// 开户网点
+		String secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" );// 券商代码
+		String capAcct = SFUtil.getReqDataValue( context, "CAP_ACCT" );// 证券资金台账号
+		String idType = SFUtil.getReqDataValue( context, "ID_TYPE" );// 原证件类型
+
+		/* 检查开户网点是否属于该合作行 */
+		agtAgentBranch = agtAgentBranchDao.qryAgtAgentBranch( context, tranConnection, bankId, openBranch );
+		SFUtil.chkCond( context, agtAgentBranch == null, "ST5705", String.format( "[开户网点[%s]]不存在", openBranch ) );
+		AgtCustomerInfoDao agtCustomerInfoDao = new AgtCustomerInfoDao();
+		AgtCustomerInfo agtCustomerInfo = null;
+		DBHandler.beginTransaction( context, tranConnection );
+		String status = null;
+		String memo = null;
+
+		/* 查询客户状态 */
+		agtCustomerInfo = agtCustomerInfoDao.qryAgtCustomerInfo( context, tranConnection, capAcct, secCompCode );
+		if( agtCustomerInfo != null ) {
+			status = agtCustomerInfo.getStatus();
+			memo = agtCustomerInfo.getMemo();
+			SFUtil.chkCond( context, "0".equals( status ), "ST4801", String.format( "客户已签约" ) );
+		}
+		if( SFUtil.isEmpty( status ) || !"0".equals( status ) ) {// 新客户
+			if( SFUtil.isEmpty( status ) ) {
+				memo = "N:";
+				memo += DateUtil.getMacDateTimeShort();
+			} else {// 失败或 已销户客户重开
+				memo += "-R:";
+				memo += DateUtil.getMacDateTimeShort();
+			}
+			agtCustomerInfoDao.saveAgtCustomerInfo( context, tranConnection, getAgtCustomerInfo( context, memo ) );// 新增一条客户信息
+		}
+		DBHandler.commitTransaction( context, tranConnection );// 提交事务1
+		// 拒绝20，21两个证件类型
+		SFUtil.chkCond( context, "20".equals( idType ) || "21".equals( idType ), "ST4055", String.format( "该证件类型[%s]不允许做此业务", idType ) );
+		SFUtil.chkCond( context, SFUtil.getDataValue( context, SFConst.PUBLIC_SECU ) == null, "ST4805", String.format( "券商[%s]信息不存在", secCompCode ) );
+		secCompName = ( ( SecCompData )SFUtil.getDataValue( context, SFConst.PUBLIC_SECU ) ).getSecCompName();
+		if( !SFConst.SECU_GUOXINZQ.equals( secCompCode ) ) {// 国信证券特殊处理
+			SignAccountData signAccountData = SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA );// 从上下文中获取签约数据对象
+			SFUtil.chkCond( context, signAccountData == null || SFConst.SIGN_FLAG_CANCEL.equals( signAccountData.getSignFlag() ), "ST4444", String.format( "不支持银行一步式签约" ) );
+		}
+		AgtAgentInfo agtAgentInfo = agtAgentInfoDao.qryAgtAgentInfo( context, tranConnection, bankId );
+		if( agtAgentInfo != null ) {
+			depId = agtAgentInfo.getBranchCode();
+		}
+		BankUnit bankUnit = bankUnitDao.qryBankUnit( context, tranConnection, depId );
+		if( bankUnit != null ) {
+			branchId = bankUnit.getBranchId();
+		}
+		if( SFUtil.getDataValue( context, SFConst.PUBLIC_INVEST_DATA ) != null ) {
+			secAcct = ( ( InvestData )SFUtil.getDataValue( context, SFConst.PUBLIC_INVEST_DATA ) ).getSecAcct();
+			investDataDao.updInvestDataBySecAcct( context, tranConnection, getInvestData( context ) );
+		}
+		if( "15".equals( idType ) || "16".equals( idType ) || "17".equals( idType ) || "18".equals( idType ) ) {// 判断原证件类型为这几种时为境外
+			interFlag = SFConst.INTER_FLAG_ABROAD;
+		} else {
+			interFlag = SFConst.INTER_FLAG_DOMESTIC;
+		}
+		InvestData investData = SFUtil.getDataValue( context, SFConst.PUBLIC_INVEST_DATA );//从上下文获取投资人信息对象
+		//生成保证金管理帐号
+		if(investData==null){
+			secAcct = BizUtil.genSecAcctId( context );
+			investDataDao.saveInvestData( context, tranConnection, getInvestData( context ) );
+		}
+	}
+
+	/**
+	 * 数据入库操作
+	 * @param context
+	 * @throws SFException
+	 */
+	private String addAcctJour( Context context ) throws SFException {
+		// 接收上下文参数
+		String acctId = SFUtil.getReqDataValue( context, "ACCT_ID" );// 银行账号
+		String secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" );// 券商代码
+		String capAcct = SFUtil.getReqDataValue( context, "CAP_ACCT" );// 证券资金台账号
+		String curCode = SFUtil.getReqDataValue( context, "CUR_CODE" );// 币种
+		String invName = SFUtil.getReqDataValue( context, "INV_NAME" );// 客户名称
+		String idType = SFUtil.getReqDataValue( context, "ID_TYPE" );// 原证件类型
+		String invIdCode = SFUtil.getReqDataValue( context, "INV_ID_CODE" );// 证件号码
+		String openBranch = SFUtil.getReqDataValue( context, "OPEN_BRANCH_ID" );// 开户网点
+		String remark = SFUtil.getReqDataValue( context, "REMARK" );// 备注
+		String depId = null;// 网点号
+		String tranDate = ( ( LocalInfo )SFUtil.getDataValue( context, SFConst.PUBLIC_LOCAL_INFO ) ).getWorkdate();// 交易日期
+		AcctJour acctJour = null;
+		SignAccountData signAccountData = null;
+		try {
+			DBHandler.beginTransaction( context, tranConnection );// 开启事务2
+			/********************APSCreateStkAcc逻辑Begin******************************/
+			String logId = SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID );// 获取平台流水号
+			/* 平台流水号，默认16位 */
+			String subTxSeqId = logId;
+			secAcctSeq = 0;
+			String initSide = SFUtil.getDataValue( context, SFConst.PUBLIC_INIT_SIDE );// 从上下文获取渠道
+			acctJourDao.saveAcctJour( context, tranConnection, getAcctJour( context ) );
+			DBHandler.commitTransaction( context, tranConnection );// 提交事务2
+			String signFlag = ( ( SignAccountData )SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA ) ).getSignFlag();// 从签约对象获取签约标志
+			if( SFConst.SIGN_FLAG_SIGN.equals( signFlag ) || SFConst.SIGN_FLAG_CANCEL_PRE_IN_PROCESS.equals( signFlag ) ) {
+				DBHandler.beginTransaction( context, tranConnection );// 开启事务3
+				signAccountData = new SignAccountData();
+				signAccountData.setSignFlag( SFConst.SIGN_FLAG_SIGN );
+				signAccountData.setInitSide( initSide );
+				signAccountData.setCapAcct( capAcct );
+				signAccountData.setSecCompCode( secCompCode );
+				signAccountData.setSecAcct( secAcct );
+				signAccountData.setSecAcctSeq( secAcctSeq );
+				signAccountDataDao.saveSignAccountData( context, tranConnection, signAccountData );
+				DBHandler.commitTransaction( context, tranConnection );// 执行成功，提交事务3
+				// 组返回报文
+				SFUtil.setResDataValue( context, "ACCT_ID", acctId );
+				SFUtil.setResDataValue( context, "INV_NAME", invName );
+				SFUtil.setResDataValue( context, "ID_TYPE", idType );
+				SFUtil.setResDataValue( context, "INV_ID_CODE", invIdCode );
+				SFUtil.setResDataValue( context, "SEC_COMP_NAME", secCompName );
+				SFUtil.setResDataValue( context, "CUR_CODE", curCode );
+				SFUtil.setResDataValue( context, "CAP_ACCT", capAcct );
+				SFUtil.setResDataValue( context, "REMARK", remark );
+				return SFConst.RESPCODE_SUCCCODE;
+			}
+			/* 原来撤销/券商预指定 */
+			if( SFConst.SIGN_FLAG_CANCEL.equals( signFlag ) || SFConst.SIGN_FLAG_SECU_PRE.equals( signFlag ) ) {
+				DBHandler.beginTransaction( context, tranConnection );// 开启事务4
+				// 国泰君安，当天撤销后不允许再预指定或签约
+				if( SFConst.SECU_GUOTAIJAZQ.equals( secCompCode ) || SFConst.SECU_GUOTAIJAXY.equals( secCompCode ) ) {
+
+					signAccountData = signAccountDataDao.qrySignAccountDataByCloseDate( context, tranConnection, secCompCode, capAcct, tranDate );
+					if( signAccountData != null ) {
+						acctJour = new AcctJour();
+						acctJour.setRespCode( "" );
+						acctJour.setRespMsg( "" );
+						acctJour.setTxDate( tranDate );
+						acctJour.setSubTxSeqId( subTxSeqId );
+						acctJour.setTxCode( SFConst.SF_TX_CODE_SIGN );
+						acctJourDao.saveAcctJour( context, tranConnection, acctJour );// 更新流水
+						DBHandler.commitTransaction( context, tranConnection );// 提交事务4
+						SFUtil.chkCond( context, "ST4030", String.format( "客户当前状态不允许办理签约" ) );
+
+					}
+				}
+				/* 券商预指定 */
+				if( SFConst.SIGN_FLAG_SECU_PRE.equals( signFlag ) ) {
+					signFlag = SFConst.SIGN_FLAG_CONFIRM_IN_PROCESS;
+					/* 放开一卡只能签约一次限制 */
+
+					desSignDataDao.migrateSignAccountData( context, tranConnection, secCompCode, capAcct, acctId );
+					signAccountDataDao.delSignAccountByAcctId( context, tranConnection, secCompCode, capAcct, acctId );
+
+					signAccountData = new SignAccountData();
+					signAccountData.setInitSide( initSide );
+					signAccountData.setAcctId( acctId );
+					signAccountData.setSavAcct( acctId );
+					signAccountData.setAcctChldNum( "00" );
+					signAccountData.setOpenDepId( depId );
+					signAccountData.setOpenBranchId( openBranch );
+					signAccountData.setDepId( depId );
+					signAccountData.setBranchId( branchId );
+					signAccountData.setSignFlag( signFlag );
+					signAccountData.setStatFlag( "1" );
+					signAccountData.setCusMagno( "99999" );
+					signAccountData.setSignDate( tranDate );
+					signAccountData.setSecCompCode( secCompCode );
+					signAccountData.setCapAcct( capAcct );
+					signAccountData.setCurCode( curCode );
+					signAccountDataDao.saveSignAccountData( context, tranConnection, signAccountData );
+				} else {
+					SignAccountData signAccountDataTpm = signAccountDataDao.qrySignAccountDataByAcctIdAndAcctBal( context, tranConnection, secCompCode, secCompCode, acctId );
+					if( signAccountDataTpm != null ) {
+						acctJour = new AcctJour();
+						acctJour.setRespCode( "" );
+						acctJour.setRespMsg( "" );
+						acctJour.setTxDate( tranDate );
+						acctJour.setSubTxSeqId( subTxSeqId );
+						acctJour.setTxCode( SFConst.SF_TX_CODE_SIGN );
+						acctJourDao.saveAcctJour( context, tranConnection, acctJour );// 更新流水
+						DBHandler.commitTransaction( context, tranConnection );// 提交事务4
+						SFUtil.chkCond( context, "ST4030", String.format( "客户当前状态不允许办理签约" ) );
+					}
+
+					/* 将销户数据迁移至销户表 */
+					desSignDataDao.migrateSignAccountData( context, tranConnection, secCompCode, capAcct, acctId );
+					/* 删除签约记录 */
+					signAccountDataDao.delSignAccountByAcctId( context, tranConnection, secCompCode, capAcct, acctId );
+					/* 写入签约记录 */
+					signAccountDataDao.saveSignAccountData( context, tranConnection, getSignAccountData( context ) );
+				}
+				DBHandler.commitTransaction( context, tranConnection );// 提交事务4
+			}
+
+			DBHandler.beginTransaction( context, tranConnection );// 开启事务5
+			/* 写入账户管理交易明细 */
+			acctAdmDetailDao.saveAcctAdmDetail( context, tranConnection, getAcctAdmDetail( context ) );
+
+			/* 更改流水标识 */
+			acctJour = new AcctJour();
+			acctJour.setJourFlag( "03" );
+			acctJour.setTxDate( tranDate );
+			acctJour.setSubTxSeqId( subTxSeqId );
+			acctJourDao.saveAcctJour( context, tranConnection, acctJour );
+			DBHandler.commitTransaction( context, tranConnection );// 提交事务5
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		return "";
+
+	}
+
+	/**
+	 * 流水表参数赋值
+	 * @return
+	 * @throws SFException
+	 */
+	private AcctJour getAcctJour( Context context ) throws SFException {
+		AcctJour acctJour = new AcctJour();
+		acctJour.setTxDate( DateUtil.getMacDate() );
+		acctJour.setUserId( "0110900000000000" );// 这是原C在报文配置的固定值
+		acctJour.setInitSide( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_INIT_SIDE ) ) );
+		acctJour.setTxSeqId( BizUtil.getTxSeqId( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID ) ) ) );
+		acctJour.setSecSeqId( "" );
+		acctJour.setSubTxSeqId( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID ) ) );
+		acctJour.setInvType( SFUtil.objectToString( SFUtil.getReqDataValue( context, "INV_TYPE" ) ) );
+		acctJour.setInvName( SFUtil.objectToString( SFUtil.getReqDataValue( context, "INV_NAME" ) ) );
+		acctJour.setIdType( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_ID_TYPE ) ) );
+		acctJour.setInvIdCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "INV_ID_CODE" ) ) );
+		acctJour.setSecAcct( ( ( InvestData )SFUtil.getDataValue( context, SFConst.PUBLIC_INVEST_DATA ) ).getSecAcct() );
+		acctJour.setSecAcctSeq( 0 );
+		acctJour.setSecCompCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "SEC_COMP_CODE" ) ) );
+		acctJour.setCapAcct( SFUtil.objectToString( SFUtil.getReqDataValue( context, "CAP_ACCT" ) ) );
+		acctJour.setAcctId( SFUtil.objectToString( SFUtil.getReqDataValue( context, "ACCT_ID" ) ) );
+		acctJour.setSavAcct( SFUtil.objectToString( SFUtil.getReqDataValue( context, "ACCT_ID" ) ) );
+		acctJour.setDepId( depId );
+		acctJour.setOpenBranchId( SFUtil.objectToString( SFUtil.getReqDataValue( context, "OPEN_BRANCH_ID" ) ) );
+		acctJour.setCurCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "CUR_CODE" ) ) );
+		acctJour.setDcFlag( SFConst.CREDIT_FLAG );
+		acctJour.setTxAmount( 0 );
+		acctJour.setAcctBal( 0 );
+		acctJour.setAbst( " " );
+		acctJour.setAbstractStr( "银行确认/银行签约" );
+		acctJour.setJourFlag( "33" );
+		acctJour.setTxCode( SFConst.SF_TX_CODE_SIGN );
+		acctJour.setBusiType( SFConst.BUSI_TYPE_SIGN );
+		acctJour.setTxTime( DateUtil.getMacTime() );
+		acctJour.setAbnDealTxTime( "000000" );
+		acctJour.setDepId( depId );
+		acctJour.setBranchId( branchId );
+		acctJour.setUnitTellerId( "99999" );
+		acctJour.setCashRemitFlag( SFConst.CASH_FLAG );
+		acctJour.setAcctDealId(BizUtil.getTxSeqId( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID ) ) )  );// 需要跟对账保持一致，取后14位
+		acctJour.setProductType( "03" );
+		acctJour.setColFlag( "0" );
+		acctJour.setMemo( SFUtil.objectToString( SFUtil.getReqDataValue( context, "REMARK" ) ) );
+		return acctJour;
+	}
+
+	/**
+	 * 账户明细赋值
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	private AcctAdmDetail getAcctAdmDetail( Context context ) throws SFException {
+		AcctAdmDetail acctAdmDetail = new AcctAdmDetail();
+		acctAdmDetail.setTxDate( DateUtil.getMacDate() );
+		acctAdmDetail.setInitSide( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_INIT_SIDE ) ) );
+		acctAdmDetail.setUserId( "0110900000000000" );// 这是原C在报文配置的固定值
+		acctAdmDetail.setTxSeqId( BizUtil.getTxSeqId( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID ) ) ) );
+		acctAdmDetail.setSecSeqId( "" );
+		acctAdmDetail.setSubTxSeqId( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID ) ) );
+		acctAdmDetail.setInvType( SFUtil.objectToString( SFUtil.getReqDataValue( context, "INV_TYPE" ) ) );
+		acctAdmDetail.setInvName( SFUtil.objectToString( SFUtil.getReqDataValue( context, "INV_NAME" ) ) );
+		acctAdmDetail.setIdType( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_ID_TYPE ) ) );
+		acctAdmDetail.setInvIdCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "INV_ID_CODE" ) ) );
+		acctAdmDetail.setSecAcct( ( ( InvestData )SFUtil.getDataValue( context, SFConst.PUBLIC_INVEST_DATA ) ).getSecAcct() );
+		acctAdmDetail.setSecAcctSeq( secAcctSeq );
+		acctAdmDetail.setSecCompCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "SEC_COMP_CODE" ) ) );
+		acctAdmDetail.setCapAcct( SFUtil.objectToString( SFUtil.getReqDataValue( context, "CAP_ACCT" ) ) );
+		acctAdmDetail.setAcctId( SFUtil.objectToString( SFUtil.getReqDataValue( context, "ACCT_ID" ) ) );
+		acctAdmDetail.setOpenDepId( depId );
+		acctAdmDetail.setOpenBranchId( branchId );
+		acctAdmDetail.setOldAcctId( "" );
+		acctAdmDetail.setCurCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "CUR_CODE" ) ) );
+		acctAdmDetail.setDcFlag( SFConst.CREDIT_FLAG );
+		acctAdmDetail.setTxAmount( 0 );
+		acctAdmDetail.setAbStract( " " );
+		acctAdmDetail.setAbstractStr( "银行确认/银行签约" );
+		acctAdmDetail.setSignFlag( ( ( SignAccountData )SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA ) ).getSignFlag() );
+		acctAdmDetail.setnSignFlag( ( ( SignAccountData )SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA ) ).getSignFlag() );
+		acctAdmDetail.setJourFlag( "03" );
+		acctAdmDetail.setTxCode( SFConst.SF_TX_CODE_SIGN );
+		acctAdmDetail.setBusiType( SFConst.BUSI_TYPE_SIGN );
+		acctAdmDetail.setTxTime( DateUtil.getMacTime() );
+		acctAdmDetail.setDepId( depId );
+		acctAdmDetail.setBranchId( branchId );
+		acctAdmDetail.setCashRemitFlag( "99999" );
+		acctAdmDetail.setCashRemitFlag( SFConst.CASH_FLAG );
+		acctAdmDetail.setCusMagNo( "99999" );
+		acctAdmDetail.setAcctDealId(BizUtil.getTxSeqId( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID ))));// 需要跟对账保持一致，取后14位
+		acctAdmDetail.setColFlag( "0" );
+		acctAdmDetail.setMemo( " " );
+		return acctAdmDetail;
+	}
+
+	/**
+	 * 合作行客户信息参数赋值
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	private AgtCustomerInfo getAgtCustomerInfo( Context context, String memo ) throws SFException {
+		AgtCustomerInfo agtCustomerInfo = new AgtCustomerInfo();
+		agtCustomerInfo.setInvType( SFUtil.objectToString( SFUtil.getReqDataValue( context, "INV_TYPE" ) ) );
+		agtCustomerInfo.setAcctNo( SFUtil.objectToString( SFUtil.getReqDataValue( context, "ACCT_ID" ) ) );
+		agtCustomerInfo.setStkAcct( SFUtil.objectToString( SFUtil.getReqDataValue( context, "CAP_ACCT" ) ) );
+		agtCustomerInfo.setBankId( SFUtil.objectToString( SFUtil.getDataValue( context, "A_REQUEST_HEAD.BANKNO" ) ) );
+		agtCustomerInfo.setOpenBranch( SFUtil.objectToString( SFUtil.getReqDataValue( context, "OPEN_BRANCH_ID" ) ) );
+		agtCustomerInfo.setStkCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "SEC_COMP_CODE" ) ) );
+		agtCustomerInfo.setCurCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "CUR_CODE" ) ) );
+		agtCustomerInfo.setInvName( SFUtil.objectToString( SFUtil.getReqDataValue( context, "INV_NAME" ) ) );
+		agtCustomerInfo.setIdType( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_ID_TYPE ) ) );
+		agtCustomerInfo.setInvidCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "INV_ID_CODE" ) ) );
+		agtCustomerInfo.setOpenDate( DateUtil.getMacDate() );
+		agtCustomerInfo.setStatus( "4" );
+		agtCustomerInfo.setMemo( memo );
+		return agtCustomerInfo;
+	}
+
+	/**
+	 * 签约信息参数赋值
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	private SignAccountData getSignAccountData( Context context ) throws SFException {
+		SignAccountData signAccountData = new SignAccountData();
+		String secAcct = ( SFUtil.objectToString( ( ( InvestData )SFUtil.getDataValue( context, SFConst.PUBLIC_INVEST_DATA ) ).getSecAcct() ) );
+		signAccountData = signAccountDataDao.qrySignAccountDataMaxSeqBySecAcct( context, tranConnection, secAcct );
+		if( signAccountData != null ) {
+			secAcctSeq = signAccountData.getSecAcctSeq() + 1;
+		}
+		signAccountData.setInitSide( SFUtil.objectToString( SFUtil.getDataValue( context, SFConst.PUBLIC_INIT_SIDE ) ) );
+		signAccountData.setSecAcct( secAcct );
+		signAccountData.setSecAcctSeq( secAcctSeq );
+		signAccountData.setSecCompCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "SEC_COMP_CODE" ) ) );
+		signAccountData.setProductType( "03" );
+		signAccountData.setCapAcct( SFUtil.objectToString( SFUtil.getReqDataValue( context, "CAP_ACCT" ) ) );
+		signAccountData.setCurCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "CUR_CODE" ) ) );
+		signAccountData.setCashRemitFlag( SFConst.CASH_FLAG );
+		signAccountData.setShsthCode( " " );
+		signAccountData.setSzsthCode( " " );
+		signAccountData.setAcctId( SFUtil.objectToString( SFUtil.getReqDataValue( context, "ACCT_ID" ) ) );
+		signAccountData.setSavAcct( SFUtil.objectToString( SFUtil.getReqDataValue( context, "ACCT_ID" ) ) );
+		signAccountData.setAcctChldNum( "00" );
+		signAccountData.setOpenDepId( depId );
+		signAccountData.setOpenBranchId( branchId );
+		signAccountData.setInvName( SFUtil.objectToString( SFUtil.getReqDataValue( context, "INV_NAME" ) ) );
+		signAccountData.setInvType( SFUtil.objectToString( SFUtil.getReqDataValue( context, "INV_TYPE" ) ) );
+		signAccountData.setSignFlag( SFConst.SIGN_FLAG_SIGN_IN_PROCESS );
+		signAccountData.setDepId( depId );
+		signAccountData.setBranchId( branchId );
+		signAccountData.setDesDepId( depId );
+		signAccountData.setDesBranchId( branchId );
+		signAccountData.setUnitTellerId( " " );
+		signAccountData.setDesUnitTellerId( " " );
+		signAccountData.setCusMagno( "99999" );
+		signAccountData.setStatFlag( "1" );
+		signAccountData.setOpenDate( DateUtil.getMacDate() );
+		signAccountData.setPreTxDate( "19000101" );
+		signAccountData.setBeginBal( 0 );
+		signAccountData.setAcctBal( 0 );
+		signAccountData.setIsMailBill( "0" );
+		signAccountData.setMailDate( " " );
+		signAccountData.setFlags( "0000000000" );
+		signAccountData.setSignDate( DateUtil.getMacDate() );
+		return signAccountData;
+	}
+
+	/**
+	 * 投资人信息参数赋值
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	private InvestData getInvestData( Context context ) throws SFException {
+		InvestData investData = new InvestData();
+		investData.setLegalName( "" );
+		investData.setLegalIdCode( "" );
+		investData.setTrnName( SFUtil.objectToString( SFUtil.getReqDataValue( context, "TRN_NAME" ) ) );
+		investData.setTrnIdType( SFUtil.objectToString( SFUtil.getReqDataValue( context, "TRN_ID_TYPE" ) ) );
+		investData.setTrnIdCode( SFUtil.objectToString( SFUtil.getReqDataValue( context, "TRN_ID_CODE" ) ) );
+		investData.setTrnPhone( "" );
+		investData.setTrnMobile( "" );
+		investData.setZip( SFUtil.objectToString( SFUtil.getReqDataValue( context, "ZIP" ) ) );
+		investData.setAddr( SFUtil.objectToString( SFUtil.getReqDataValue( context, "ADDR" ) ) );
+		investData.setPhone( SFUtil.objectToString( SFUtil.getReqDataValue( context, "PHONE" ) ) );
+		investData.setMobile( SFUtil.objectToString( SFUtil.getReqDataValue( context, "MOBILE" ) ) );
+		investData.setFax( SFUtil.objectToString( SFUtil.getReqDataValue( context, "FAX" ) ) );
+		investData.setEmailAddr( SFUtil.objectToString( SFUtil.getReqDataValue( context, "EMAIL_ADDR" ) ) );
+		investData.setMemo( SFUtil.objectToString( SFUtil.getReqDataValue( context, "REMARK" ) ) );
+		investData.setInterFlag( interFlag );
+		investData.setSecAcct( secAcct );
+		return investData;
+	}
+}

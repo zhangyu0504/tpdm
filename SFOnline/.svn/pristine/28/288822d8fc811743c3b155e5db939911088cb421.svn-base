@@ -1,0 +1,295 @@
+package module.dao;
+
+import java.sql.Connection;
+
+import module.bean.InvestData;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DaoBase;
+import common.util.SFUtil;
+
+/**
+ * 投资人信息表Dao
+ * @author 申双江
+ *
+ */
+public class InvestDataDao extends DaoBase{
+	
+	
+	private StringBuffer getQryInvestDataSQLStruct(){
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("SELECT INVTYPE AS invType,SECACCT AS secAcct,INVNAME AS invName,IDTYPE AS idType,INVIDCODE AS invIdCode,NATIONALITY AS nationality,SEX AS sex,LEGALNAME AS legalName,LEGALIDCODE AS legalIdCode,");
+		buffer.append("TRNNAME AS trnName,TRNIDTYPE AS trnIdType,TRNIDCODE AS trnIdCode,TRNPHONE AS trnPhone,TRNMOBILE AS trnMobile,ADDR AS addr,ZIP AS zip,PHONE AS phone,MOBILE AS mobile,FAX AS fax,EMAILADDR AS emailAddr,MEMO AS memo,");
+		buffer.append("INTERFLAG AS interFlag,BECIFNO AS becifNo,GLOBALTYPE AS globalType,GLOBALID AS globalId,CLIENTNAME AS clientName");
+		buffer.append(" FROM TRDINVESTDATA WHERE 1=1 ");
+		
+		return buffer;
+	}
+	/**
+	 * 保存投资人信息
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public int saveInvestData(Context context,Connection connection,InvestData bean) throws SFException {
+		int count = 0;
+		try {
+			
+			SFUtil.chkCond(context, SFUtil.isEmpty(bean.getIdType()), "ST4895", "必要参数[IDTYPE]没有提供");
+			SFUtil.chkCond(context, SFUtil.isEmpty(bean.getInvIdCode()), "ST4895", "必要参数[INVIDCODE]没有提供");
+			
+			count=super.save(context, connection, bean.getSaveInvestDataSQLStruct());
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally {
+			if(null != bean){
+				bean.resetChangedFlag();	
+			}
+		}
+		return count;
+	}
+	
+	/**
+	 * 根据SecAcct更新投资人信息
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public int updInvestDataBySecAcct(Context context,Connection connection,InvestData bean) throws SFException{
+		int count =0;
+		try {
+			count = super.save(context, connection, bean.getUpdateInvestDataSQLStruct());
+		} catch (SFException e){
+			throw new SFException(e);
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally{
+			if(bean != null){
+				bean.resetChangedFlag();
+			}
+		}
+		return count;
+	}
+	
+	/**
+	 * 根据SecAcct修改idType,invIdCode
+	 *〈方法功能描述〉
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public int updInvestDataInvIdCodeBySecAcct(Context context,Connection connection,InvestData bean) throws SFException{
+		int count =0;
+		try {
+			StringBuffer buffer = new StringBuffer();
+			buffer.append( "UPDATE TRDINVESTDATA SET INVTYPE = ?,INVNAME = ?,IDTYPE = ?,INVIDCODE = ?" );
+			if(SFUtil.isNotEmpty( bean.getLegalName() )){
+				buffer.append(", TRNNAME= '"+bean.getLegalName()+"' ");
+			}
+			if(SFUtil.isNotEmpty( bean.getLegalIdCode() )){
+				buffer.append(", LEGALIDCODE= '"+bean.getLegalIdCode()+"' ");
+			}
+			if(SFUtil.isNotEmpty( bean.getTrnName() )){
+				buffer.append(", TRNNAME= '"+bean.getTrnName()+"' ");
+			}
+			if(SFUtil.isNotEmpty( bean.getTrnIdCode() )){
+				buffer.append(", TRNIDCODE= '"+bean.getTrnIdCode()+"' ");
+			}
+			if(SFUtil.isNotEmpty( bean.getTrnMobile() )){
+				buffer.append(", TRNMOBILE= '"+bean.getTrnMobile()+"' ");
+			}
+			
+			buffer.append(" WHERE SECACCT =?");
+			count = super.save(context, connection, buffer.toString(),bean.getInvType(),bean.getInvName(),bean.getIdType(),bean.getInvIdCode(),bean.getSecAcct());
+		} catch (SFException e){
+			throw new SFException(e);
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally{
+			if(bean != null){
+				bean.resetChangedFlag();
+			}
+		}
+		return count;
+	}
+	
+	/**
+	 * 账户信息修改
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @param acctId
+	 * @throws SFException
+	 */
+	public void updInvestDataByAcctId(Context context,Connection connection,InvestData bean,String acctId)throws SFException{  
+		try {
+			StringBuffer buffer = new StringBuffer();
+			buffer.append("UPDATE TRDINVESTDATA SET INVTYPE= ? ");
+			if (SFUtil.isNotEmpty(bean.getTrnName())){
+				buffer.append(", TRNNAME= '"+bean.getTrnName()+"' ");
+			}
+			if (SFUtil.isNotEmpty(bean.getTrnIdType())){
+				buffer.append(", TRNIDTYPE= '"+bean.getTrnIdType()+"' ");
+			}
+			if (SFUtil.isNotEmpty(bean.getTrnIdCode())){
+				buffer.append(", TRNIDCODE= '"+bean.getTrnIdCode()+"' ");
+			}
+			if (SFUtil.isNotEmpty(bean.getTrnPhone())){
+				buffer.append(", TRNPHONE= '"+bean.getTrnPhone()+"' ");
+			}
+			if (SFUtil.isNotEmpty(bean.getTrnMobile())){
+				buffer.append(", TRNMOBILE= '"+bean.getTrnMobile()+"' ");
+			}
+			if (SFUtil.isNotEmpty(bean.getAddr())){
+				buffer.append(", ADDR= '"+bean.getAddr()+"' ");
+			}
+			if (SFUtil.isNotEmpty(bean.getZip())){
+				buffer.append(", ZIP= '"+bean.getZip()+"' ");
+			}
+			if (SFUtil.isNotEmpty(bean.getPhone())){
+				buffer.append(", PHONE= "+bean.getPhone()+" ");
+			}
+			if (SFUtil.isNotEmpty(bean.getFax())){
+				buffer.append(", FAX= '"+bean.getFax()+"' ");
+			}
+			if (SFUtil.isNotEmpty(bean.getMobile())){
+				buffer.append(", MOBILE= "+bean.getMobile()+" ");
+			}
+			if (SFUtil.isNotEmpty(bean.getEmailAddr())){
+				buffer.append(", EMAILADDR= '"+bean.getEmailAddr()+"' ");
+			}
+			buffer.append(" WHERE SECACCT IN (SELECT SECACCT FROM TRDSIGNACCOUNTDATA WHERE ACCTID=? AND SIGNFLAG!='4')");
+			super.save(context, connection, buffer.toString(),bean.getInvType(),acctId);
+		} catch (SFException e){
+			throw new SFException(e);
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally{
+			if(bean != null){
+				bean.resetChangedFlag();
+			}
+		}
+	}
+	
+	/**
+	 * 根据SecAcct删除InvestData
+	 * @param context
+	 * @param connection
+	 * @param sql
+	 * @param secAcct
+	 * @return
+	 * @throws SFException
+	 */
+	public int delInvestDataBySecAcct(Context context,Connection connection,String secAcct) throws SFException{
+		int count = 0;
+		try {
+			String sql = "DELETE FROM TRDINVESTDATA WHERE SECACCT=? AND NOT EXISTS (SELECT SECACCT FROM TRDSIGNACCOUNTDATA WHERE SECACCT=? AND SECACCTSEQ>=0)";
+			count = super.save(context, connection, sql, secAcct,secAcct);
+		} catch (SFException e){
+			throw new SFException(e);
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} 
+		return count;
+	}
+	
+	/**
+	 * 查询投资人信息
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public InvestData qryInvestData(Context context,Connection connection,String idType,String invIdCode) throws SFException{
+		InvestData investData = null;
+		try {
+			StringBuffer buffer = getQryInvestDataSQLStruct();
+			buffer.append(" AND IDTYPE = ? AND INVIDCODE = ?");
+			
+			investData = super.query(context, connection, buffer.toString(), InvestData.class, idType , invIdCode);
+		} catch (SFException e){
+			throw new SFException(e);
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}finally{
+			if(investData!=null){
+				investData.resetChangedFlag();
+			}
+		}
+		return investData;
+	}
+	
+	public InvestData qryInvestDataByInvType(Context context,Connection connection,String idType,String invIdCode,String invType) throws SFException{
+		InvestData investData = null;
+		try {
+			StringBuffer buffer = getQryInvestDataSQLStruct();
+			buffer.append(" AND IDTYPE = ? AND INVIDCODE = ? AND INVTYPE = ?");
+			
+			investData = super.query(context, connection, buffer.toString(), InvestData.class, idType , invIdCode, invType);
+		} catch (SFException e){
+			throw new SFException(e);
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}finally{
+			if(investData!=null){
+				investData.resetChangedFlag();
+			}
+		}
+		return investData;
+	}
+	
+	public InvestData qryInvestDataBySecAcct(Context context,Connection connection,String secAcct) throws SFException {
+		InvestData investData = null;
+		try {
+			StringBuffer buffer = getQryInvestDataSQLStruct();
+			buffer.append(" AND SECACCT = ?");
+			investData = super.query(context, connection, buffer.toString(), InvestData.class,secAcct);
+		} catch (SFException e){
+			throw new SFException(e);
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally{
+			if(investData!=null){
+				investData.resetChangedFlag();
+			}
+		}
+		return investData;
+	}
+	
+	/**
+	 * 根据身份证号查询投资人信息
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public InvestData qryInvestDataByInvIdCode(Context context,Connection connection,String idType,String invIdCode,String invIdCode18Card19,String invIdCode18Card20) throws SFException{
+		InvestData investData = null;
+		 try {
+			 StringBuffer buffer = getQryInvestDataSQLStruct();
+			 buffer.append("  AND IDTYPE =? AND (INVIDCODE = ? OR INVIDCODE = ? OR INVIDCODE = ?)");
+			 investData = super.query(context, connection, buffer.toString(),InvestData.class, idType,invIdCode,invIdCode18Card19,invIdCode18Card20);
+		} catch (SFException e){
+			throw new SFException(e);
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}finally{
+			if(investData!=null){
+				investData.resetChangedFlag();
+			}
+		}
+		return investData;
+
+	}				
+}

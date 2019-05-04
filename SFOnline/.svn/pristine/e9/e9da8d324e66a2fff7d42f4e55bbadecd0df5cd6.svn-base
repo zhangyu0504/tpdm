@@ -1,0 +1,698 @@
+package core.communication.esbinterface;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import com.dc.eai.data.Array;
+import com.dc.eai.data.CompositeData;
+import com.dc.eai.data.Field;
+import com.dc.eai.data.FieldAttr;
+import com.dc.eai.data.FieldType;
+import com.dcfs.esb.client.converter.PackUtil;
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.data.DataElement;
+import com.ecc.emp.data.DataField;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.flow.EMPAction;
+import com.ecc.emp.format.FormatElement;
+import common.exception.SFException;
+import common.services.PublicService;
+import common.util.BizUtil;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.cache.CacheMap;
+import core.communication.access.esb.ESBAccessParam;
+import core.communication.access.esb.ESBSendAction;
+import core.communication.access.esb.SFAccessParam;
+import core.communication.hostinterface.HostInterface;
+import core.communication.util.AccessConstance;
+import core.log.SFLogger;
+
+/**
+ * PBank处理主机各种接口的基类。
+ * <p>
+ * 继承此类实现各个主机接口类，需要实现虚方法。
+ *
+ * @author PBank
+ * @version 1.0
+ * @since 1.0 2010-02-23
+ * @lastmodified 2010-02-23
+ */
+public abstract class EsbInterfaceBase extends EMPAction implements HostInterface{
+
+	/**
+	 * 该接口的名称
+	 */
+	protected String trxCode = null;
+	
+	/**
+	 * 该接口失败是否抛出错误标志
+	 */
+	protected boolean throwExceptionFlag = false;
+
+	/**
+	 * 该接口所处理的输入输出KeyedCollection。
+	 */
+	protected String inOutDataArea = null;
+	
+	/**
+	 * TCPIP通讯服务ID
+	 */
+	protected String tcpipServiceName;
+	
+	/**
+	 * 字符编码
+	 */
+	protected String encoding = "GB18030";
+
+	/**
+	 * 是否将报文记录在数据库中
+	 */
+	protected boolean saveInDatabase = false;
+	
+	/**
+	 * 静态变量,用于生成前置机流水号
+	 *
+	 */
+	
+	
+	protected String serviceCode = null;
+	
+	public String getServiceCode() {
+		return serviceCode;
+	}
+
+	public void setServiceCode(String serviceCode) {
+		this.serviceCode = serviceCode;
+	}
+
+	private static long journalNo = 0; //计数器
+	private static Object journalNoLock = new Object();
+	
+	public EsbInterfaceBase() {
+	}
+
+	public EsbInterfaceBase(String trxCode) {
+		this.trxCode = trxCode;
+	}
+	
+	/**
+	 * 交易发生错误时发起实时冲正。
+	 * 
+	 * @throws SFException
+	 */
+	public abstract void reversal(Context context) throws SFException;
+
+	/**
+	 * 发送数据之前处理数据的接口。
+	 * 
+	 */
+	public void beforeSendData(Context context, CompositeData requestCD, KeyedCollection sysHead, String seqNoOverRide) throws Exception
+	{
+		String strJournalNo = null, tranTime = null,consumerId = null;
+		
+		CompositeData sysHeadCD = requestCD.getStruct("SYS_HEAD");
+		CompositeData appHeadCD = requestCD.getStruct("APP_HEAD");
+		//CompositeData localHeadCD = requestCD.getStruct("LOCAL_HEAD");
+		if (sysHeadCD == null || appHeadCD == null) {
+			SFLogger.error(context, "ESB 请求CD中无SysHead或AppHead!");
+			throw new SFException("ESB 请求CD中无SysHead或AppHead!");
+		}
+		
+		//获取时间
+		tranTime = DateUtil.getDateTime("yyyyMMddHHmmssSSS");
+		consumerId = SFConst.SYS_SYSID;
+		
+		String sCode = null,sScene = null;
+		if(this.serviceCode!=null){
+			
+			String [] sCAraay = this.serviceCode.split("_");
+			sCode = sCAraay[0];
+			sScene = sCAraay[1];
+		}
+		
+				
+		//取出报文头，与FCR账务接口传入sysHead
+		KeyedCollection sysHeadKColl = null;
+		if (sysHead == null)
+			sysHeadKColl = (KeyedCollection)context.getDataElement((String)context.getDataValue("_ESB_PARAM_0"));
+		else
+			sysHeadKColl = sysHead ;
+			
+		for (int i = 0; i < sysHeadKColl.size(); i++) {
+			DataField aDataField = (DataField)sysHeadKColl.getDataElement(i);
+			String aName = (String)(aDataField.getName());
+			String aValue = (String)(aDataField.getValue());
+			
+			if (aName.equals("SERVICE_CODE")) {
+				Field aField = new Field(new FieldAttr(FieldType.FIELD_STRING, 30, 0));
+				aField.setValue(sCode);
+				sysHeadCD.addField(aName, aField);
+				aDataField.setValue(sCode);
+				continue;
+				
+			}
+			
+			if (aName.equals("SERVICE_SCENE")) {
+				
+				Field aField = new Field(new FieldAttr(FieldType.FIELD_STRING, 2, 0));
+				aField.setValue(sScene);
+				sysHeadCD.addField(aName, aField);
+				aDataField.setValue(sScene);
+				continue;
+				
+			}
+			
+			
+			if (aName.equals("CONSUMER_ID")) {
+				
+				if (context.containsKey("SYS_HEAD"))
+				{ 
+					//consumerId = (String)context.getDataValue("SYS_HEAD.CONSUMER_ID");
+					//if (SFUtil.isEmpty( consumerId )){
+						consumerId = SFConst.SYS_SYSID;
+					//}
+				}
+				Field aField = new Field(new FieldAttr(FieldType.FIELD_STRING, 6, 0));
+				aField.setValue(consumerId);
+				sysHeadCD.addField(aName, aField);
+				aDataField.setValue(consumerId);
+				continue;
+			
+			}
+			
+			
+			
+			if (aName.equals("CONSUMER_SEQ_NO")) {
+				if ("Y".equals(seqNoOverRide) || (aValue == null) || "".equals(aValue)){
+				//	strJournalNo =    PBankConstance._PBank_SYSID + SFUtil.getDateTime("yyMMdd") + voucherNo;// getVoucherNo(context);
+					strJournalNo = SFUtil.getDataValue(context, SFConst.PUBLIC_MSG_SEQ_NO);
+					if(SFUtil.isEmpty(strJournalNo)){
+						strJournalNo =  BizUtil.getChlSeqId(context,BizUtil.getSubTxSeqId(BizUtil.getInitSeqId(context)));//  SFConst.SYS_SYSID +DateUtil.getDateShort()+DateUtil.getMacTimeStamp()+"0";
+					}
+					
+					Field aField = new Field(new FieldAttr(FieldType.FIELD_STRING, 52, 0));
+					aField.setValue(strJournalNo);
+					sysHeadCD.addField(aName, aField);
+					aDataField.setValue(strJournalNo);
+				}
+				
+				continue;
+			}
+			
+			if (aName.equals("TRAN_DATE")) {
+				Field aField = new Field(new FieldAttr(FieldType.FIELD_STRING, 8, 0));
+				aField.setValue(tranTime.substring(0, 8));
+				sysHeadCD.addField(aName, aField);
+				aDataField.setValue(tranTime.substring(0, 8));
+				continue;
+			}
+			
+			if (aName.equals("TRAN_TIMESTAMP")) {
+				Field aField = new Field(new FieldAttr(FieldType.FIELD_STRING, 9, 0));
+				aField.setValue(tranTime.substring(8, 17));
+				sysHeadCD.addField(aName, aField);
+				aDataField.setValue(tranTime.substring(8, 17));
+				continue;
+			}
+			
+		}
+		
+		//给APP_HEAD中USER_ID赋值，如果是外围系统ESB请求过来的，直接获取该ESB的
+		Field userIdField = appHeadCD.getField("USER_ID");
+		if (userIdField == null || userIdField.strValue().length() == 0){//如果该接口自己赋值了，就不再处理了。
+			String staffUm = "";
+			
+			//如果是ESB等外围系统调用PBank后台，会有_ESB_HEAD公共对象，从外围的上送的用户为准
+			if (context.containsKey("_ESB_HEAD"))
+			{ 
+				staffUm = (String)context.getDataValue("_ESB_HEAD.USER_ID");
+			}
+			
+			if (!SFUtil.isNotEmpty(staffUm))
+			{
+//				if (context.containsKey("_PBank_USER_STAFFNO"))
+//				{
+//					staffUm = (String)context.getDataValue("_PBank_USER_STAFFNO");
+//				}
+				
+				if (!SFUtil.isNotEmpty(staffUm) || "Computer".equals(staffUm) || "computer".equals(staffUm)){
+					staffUm = "VIRTU";
+				}
+			}
+			
+			Field aField = new Field(new FieldAttr(FieldType.FIELD_STRING, 30, 0));
+			aField.setValue(staffUm);
+			appHeadCD.addField("USER_ID", aField);
+		}
+		
+		//给APP_HEAD中BRANCH_ID赋值，如果是外围系统ESB请求过来的，直接获取该ESB的
+		Field branchIdField = appHeadCD.getField("BRANCH_ID");
+		if (branchIdField == null || branchIdField.strValue().length() == 0){//如果该接口自己赋值了，就不再处理了。
+			String branchId = null;
+			
+			if (context.containsKey("_ESB_HEAD"))
+			{ 
+				branchId = (String)context.getDataValue("_ESB_HEAD.BRANCH_ID");
+			}
+			
+//			if(context.containsKey("_PBank_USER_BRNO")){
+//				branchId = (String)context.getDataValue("_PBank_USER_BRNO");
+//			}
+			if(!SFUtil.isNotEmpty(branchId)){
+				branchId = "9998";
+			}
+			
+			Field aField = new Field(new FieldAttr(FieldType.FIELD_STRING, 9, 0));
+			aField.setValue(branchId);
+			appHeadCD.addField("BRANCH_ID", aField);
+		}
+		
+		//给APP_HEAD中BIZ_SEQ_NO赋值
+		Field bizSeqNoField = appHeadCD.getField("BIZ_SEQ_NO");
+		if (bizSeqNoField == null || bizSeqNoField.strValue().length() == 0)
+		{
+//			if (context.containsKey("_ESB_HEAD") && SFUtil.isNotEmpty((String)context.getDataValue("_ESB_HEAD.BIZ_SEQ_NO")))
+//			{//直接获取原ESB流水号
+//				strJournalNo = (String)context.getDataValue("_ESB_HEAD.BIZ_SEQ_NO");
+//			}
+//			else
+//			{
+//				//从当期context中读取业务流水号：
+//				//每个系统自己实现取业务流水号
+//				//strJournalNo = ((PBankVoucherService) context.getService((String) context
+//				//		.getDataValue(PBankConstance.PBank_VOUCHERSERVICENAME))).getBizSeqNo(context);
+//				if ( strJournalNo == null || "".equals(strJournalNo)){
+//					//如果为空，直接获取交易流水号
+//					strJournalNo = (String)sysHeadCD.getField("CONSUMER_SEQ_NO").getValue();
+//				}
+//			}
+			
+			if ( strJournalNo == null || "".equals(strJournalNo)){
+				//如果为空，直接获取交易流水号
+				strJournalNo = (String)sysHeadCD.getField("CONSUMER_SEQ_NO").getValue();
+			}
+			
+			Field aField = new Field(new FieldAttr(FieldType.FIELD_STRING, 52, 0));
+			aField.setValue(strJournalNo);
+			appHeadCD.addField("BIZ_SEQ_NO", aField);
+		}
+		bizSeqNoField = appHeadCD.getField("BIZ_SEQ_NO");
+		//业务流水号与原始发起方系统编号要相符，直接截取赋值
+		Field aField = new Field(new FieldAttr(FieldType.FIELD_STRING, 6, 0));
+		aField.setValue(bizSeqNoField.strValue().substring(0,6));
+		sysHeadCD.addField("ORG_SYS_ID", aField);
+		
+		//交易标识
+		Field trantFlagField = appHeadCD.getField("TRANT_FLAG");
+		if (trantFlagField == null || trantFlagField.strValue().length() == 0)
+		{ 
+			String trantFlag = null;
+			if (context.containsKey("_ESB_HEAD") && SFUtil.isNotEmpty((String)context.getDataValue("_ESB_HEAD.TRANT_FLAG")))
+			{
+				trantFlag = (String)context.getDataValue("_ESB_HEAD.TRANT_FLAG");
+				Field aField1 = new Field(new FieldAttr(FieldType.FIELD_STRING, 1, 0));
+				aField1.setValue(trantFlag);
+				appHeadCD.addField("TRANT_FLAG", aField1);
+			}
+		}
+		
+		
+		//赋值给冲正堆栈中结构，用于冲正时提供原报文
+/*		try {
+			CompositeData inOutDTO = (CompositeData)context.getDataValue(PBankConstance.PBank_ESB_INOUTDTONAME);
+			if(inOutDTO!=null){ //非空判断
+				inOutDTO.addStruct("_ESB_REQUEST_DATA", requestCD);
+			}
+		}
+		catch (ObjectNotFoundException e)
+		{
+		}
+		catch (Exception e)
+		{
+			throw e;
+		}
+*/	}
+
+	/**
+	 * 发送数据之后处理数据的接口。
+	 * 
+	 */
+	public void afterSendData(Context context, CompositeData requestCD, CompositeData responseCD) throws Exception 
+	{
+		//清除头中的KColl中的信息
+		
+		//ESB 响应码取后六位
+		KeyedCollection retKcoll =  (KeyedCollection) ((IndexedCollection)context.getDataElement("RET")).get(0);
+		String retCode = (String)retKcoll.getDataValue("RET_CODE");
+		if(SFUtil.isNotEmpty(retCode)){
+			retCode = retCode.substring(retCode.length()-6, retCode.length());
+			retKcoll.setDataValue("RET_CODE", retCode);
+		}
+		
+		return;
+	}
+
+	/**
+	 * 根据ESB返回对象得到错误组装信息。
+	 * 
+	 */
+	public String getRetErrMsg(Context context, CompositeData responseCD) throws SFException {
+		if (responseCD == null)
+			return "未得到ESB的返回信息";
+		
+		String errMsg = "", tmpRetCode = null, tmpRetMsg = null;
+		
+		Array retArray = responseCD.getStruct("SYS_HEAD").getArray("RET");		
+		for (int k = 0; k < retArray.size(); k++)
+		{							
+			tmpRetCode = retArray.getStruct(k).getField("RET_CODE").strValue();
+			tmpRetMsg = retArray.getStruct(k).getField("RET_MSG").strValue();
+			
+			if (tmpRetCode != null && !"".equals(tmpRetCode))
+				errMsg = errMsg + "错误码[" + tmpRetCode + "],错误信息[" + tmpRetMsg +"];";
+		}
+		
+		errMsg = errMsg + "交易流水[" + responseCD.getStruct("SYS_HEAD").getField("CONSUMER_SEQ_NO").strValue() + "]";
+		
+		return errMsg;
+	}
+	
+	/**
+	 * 判断交易是否成功,成功返回true,失败返回false。
+	 * 
+	 */
+	public boolean checkResult(Context context, CompositeData respCD) throws SFException {
+		if (respCD == null)
+			return false;
+		
+		String retrunStatus = (String)respCD.getStruct("SYS_HEAD").getField("RET_STATUS").getValue();
+		String returnCode = (String)respCD.getStruct("SYS_HEAD").getArray("RET").getStruct(0).getField("RET_CODE").getValue();
+		
+		if ("S".equals(retrunStatus) && "000000".equals(returnCode)){
+			return true;
+		}
+		
+		return false;
+	}
+
+	/**
+	 * 执行接口逻辑,处理接口数据。
+	 * 
+	 * @throws SFException
+	 */
+	public String execute(Context context) throws EMPException
+	{
+		CompositeData responseCD = null;
+		Map inOutDTO = null;
+		
+		if (context.containsKey(AccessConstance.PBank_ESB_INOUTDTONAME))
+			inOutDTO = (Map)context.getDataValue(AccessConstance.PBank_ESB_INOUTDTONAME);
+		
+		//给变量的变量赋值，报文格式化时使用
+		try {
+			initMsgHead(0, context);
+			
+			//格式化头报文
+			FormatElement headMsgFormat = context.getFormat("PAESBHEAD_I");
+			CompositeData requestHeadCD = (CompositeData)headMsgFormat.format(context);
+			
+			//格式化报文
+			FormatElement msgFormat = context.getFormat(trxCode + "_I");
+			CompositeData requestCD = (CompositeData)msgFormat.format(context);
+
+			
+			//报文头加报文体
+			if(requestCD!=null){
+				Iterator ir = requestCD.iterator();
+				while(ir.hasNext()){
+					String key = (String)ir.next();
+					CompositeData cd = requestCD.getStruct(key);
+					requestHeadCD.addStruct(key, cd);
+					
+				}
+			}
+			requestCD = requestHeadCD;
+			
+			beforeSendData(context, requestCD, null, "Y");
+
+			//SFLogger.info(context, "Send message to PAESB, the request is [" + PackUtil.packXmlStr(requestCD) + "]");
+			//inOutDTO是用于冲正的。这个对象中保存了发送的报文，应答的报文，发送时或解完包后的的context
+			//判断是否要冲正，请使用接口的报文，context只是一个参考，删除断点时使用context的内容删除。有问题请咨询沈东杰
+			if (inOutDTO != null)
+				inOutDTO.put("_ESB_INDTO", requestCD);
+			
+//			responseCD = ESBClient.request(requestCD);
+			//报文挡板检查
+			int timeOut = 40000;
+			String isTranSpond = SFUtil.getDataValue(context, SFConst.PUBLIC_IS_TRANSPOND);
+			if("Y".equals(isTranSpond)){   //转发给管理台
+				SFAccessParam SFParam = CacheMap.getCache("SF_ACCESS_PARAM");
+				timeOut = SFParam.getSFTimeOut();
+			}else{
+				ESBAccessParam esbParam = CacheMap.getCache("ESB_ACCESS_PARAM");
+				timeOut = esbParam.getEsbTimeOut();
+			}
+			
+			PublicService pubService = ((PublicService) context.getService((String) context.getDataValue(SFConst.SERVICE_PUBLICSERVICENAME)));
+			String reqData = pubService.baffle(context, "1", serviceCode, "",timeOut);
+			if(SFUtil.isEmpty(reqData)){
+				ESBSendAction ESBsend = new ESBSendAction();
+				reqData = ESBsend.send(context,requestCD);
+			}
+			
+			responseCD = PackUtil.unpackXmlStr(reqData.trim());
+			
+			if (inOutDTO != null)
+				inOutDTO.put("_ESB_OUTDTO", responseCD);
+			//SFLogger.info(context, "the response is [" + PackUtil.packXmlStr(responseCD) + "]");
+	
+			//给变量的变量赋值，报文反格式化时使用
+			initMsgHead(1, context);
+			
+			
+			//反格式化报文头
+			msgFormat = context.getFormat("PAESBHEAD_O");
+			msgFormat.unFormat(responseCD, context);
+
+			//反格式化报文体
+			msgFormat = context.getFormat(trxCode + "_O");
+			msgFormat.unFormat(responseCD, context);
+	
+			afterSendData(context, requestCD, responseCD);
+		}
+		catch (Exception e) {
+			throw new EMPException("请求报文发送到ESB失败", e);
+		}
+
+		if (!checkResult(context, responseCD))
+		{
+			String tmpRetCode = null, tmpRetMsg = null , tmpSeq = null,  errMsg = "";
+
+			if (responseCD == null) {
+				tmpRetCode = "P0022O9999";
+				tmpRetMsg = "未知错误";
+				tmpSeq = "";
+			}
+			else {
+				Array retArray = responseCD.getStruct("SYS_HEAD").getArray("RET");				
+				for (int k = 0; k < retArray.size(); k++)
+				{							
+					tmpRetCode = retArray.getStruct(k).getField("RET_CODE").strValue();
+					tmpRetMsg = retArray.getStruct(k).getField("RET_MSG").strValue();
+					
+					if (tmpRetCode != null && !"".equals(tmpRetCode))
+						errMsg = errMsg + "错误码[" + tmpRetCode + "],错误信息[" + tmpRetMsg +"]；";
+				}
+				
+				tmpSeq = responseCD.getStruct("SYS_HEAD").getField("CONSUMER_SEQ_NO").strValue();
+			}
+			if (throwExceptionFlag) {
+				throw new SFException("P0022O001", "ESB调用失败!" + errMsg + "交易流水["+tmpSeq+"]");
+			}
+
+			return "-1";
+		}
+		
+		//inOutDTO是用于冲正的。这个对象中保存了发送的报文，应答的报文，发送时或解完包后的的context
+		//判断是否要冲正，请使用接口的报文，context只是一个参考，删除断点时使用context的内容删除。有问题请咨询沈东杰
+		//在最后面保存一下，如果没保存上，使用当前的context进行冲正，完美
+		if (inOutDTO != null){
+			//这里没有调用context的clone方法，因为释放比较困难，有可能漏调terminate()
+			Context tmpContext = new Context(context.getName());
+			tmpContext.setDataElement((DataElement)context.getDataElement().clone());
+			tmpContext.setParentContextName(context.getParentContextName());
+			if(context.getParent() != null)
+				tmpContext.setParent(context.getParent());
+			
+			inOutDTO.put("_ESB_INDTO_CONTEXT", tmpContext);
+		}
+		return "0";
+	}
+	
+	
+	
+	/**
+	 * 获得主机接口名称。
+	 * 
+	 * @return 主机接口名称
+	 */
+	public String getTranCode() {
+		return trxCode;
+	}
+
+	/**
+	 * 设置主机接口名称。
+	 * 
+	 * @param name 主机接口名称
+	 */
+	public void setTranCode(String trxCode) {
+		this.trxCode = trxCode;
+	}
+
+	/**
+	 * 注入该接口失败是否抛出错误标志。
+	 * 
+	 * @param reversalFlag 抛错标志
+	 */
+	public void setThrowExceptionFlag(boolean throwExceptionFlag)
+	{
+		this.throwExceptionFlag = throwExceptionFlag;
+	}
+	
+	/**
+	 * 获得该接口失败是否抛出错误标志。
+	 * 
+	 */
+	public boolean getThrowExceptionFlag()
+	{
+		return this.throwExceptionFlag;
+	}
+
+	/**
+	 * 注入该接口输入输出的数据区域(KeyedCollection)的名称。
+	 * 
+	 * @param inOutDataArea输入输出的数据区域(KeyedCollection)的名称
+	 */
+	public void setInOutDataArea(String inOutDataArea)
+	{
+		this.inOutDataArea = inOutDataArea;
+	}
+
+	/**
+	 * 获取该接口输入输出的数据区域(KeyedCollection)的名称。
+	 * 
+	 */
+	public String getInOutDataArea()
+	{
+		return this.inOutDataArea;
+	}
+	
+	/**
+	 * 生成该接口输入输出对象，放入context中。
+	 * 
+	 */
+	public Object genInOutDTO(Context context) throws SFException
+	{
+		Map inOutDTO = new HashMap();
+		context.remove(AccessConstance.PBank_ESB_INOUTDTONAME);
+
+		try {
+			//context.addDataField(PBankConstance.PBank_ESB_INOUTDTONAME, inOutDTO);
+		}
+		catch(Exception e) {
+			throw new SFException("生成冲正体系的报文输入输出数据传输对象", e);
+		}
+		
+		return inOutDTO;
+	}
+
+	/**
+	 * 初始化报文头内容。
+	 * 
+	 */
+	public void initMsgHead(int type, Context context) throws Exception
+	{
+		String[] tmpStrings = null;
+		String tmpName = null;
+		
+		for (int i = 0; i < 16; i++) {
+			context.remove("_ESB_PARAM_" + i);
+			context.addDataField("_ESB_PARAM_" + i, "");
+		}
+
+		int index = inOutDataArea.indexOf('|');
+		if (type == 0) {
+			//输入参数初始化
+			if (inOutDataArea.length() > index && index > 0)
+				tmpName = inOutDataArea.substring(0, index);
+		}
+		else {
+			//输出参数初始化
+			if (inOutDataArea.length() > index && index > 0)
+				tmpName = inOutDataArea.substring(index+1);
+		}
+		tmpStrings = tmpName.split(";");
+
+		for (int i = 0; i < tmpStrings.length; i++) {
+			context.remove("_ESB_PARAM_" + i);
+			context.addDataField("_ESB_PARAM_" + i, tmpStrings[i]);
+		}
+	}
+	
+	/**
+	 * 获取TcpIp服务名称。
+	 * 
+	 */
+	public String getTcpipServiceName() {
+		return tcpipServiceName;
+	}
+
+	/**
+	 * 设置TcpIp服务名称。
+	 * 
+	 */
+	public void setTcpipServiceName(String tcpipServiceName) {
+		this.tcpipServiceName = tcpipServiceName;
+	}
+
+	/**
+	 * 获取传输字符集代码。
+	 * 
+	 */
+	public String getEncoding() {
+		return encoding;
+	}
+
+	/**
+	 * 设置传输字符集代码。
+	 * 
+	 */
+	public void setEncoding(String encoding) {
+		this.encoding = encoding;
+	}
+	
+	/**
+	 * 注入是否将报文记录到数据库的标志。
+	 * 
+	 * @param saveInDatabase 是否将报文记录到数据库的标志
+	 */
+	public void setSaveInDatabase(boolean saveInDatabase)
+	{
+		this.saveInDatabase = saveInDatabase;
+	}
+
+	/**
+	 * 获取是否将报文记录到数据库的标志。
+	 * 
+	 */
+	public boolean getSaveInDatabase()
+	{
+		return this.saveInDatabase;
+	}
+}

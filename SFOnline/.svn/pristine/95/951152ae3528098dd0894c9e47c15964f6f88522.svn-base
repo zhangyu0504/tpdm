@@ -1,0 +1,87 @@
+package module.batch;
+
+import java.sql.Connection;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import module.bean.AgtAgentInfo;
+import module.bean.Holiday;
+import module.bean.Param;
+import module.cache.ParamCache;
+import module.dao.AgtAgentInfoDao;
+import module.dao.HolidayDao;
+import module.dao.HolidayDateDao;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.communication.tcpip.ListenCobankPort;
+import core.log.SFLogger;
+import core.schedule.ScheduleActionInterface;
+
+/**
+ * (轮询)监测直联合作行IP端口是否有效
+ * 
+ * 功能描述： 每分钟执行一次，若发现合作行网络异常，则更新合作行状态为不可用
+ * 
+ * @author 李其聪
+ *
+ */
+public class T800040 implements ScheduleActionInterface {
+
+	@Override
+	public boolean init( Context context ) throws SFException {
+		return true;
+	}
+
+	@Override
+	public void execute( Context context ) throws SFException {
+		Connection tranConnection = null;
+		SFLogger.info( context, "监测直联合作行IP端口开始" );
+		try {
+			// 物理日期
+			String macDate = DateUtil.getMacDate();
+			tranConnection = DBHandler.getConnection( context );
+			
+			Holiday holiday = new HolidayDao().qryHoliday( context, tranConnection, macDate );
+			
+			if( holiday != null && SFConst.HOLIDAY_YES.equals(holiday.getHoliDayFlag())) {// 当天是节假日，不监控
+				SFLogger.info( context, "假日不监控" );
+				return;
+			}
+			
+			// 获取连接
+			Param param = ParamCache.getValue("COBANK", "CONNECTIVITY");//获得监控参数
+			List<AgtAgentInfo> al = new AgtAgentInfoDao().qryAgtAgentInfoZLList(context, tranConnection);//查询需监控的合作行--直联
+			if(null == al || al.isEmpty()){
+				SFLogger.info( context, "不存在需要监控的合作行" );
+				SFLogger.info( context, "监测直联合作行IP端口结束" );
+				return;
+			}
+			ExecutorService exe = Executors.newFixedThreadPool(al.size());//建立进程池
+			for(AgtAgentInfo a : al){
+				ListenCobankPort lc = new ListenCobankPort(context,a.getBankId(),a.getBankIp(),Integer.valueOf(a.getBankPort()),Integer.valueOf(param.getValue()),Integer.valueOf(param.getValue1()));
+				exe.execute(lc);//运行监测进程
+			}
+			exe.shutdown();//在所有线程执行完毕后关闭线程池
+			while (true) {  
+				if (exe.isTerminated()) {  
+					break;  
+				}
+				Thread.sleep(2000);  
+			}
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e1 ) {
+			SFUtil.chkCond( context, "ST4895", e1.getMessage() );
+		} finally {
+			DBHandler.releaseConnection( context, tranConnection );
+		}
+		SFLogger.info( context, "监测直联合作行IP端口结束" );
+	}
+}

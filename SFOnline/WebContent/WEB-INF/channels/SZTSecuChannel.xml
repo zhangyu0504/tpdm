@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+<servletContext>
+
+	<TCPIPService id="11009" keyInputName="Acmt00901" formatInput="Acmt.009.01" formatOutput="Acmt.010.01" tranCode='100301' className="module.trans.secu2sf.T100301"/>
+	<TCPIPService id="11005" keyInputName="Acmt00501" formatInput="Acmt.005.01" formatOutput="Acmt.006.01" tranCode='100104' className="module.trans.secu2sf.T100104"/>
+	<TCPIPService id="11002" keyInputName="Acmt00101" formatInput="Acmt.001.01" formatOutput="Acmt.002.01" tranCode='100100' className="module.trans.secu2sf.T100100"/>
+	<TCPIPService id="11001" keyInputName="Acmt00101" formatInput="Acmt.001.01" formatOutput="Acmt.002.01" tranCode='100100' className="module.trans.secu2sf.T100100"/>
+	<TCPIPService id="11013" keyInputName="Acmt00101" formatInput="Acmt.001.01" formatOutput="Acmt.002.01" tranCode='100100' className="module.trans.secu2sf.T100100"/>
+	<TCPIPService id="11003" keyInputName="Acmt00101" formatInput="Acmt.001.01" formatOutput="Acmt.002.01" tranCode='100100' className="module.trans.secu2sf.T100100"/>
+	<TCPIPService id="31002" keyInputName="Acmt00101" formatInput="Acmt.001.01" formatOutput="Acmt.002.01" tranCode='100100' className="module.trans.secu2sf.T100100"/>
+	<TCPIPService id="11004" keyInputName="Acmt00301" formatInput="Acmt.003.01" formatOutput="Acmt.004.01" tranCode='100101' className="module.trans.secu2sf.T100101"/>
+	<TCPIPService id="10001" keyInputName="Sysm00101" formatInput="Sysm.001.01" formatOutput="Sysm.002.01" tranCode='100120' className="module.trans.secu2sf.T100120"/>
+	<TCPIPService id="10002" keyInputName="Sysm00101" formatInput="Sysm.001.01" formatOutput="Sysm.002.01" tranCode='100120' className="module.trans.secu2sf.T100120"/>
+	
+	<TCPIPService id="12001" keyInputName="Trf00101" formatInput="Trf.001.01" formatOutput="Trf.002.01" tranCode='100200' className="module.trans.secu2sf.T100200"/>
+	<TCPIPService id="12002" keyInputName="Trf00101" formatInput="Trf.001.01" formatOutput="Trf.002.01" tranCode='100201' className="module.trans.secu2sf.T100201"/>
+
+	<!-- 深证通服务端配置 -->
+	<TCPIPService id="12003" keyInputName="Trf00301" formatInput="Trf.003.01" formatOutput="Trf.004.01" tranCode='100202' className="module.trans.secu2sf.T100202"/>
+	<TCPIPService id="12004" keyInputName="Trf00301" formatInput="Trf.003.01" formatOutput="Trf.004.01" tranCode='100203' className="module.trans.secu2sf.T100203"/>
+	
+	<TCPIPService id="12006" keyInputName="Trf00701" formatInput="Trf.007.01" formatOutput="Trf.008.01" tranCode='100105' className="module.trans.secu2sf.T100105"/>
+
+
+	<TCPIPService id="11006" keyInputName="Acmt00701" formatInput="Acmt.007.01" formatOutput="Acmt.008.01" />	
+	<TCPIPService id="11012" keyInputName="Acmt00101" formatInput="Acmt.001.01" formatOutput="Acmt.002.01" />	
+	<TCPIPService id="31001" keyInputName="Acmt00101" formatInput="Acmt.001.01" formatOutput="Acmt.002.01" />	
+	<TCPIPService id="11008" keyInputName="Acmt00901" formatInput="Acmt.009.01" formatOutput="Acmt.010.01" />
+	<TCPIPService id="11007" keyInputName="Acmt00901" formatInput="Acmt.009.01" formatOutput="Acmt.010.01" />	
+	<TCPIPService id="11010" keyInputName="Acmt00101" formatInput="Acmt.001.01" formatOutput="Acmt.002.01" />	
+
+	
+	
+	
+	
+</servletContext>

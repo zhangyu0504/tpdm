@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="GB2312"?>
+<!-- 
+	 ====================================================================== 
+     sisal product                                                      
+     ====================================================================== 
+-->
+     
+<project name="sisalwar" default="packapp">
+	<property name="target" value="./WebContent"/>
+	<property name="projectName" value=""/>
+	<property name="destPath" value=""/>
+	<target name="packapp">
+		<war warfile="${destPath}/${projectName}.war" webxml="${target}/WEB-INF/web.xml">
+			<fileset dir="${target}">
+				<include name="**/*.*"/>
+			</fileset>		
+		</war>		
+	</target>
+</project>

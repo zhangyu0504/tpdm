@@ -1,0 +1,85 @@
+package module.trans;
+
+
+import java.util.Map;
+
+import module.bean.Trans;
+import module.cache.TransCache;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.cache.CacheMap;
+import core.log.SFLogger;
+
+/**
+ * 公共跳转类
+ * @author 邹磊
+ *
+ */
+public class TranHandler{
+	/**
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	public static void doHandle(Context context) throws SFException{
+		//SFLogger.info(context,"公共交易处理类模型执行开始");
+		String txCode=SFUtil.getDataValue(context, SFConst.PUBLIC_TX_CODE);//获取交易编码		
+		try {
+			String tranClass = SFUtil.getDataValue(context,"CLASS_NAME"); 
+			
+			TranBase tranBase = (TranBase)Class.forName(tranClass).newInstance();
+			/*
+			 * 计算当前交易的连接数:接收请求时增加在线计录数
+			 */
+			Map<String,Integer> mapTrad=CacheMap.getCache(SFConst.SYS_CACHE_TRAD);
+			synchronized (mapTrad) {
+				Integer tradReqNum=mapTrad.get(txCode);//请求记录数
+				if(tradReqNum!=null){
+					tradReqNum=tradReqNum+1;
+				}else{
+					tradReqNum=1;
+				}
+				mapTrad.put(txCode, tradReqNum);//增加请求记录数
+				/*
+				 * 在线最大连接限制
+				 */
+				Trans trans = TransCache.getValue(txCode);
+				if (trans!=null){
+					if(trans.getMaxProc()!=0&&trans.getMaxProc()<tradReqNum){
+						SFUtil.chkCond( context, "ST5798","当前交易已经超过最大请求数！");
+					}
+				}
+				SFLogger.info(context,String.format("[%s]在线人数[%s]",txCode,tradReqNum));
+			}
+			tranBase.execute(context);	
+		} catch (InstantiationException e) {
+			SFLogger.error(context,e);
+			throw new SFException(e);
+		} catch (IllegalAccessException e) {
+			SFLogger.error(context,e);
+			throw new SFException(e);
+		} catch (ClassNotFoundException e) {
+			SFLogger.error(context,e);
+			throw new SFException(e);
+		}finally{
+			/*
+			 * 计算当前交易的连接数:请求结束时释放在线计录数
+			 */
+			Map<String,Integer> mapTrad=CacheMap.getCache(SFConst.SYS_CACHE_TRAD);
+			synchronized (mapTrad) {
+				Integer reqNum=mapTrad.get(txCode);//请求记录数
+				if(reqNum!=null&&reqNum>1){
+					reqNum=reqNum-1;
+				}else{
+					reqNum=0;
+				}
+				mapTrad.put(txCode, reqNum);
+			}
+		}
+		//SFLogger.info(context,"公共交易处理类模型执行结束");		
+	}
+}

@@ -1,0 +1,695 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+<formats.xml>
+
+	<fmtDef id="C_REQUEST_HEAD" len="736">
+		<record>
+			<FixedLenFormat len="64" dataName="pkID" aligment="left"></FixedLenFormat>
+			<FixedLenFormat len="64" dataName="CorrpkID" aligment="left" />
+			<FixedLenFormat len="32" dataName="sourceUserID"
+				aligment="left" />
+			<FixedLenFormat len="32" dataName="sourceAppID"
+				aligment="left" />
+			<FixedLenFormat len="32" dataName="destUserID"
+				aligment="left" />
+			<FixedLenFormat len="256" dataName="UserData1"
+				aligment="left" />
+			<FixedLenFormat len="256" dataName="UserData2"
+				aligment="left" />
+		</record>
+	</fmtDef>
+
+
+	<fmtDef id="C_RESPONSE_HEAD" len="736">
+		<record>
+			<FixedLenFormat len="64" dataName="pkID" aligment="left"></FixedLenFormat>
+			<FixedLenFormat len="64" dataName="CorrpkID" aligment="left" />
+			<FixedLenFormat len="32" dataName="sourceUserID"
+				aligment="left" />
+			<FixedLenFormat len="32" dataName="sourceAppID"
+				aligment="left" />
+			<FixedLenFormat len="32" dataName="destUserID"
+				aligment="left" />
+			<FixedLenFormat len="256" dataName="UserData1"
+				aligment="left" />
+			<FixedLenFormat len="256" dataName="UserData2"
+				aligment="left" />
+		</record>
+	</fmtDef>
+
+
+
+	<fmtDef id="MsgHdr" formatType="xml">
+		<XMLKC id="MsgHdr" kCollName="MsgHdr">
+			<XMLField id="Ver" dataName="Ver" />
+			<XMLField id="SysType" dataName="SysType" />
+			<XMLField id="InstrCd" dataName="InstrCd" />
+			<XMLField id="TradSrc" dataName="TradSrc" />
+			<XMLKC id="Sender" kCollName="Sender">
+
+				<XMLField id="InstType" dataName="InstType" />
+				<XMLField id="InstId" dataName="InstId" />
+				<!--<XMLField id="InstNm" dataName="InstNm" />
+				<XMLField id="BrchId" dataName="BrchId" />
+				<XMLField id="BrchNm" dataName="BrchNm" />
+				<XMLField id="SubBrchId" dataName="SubBrchId" />
+				<XMLField id="SubBrchNm" dataName="SubBrchNm" />
+			--></XMLKC>
+			<XMLKC id="Recver" kCollName="Recver">
+				<XMLField id="InstType" dataName="InstType" />
+				<XMLField id="InstId" dataName="InstId" />
+				<XMLField id="BrchId" dataName="BrchId" />
+				<!--<XMLField id="InstNm" dataName="InstNm" />
+				<XMLField id="BrchNm" dataName="BrchNm" />
+				<XMLField id="SubBrchId" dataName="SubBrchId" />
+				<XMLField id="SubBrchNm" dataName="SubBrchNm" />
+			--></XMLKC>
+			<XMLField id="Date" dataName="Date" />
+			<XMLField id="Time" dataName="Time" />
+			<XMLKC id="Ref" kCollName="Ref">
+				<XMLField id="Ref" dataName="Ref" />
+				<XMLField id="IssrType" dataName="IssrType" />
+				<!--<XMLField id="RefIssr" dataName="RefIssr" />
+			--></XMLKC>
+			<XMLKC id="RltdRef" kCollName="RltdRef">
+				<XMLField id="Ref" dataName="Ref" />
+				<XMLField id="IssrType" dataName="IssrType" /><!--200200需保留-->
+			<!--	<XMLField id="RefIssr" dataName="RefIssr" />
+			--></XMLKC>
+			<XMLField id="LstFrag" dataName="LstFrag" />
+		</XMLKC>
+	</fmtDef>
+
+
+
+
+	<!-- 开户(Acmt.001.01) 1. 客户指定存管银行（业务功能码：11001）。 2. 预指定存管银行（业务功能码：11002）。 
+		3. 预指定存管银行确认（业务功能码：11003）。 4. 登记币种信息（业务功能码:11010） -->
+	<fmtDef id="Acmt.001.01" formatType="xml">
+		<XMLKC id="Acmt.001.01" kCollName="Acmt00101">
+			<XMLKC id="BookRef" kCollName="BookRef">
+				<XMLField id="Ref" dataName="Ref" />
+			</XMLKC><!-- 平安证券新增预约号 -->
+			<XMLField id="UEAppntID" kCollName="UEAppntID"/>
+			<XMLKC id="Recom" kCollName="Recom">
+				<XMLField id="RemmCode" dataName="RemmCode" />
+			</XMLKC><!-- 平安证券新增推荐人 -->
+			<XMLKC id="Cust" kCollName="Cust">
+				<XMLField id="Name" dataName="INV_NAME" />
+				<XMLField id="CertType" dataName="ID_TYPE_SZT" />
+				<XMLField id="CertId" dataName="INV_ID_CODE" />
+				<XMLField id="Type" dataName="INV_TYPE_SZT" />
+				<XMLField id="Addr" dataName="ADDR" />
+				<XMLField id="PstCd" dataName="ZIP" />
+				<XMLField id="Email" dataName="EMAIL_ADDR" />
+				<XMLField id="Fax" dataName="FAX" />
+				<XMLField id="Mobile" dataName="MOBILE" />
+				<XMLField id="Tel" dataName="PHONE" />
+				<XMLField id="Gender" dataName="SEX" />
+				<XMLField id="Ntnl" dataName="NATIONALITY" />
+			</XMLKC>
+			<XMLKC id="Agt" kCollName="Agt">
+				<XMLField id="Name" dataName="TRN_NAME" />
+				<XMLField id="CertType" dataName="TRN_ID_TYPE" />
+				<XMLField id="CertId" dataName="TRN_ID_CODE" />
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstNum" dataName="InstNum" />
+				</XMLKC>
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstType" dataName="SEC_COMP_TYPE" value="S" />
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLKC id="ScBal" kCollName="ScBal">
+				<XMLField id="Bal" dataName="BEGIN_BAL" value="0.00" />
+			</XMLKC>
+			<XMLField id="Dgst" dataName="Dgst" />
+<!--			<XMLField id="LegalName" dataName="LEGAL_NAME" />-->
+<!--			<XMLField id="LegalIdCode" dataName="LEGAL_ID_TYPE" />-->
+		</XMLKC>
+	</fmtDef>
+	<!-- 开户回执(Acmt.002.01) -->
+	<fmtDef id="Acmt.002.01" formatType="xml">
+		<XMLKC id="Acmt.002.01" kCollName="Acmt00201">
+			<XMLKC id="Rst" kCollName="Rst">
+				<XMLField id="Code" dataName="RESP_CODE" />
+				<XMLField id="Info" dataName="RESP_MSG" />
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLKC id="ScBal" kCollName="ScBal">
+				<XMLField id="Bal" dataName="BEGIN_BAL" />
+			</XMLKC>
+			<XMLField id="CashExCd" dataName="CashExCd" />
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+				<XMLField id="Type" dataName="TYPE" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstType" dataName="SEC_COMP_TYPE" value="S" />
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<!--<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			--></XMLKC>
+
+			<XMLField id="Dgst" dataName="DGST" />
+		</XMLKC>
+	</fmtDef>
+	<!-- 销户消息(Acmt.003.01) 1. 撤销存管银行（业务功能码：11004） -->
+	<fmtDef id="Acmt.003.01" formatType="xml">
+		<XMLKC id="Acmt.003.01" kCollName="Acmt00301">
+			<XMLKC id="Cust" kCollName="Cust">
+				<XMLField id="Name" dataName="INV_NAME" />
+				<XMLField id="CertType" dataName="ID_TYPE_SZT" />
+				<XMLField id="CertId" dataName="INV_ID_CODE" />
+				<XMLField id="Type" dataName="INV_TYPE_SZT" />
+				<XMLField id="Gender" dataName="SEX" />
+				<XMLField id="Ntnl" dataName="NATIONALITY" />
+				<XMLField id="Addr" dataName="ADDR" />
+				<XMLField id="PstCd" dataName="ZIP" />
+				<XMLField id="Email" dataName="EMAIL_ADDR" />
+				<XMLField id="Fax" dataName="FAX" />
+				<XMLField id="Mobile" dataName="MOBILE" />
+				<XMLField id="Tel" dataName="PHONE" />
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstType" dataName="SEC_COMP_TYPE" value="S" />
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLKC id="ScBal" kCollName="ScBal">
+				<XMLField id="Bal" dataName="BEGIN_BAL" />
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLField id="LegalName" dataName="LEGAL_NAME" />
+			<XMLField id="LegalIdCode" dataName="LEGAL_ID_TYPE" />
+		</XMLKC>
+	</fmtDef>
+	<!-- 销户回执(Acmt.004.01) -->
+	<fmtDef id="Acmt.004.01" formatType="xml">
+		<XMLKC id="Acmt.004.01" kCollName="Acmt00401">
+			<XMLKC id="Rst" kCollName="Rst">
+				<XMLField id="Code" dataName="RESP_CODE" />
+				<XMLField id="Info" dataName="RESP_MSG" />
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLKC id="ScBal" kCollName="ScBal">
+				<XMLField id="Bal" dataName="BEGIN_BAL" />
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLField id="Dgst" dataName="DGST" />
+		</XMLKC>
+	</fmtDef>
+	<!-- 账户修改(Acmt.005.01) 1. 变更客户资料（业务功能码：11005） -->
+	<fmtDef id="Acmt.005.01" formatType="xml">
+		<XMLKC id="Acmt.005.01" kCollName="Acmt00501">
+			<XMLKC id="Cust" kCollName="Cust">
+				<XMLField id="Name" dataName="INV_NAME" />
+				<XMLField id="CertType" dataName="ID_TYPE_SZT" />
+				<XMLField id="CertId" dataName="INV_ID_CODE" />
+				<XMLField id="Type" dataName="INV_TYPE_SZT" />
+				<XMLField id="Gender" dataName="SEX" />
+				<XMLField id="Ntnl" dataName="NATIONALITY" />
+				<XMLField id="Addr" dataName="ADDR" />
+				<XMLField id="PstCd" dataName="ZIP" />
+				<XMLField id="Email" dataName="EMAIL_ADDR" />
+				<XMLField id="Fax" dataName="FAX" />
+				<XMLField id="Mobile" dataName="MOBILE" />
+				<XMLField id="Tel" dataName="PHONE" />
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstType" dataName="SEC_COMP_TYPE" value="S" />
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLField id="LegalName" dataName="LEGAL_NAME" />
+			<XMLField id="LegalIdCode" dataName="LEGAL_ID_TYPE" />
+			<XMLField id="TrnName" dataName="TRN_NAME" />
+			<XMLField id="TrnIdCode" dataName="TRN_ID_CODE" />
+			<XMLField id="TrnMobile" dataName="TRN_MOBILE" />
+		</XMLKC>
+	</fmtDef>
+	<!-- 账户修改回执(Acmt.006.01) -->
+	<fmtDef id="Acmt.006.01" formatType="xml">
+		<XMLKC id="Acmt.006.01" kCollName="Acmt00601">
+			<XMLKC id="Rst" kCollName="Rst">
+				<XMLField id="Code" dataName="RESP_CODE" />
+				<XMLField id="Info" dataName="RESP_MSG" />
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLField id="Dgst" dataName="DGST" />
+		</XMLKC>
+	</fmtDef>
+
+	<!-- 账户变更(Acmt.007.01) 1. 变更银行方账户（业务功能码：11006） -->
+	<fmtDef id="Acmt.007.01" formatType="xml">
+		<XMLKC id="Acmt.007.01" kCollName="Acmt00701">
+			<XMLKC id="Recver" kCollName="Recver">
+				<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+				<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+			</XMLKC>
+			<XMLKC id="Cust" kCollName="Cust">
+				<XMLField id="Name" dataName="INV_NAME" />
+				<XMLField id="CertType" dataName="ID_TYPE_SZT" />
+				<XMLField id="CertId" dataName="INV_ID_CODE" />
+				<XMLField id="Type" dataName="INV_TYPE_SZT" />
+<!--				<XMLField id="Gender" dataName="SEX" />-->
+<!--				<XMLField id="Ntnl" dataName="NATIONALITY" />-->
+				<XMLField id="Addr" dataName="ADDR" />
+				<XMLField id="PstCd" dataName="ZIP" />
+				<XMLField id="Email" dataName="EMAIL_ADDR" />
+				<XMLField id="Fax" dataName="FAX" />
+				<XMLField id="Mobile" dataName="MOBILE" />
+				<XMLField id="Tel" dataName="PHONE" />
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstNum" dataName="InstNum" />
+				</XMLKC>
+			</XMLKC>
+			<XMLKC id="NewBkAcct" kCollName="NewBkAcct">
+				<XMLField id="Id" dataName="NEW_ACCT_ID" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstNum" dataName="InstNum" />
+				</XMLKC>
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstType" dataName="SEC_COMP_TYPE" value="S" />
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLField id="Dgst" dataName="DGST" />
+		</XMLKC>
+	</fmtDef>
+	<!-- 账户变更回执(Acmt.008.01) -->
+	<fmtDef id="Acmt.008.01" formatType="xml">
+		<XMLKC id="Acmt.008.01" kCollName="Acmt00801">
+			<XMLKC id="Rst" kCollName="Rst">
+				<XMLField id="Code" dataName="RESP_CODE" />
+				<XMLField id="Info" dataName="RESP_MSG" />
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+		</XMLKC>
+	</fmtDef>
+
+	<!-- 账户查询(Acmt.009.01) 1. 客户身份验证（业务功能码:11007） 2. 查询证券方账户余额（业务功能码：11008） 
+		3. 查询银行方账户余额（业务功能码：11009） -->
+	<fmtDef id="Acmt.009.01" formatType="xml">
+		<XMLKC id="Acmt.009.01" kCollName="Acmt00901">
+			<XMLKC id="Cust" kCollName="Cust">
+				<XMLField id="Name" dataName="INV_NAME" />
+				<XMLField id="CertType" dataName="ID_TYPE_SZT" />
+				<XMLField id="CertId" dataName="INV_ID_CODE" />
+				<XMLField id="Type" dataName="INV_TYPE_SZT" />
+<!--				<XMLField id="Gender" dataName="SEX" />-->
+<!--				<XMLField id="Ntnl" dataName="NATIONALITY" />-->
+<!--				<XMLField id="Addr" dataName="ADDR" />-->
+<!--				<XMLField id="PstCd" dataName="ZIP" />-->
+<!--				<XMLField id="Email" dataName="EMAIL_ADDR" />-->
+<!--				<XMLField id="Fax" dataName="FAX" />-->
+<!--				<XMLField id="Mobile" dataName="MOBILE" />-->
+<!--				<XMLField id="Tel" dataName="PHONE" />-->
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLField id="Dgst" dataName="DGST" />
+		</XMLKC>
+	</fmtDef>
+
+	<!-- 账户查询回执(Acmt.010.01) -->
+	<fmtDef id="Acmt.010.01" formatType="xml">
+		<XMLKC id="Acmt.010.01" kCollName="Acmt01001">
+			<XMLKC id="Rst" kCollName="Rst">
+				<XMLField id="Code" dataName="RESP_CODE" />
+				<XMLField id="Info" dataName="RESP_MSG" />
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLArray id="AcctSvcr" ICollName="AcctSvcr" opCtx="true">
+					<XMLKC id="AcctSvcr">
+						<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+						<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+					</XMLKC>
+				</XMLArray>
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLArray id="ScBal" ICollName="ScBal" opCtx="true">
+				<XMLKC id="ScBal">
+					<XMLField id="Type" dataName="TYPE" />
+					<XMLField id="Bal" dataName="BEGIN_BAL" />
+				</XMLKC>
+			</XMLArray>
+
+
+			<XMLKC id="BkBal" kCollName="BkBal">
+				<XMLField id="Type" dataName="TYPE" />
+				<XMLField id="Bal" dataName="BEGIN_BAL" />
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLField id="Dgst" dataName="DGST" />
+		</XMLKC>
+	</fmtDef>
+
+
+	<!-- 转账（Trf.001.01） 1. 银转证业务（业务功能码：12001） 2. 证转银业务（业务功能码：12002） -->
+	<fmtDef id="Trf.001.01" formatType="xml">
+		<XMLKC id="Trf.001.01" kCollName="Trf00101">
+			<XMLKC id="BookRef" kCollName="BookRef">
+				<XMLField id="Ref" dataName="REF" />
+				<!--<XMLField id="IssrType" dataName="ISSRTYPE" />-->
+				<!--<XMLField id="RefIssr" dataName="REFISSR" />-->
+			</XMLKC>
+			<XMLField id="Resend" dataName="RESEND" />
+			<XMLKC id="Cust" kCollName="Cust">
+				<XMLField id="Name" dataName="INV_NAME" />
+				<XMLField id="CertType" dataName="ID_TYPE_SZT" />
+				<XMLField id="CertId" dataName="INV_ID_CODE" />
+				<XMLField id="Type" dataName="INV_TYPE_SZT" />
+<!--				<XMLField id="Gender" dataName="SEX" />-->
+<!--				<XMLField id="Ntnl" dataName="NATIONALITY" />-->
+<!--				<XMLField id="Addr" dataName="ADDR" />-->
+<!--				<XMLField id="PstCd" dataName="ZIP" />-->
+<!--				<XMLField id="Email" dataName="EMAIL_ADDR" />-->
+<!--				<XMLField id="Fax" dataName="FAX" />-->
+<!--				<XMLField id="Mobile" dataName="MOBILE" />-->
+<!--				<XMLField id="Tel" dataName="PHONE" />-->
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+				<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLField id="TrfAmt" dataName="TX_AMOUNT" />
+			<XMLField id="Dgst" dataName="DGST" />
+		</XMLKC>
+	</fmtDef>
+
+
+	<!-- 转账回执（Trf.002.01） -->
+	<fmtDef id="Trf.002.01" formatType="xml">
+		<XMLKC id="Trf.002.01" kCollName="Trf00201">
+			<XMLKC id="Rst" kCollName="Rst">
+				<XMLField id="Code" dataName="RESP_CODE" />
+				<XMLField id="Info" dataName="RESP_MSG" />
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLField id="TrfAmt" dataName="TX_AMOUNT" />
+			<XMLField id="Dgst" dataName="DGST" />
+		</XMLKC>
+	</fmtDef>
+
+	<!-- 转账冲正（Trf.003.01） 1. 银转证冲正（业务功能码：12003） 2. 证转银冲正（业务功能码：12004） -->
+	<fmtDef id="Trf.003.01" formatType="xml">
+		<XMLKC id="Trf.003.01" kCollName="Trf00301">
+			<XMLKC id="Cust" kCollName="Cust">
+				<XMLField id="Name" dataName="INV_NAME" />
+				<XMLField id="CertType" dataName="ID_TYPE_SZT" />
+				<XMLField id="CertId" dataName="INV_ID_CODE" />
+				<XMLField id="Type" dataName="INV_TYPE_SZT" />
+				<XMLField id="Gender" dataName="SEX" />
+				<XMLField id="Ntnl" dataName="NATIONALITY" />
+				<XMLField id="Addr" dataName="ADDR" />
+				<XMLField id="PstCd" dataName="ZIP" />
+				<XMLField id="Email" dataName="EMAIL_ADDR" />
+				<XMLField id="Fax" dataName="FAX" />
+				<XMLField id="Mobile" dataName="MOBILE" />
+				<XMLField id="Tel" dataName="PHONE" />
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLKC id="CnRef" kCollName="CnRef">
+				<XMLField id="Ref" dataName="ORG_TX_SEQ_ID" />
+				<XMLField id="IssrType" dataName="ORG_TX_ISSRTYPE" />
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLField id="TrfAmt" dataName="TX_AMOUNT" />
+			<XMLField id="Dgst" dataName="DGST" />
+		</XMLKC>
+	</fmtDef>
+
+	<!-- 转账冲正回执（Trf.004.01） -->
+	<fmtDef id="Trf.004.01" formatType="xml">
+		<XMLKC id="Trf.004.01" kCollName="Trf00401">
+			<XMLKC id="Rst" kCollName="Rst">
+				<XMLField id="Code" dataName="RESP_CODE" />
+				<XMLField id="Info" dataName="RESP_MSG" />
+			</XMLKC>
+			<XMLKC id="Recver" kCollName="Recver">
+				<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+				<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+			</XMLKC>
+			<XMLKC id="Ref" kCollName="Ref">
+				<XMLField id="Ref" dataName="SUB_TX_SEQ_ID" />
+			</XMLKC>
+			<XMLKC id="RltdRef" kCollName="RltdRef">
+				<XMLField id="Ref" dataName="SEC_SEQ_ID" />
+			</XMLKC>
+			<XMLKC id="CnRef" kCollName="CnRef">
+				<XMLField id="Ref" dataName="ORG_TX_SEQ_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLField id="TrfAmt" dataName="TX_AMOUNT" />
+		</XMLKC>
+	</fmtDef>
+
+	<!--结息（Trf.007.01） 1. 结息（业务功能码：12006） -->
+	<fmtDef id="Trf.007.01" formatType="xml">
+		<XMLKC id="Trf.007.01" kCollName="Trf00701">
+			<XMLKC id="Cust" kCollName="Cust">
+				<XMLField id="Name" dataName="INV_NAME" />
+				<XMLField id="CertType" dataName="ID_TYPE_SZT" />
+				<XMLField id="CertId" dataName="INV_ID_CODE" />
+				<XMLField id="Type" dataName="INV_TYPE_SZT" />
+				<XMLField id="Gender" dataName="SEX" />
+				<XMLField id="Ntnl" dataName="NATIONALITY" />
+				<XMLField id="Addr" dataName="ADDR" />
+				<XMLField id="PstCd" dataName="ZIP" />
+				<XMLField id="Email" dataName="EMAIL_ADDR" />
+				<XMLField id="Fax" dataName="FAX" />
+				<XMLField id="Mobile" dataName="MOBILE" />
+				<XMLField id="Tel" dataName="PHONE" />
+			</XMLKC>
+			<XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLField id="Tax" dataName="TX_AMOUNT" />
+			<XMLField id="TaxAccr" dataName="AMOUNT_TAX" />
+			<XMLField id="ClrAccrlType" dataName="CLC_ACCRL_TYPE" />
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLField id="Dgst" dataName="DGST" />
+		</XMLKC>
+	</fmtDef>
+
+	<!--结息回执（Trf.008.01） -->
+	<fmtDef id="Trf.008.01" formatType="xml">
+		<XMLKC id="Trf.008.01" kCollName="Trf00801">
+			<XMLKC id="Rst" kCollName="Rst">
+				<XMLField id="Code" dataName="RESP_CODE" />
+				<XMLField id="Info" dataName="RESP_MSG" />
+			</XMLKC>
+			<!--<XMLKC id="RltdRef" kCollName="RltdRef">
+				<XMLField id="Ref" dataName="SEC_SEQ_ID" />
+			</XMLKC>
+			--><XMLKC id="BkAcct" kCollName="BkAcct">
+				<XMLField id="Id" dataName="ACCT_ID" />
+			</XMLKC>
+			<XMLKC id="ScAcct" kCollName="ScAcct">
+				<XMLKC id="AcctSvcr" kCollName="AcctSvcr">
+					<XMLField id="InstId" dataName="SEC_COMP_CODE" />
+					<XMLField id="BrchId" dataName="SEC_BRCH_ID" />
+				</XMLKC>
+				<XMLField id="Id" dataName="CAP_ACCT" />
+				<XMLKC id="Pwd" kCollName="Pwd">
+					<XMLField id="Pwd" dataName="CAP_ACCT_PWD" />
+				</XMLKC>
+			</XMLKC>
+			<XMLField id="Ccy" dataName="CUR_CODE" />
+			<XMLField id="Tax" dataName="TX_AMOUNT" />
+			<XMLField id="TaxAccr" dataName="AMOUNT_TAX" />
+			<XMLField id="ClrAccrlType" dataName="CLC_ACCRL_TYPE" />
+			<XMLField id="Dgst" dataName="DGST" />
+		</XMLKC>
+	</fmtDef>
+
+
+
+	<!--7.1 会话消息（Sysm.001.01） 1. 签到（业务功能码：10001） 2. 签退（业务功能码：10002） 3. 通信检测（业务功能码：10003） 
+		4. 密钥同步（业务功能码：10004） 5. 数据包重发请求（业务功能码：10005） 6. 数据包序号重设（业务功能码：10006） -->
+	<fmtDef id="Sysm.001.01" formatType="xml">
+		<XMLKC id="Sysm.001.01" kCollName="Sysm00101">
+		</XMLKC>
+	</fmtDef>
+
+	<!--会话回执（Sysm.002.01） -->
+	<fmtDef id="Sysm.002.01" formatType="xml">
+		<XMLKC id="Sysm.002.01" kCollName="Sysm00201">
+			<XMLKC id="Rst" kCollName="Rst">
+				<XMLField id="Code" dataName="RESP_CODE" />
+				<XMLField id="Info" dataName="RESP_MSG" />
+			</XMLKC>
+		</XMLKC>
+	</fmtDef>
+
+
+
+
+
+</formats.xml>

@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="GB18030"?>
+
+<settings.xml>
+	<kColl id="settings">
+		<kColl id="files">
+			<field id="data" value="data.xml"/>
+			<field id="format" value="formats.xml"/>
+			<field id="ESBFormat" value="ESBFormats.xml"/>
+			<field id="CobankFormat" value="CobankFormats.xml"/>
+			<field id="ZLSecuFormat" value="ZLSecuFormats.xml"/>
+			<field id="context" value="contexts.xml"/>
+			<field id="service" value="services.xml"/>
+			<field id="operation" value="operations.xml"/>
+			<field id="dataType" value="dataType.xml"/>
+			<field id="dataTypeDef" value="dataTypeDef.xml"/>
+			<field id="mbean" value="mbeans.xml"/>
+			<kColl id="operations"/>
+		</kColl>
+		<kColl id="packages">
+			<kColl id="operations"/>
+			<kColl id="processors"/>
+		</kColl>
+		<kColl id="paths">
+			<field id="entities" value="./"/>
+			<field id="operations" value="operations"/>
+			<field id="hostLogPath" value="hostTranLog"/>
+			<field id="deviceSettings" value="devices"/>
+		</kColl>
+		<kColl id="tags">
+			<kColl id="contexts">
+				<field id="context" description="compound" value="com.ecc.cte.base.Context"/>
+				<field id="refKColl"/>
+				<field id="refService"/>
+			</kColl>
+			<kColl id="data">
+				<field id="field" value="com.ecc.emp.data.DataField"/>
+				<field id="kColl" value="com.ecc.emp.data.KeyedCollection"/>
+				<field id="iColl" value="com.ecc.emp.data.IndexedCollection"/>
+				<field id="refData"/>
+			</kColl>
+			<kColl id="operations">
+				<field id="MCIOperation" value="com.ecc.emp.flow.EMPFlow"/>
+				<field id="ECCServerOperation" value="com.ecc.emp.flow.EMPFlow"/>
+				<field id="EMPBusinessLogic" value="com.ecc.emp.flow.EMPBusinessLogic"/>
+				<field id="operation" value="com.ecc.emp.flow.Operation"/>
+				<field id="input" value="com.ecc.emp.data.KeyedCollection"/>
+				<field id="output" value="com.ecc.emp.data.KeyedCollection"/>
+				<field id="iColl" value="com.ecc.emp.data.IndexedCollection"/>
+				<field id="field" value="com.ecc.emp.data.DataField"/>
+				<field id="flow" value="com.ecc.emp.flow.EMPFlow"/>
+				<field id="transition" value="com.ecc.emp.flow.Transition"/>
+				<field id="kColl" value="com.ecc.emp.data.KeyedCollection"/>
+				<field id="for" value="com.ecc.emp.privilege.ForByIcollAction"/>
+				<field id="insideFlow" value="com.ecc.emp.flow.EMPFlow"/>
+			</kColl>
+			<kColl id="formats">
+				<!-- 系统扩展 -->				
+				<field id="fmtDef" value="core.communication.format.PBankFormatElement"/>
+				<field id="record" value="core.communication.format.KeyedFormat"/>
+				<field id="iColl" value="core.communication.format.IndexedFormat"/>
+				<field id="fString" value="core.communication.format.string.StringFormat"/>
+				<field id="nullCheck" value="core.communication.format.string.NullCheck"/>
+				<field id="delim" value="core.communication.format.string.Delimiter"/>
+				<field id="FixedLenFormat" value="core.communication.format.string.FixedLenFormat"/>
+				<field id="IDStringFormat" value="core.communication.format.string.IDStringFormat"/>
+				<field id="ConstantFormat" value="core.communication.format.string.ConstantFormat"/>
+				<field id="ESBCD" value="core.communication.format.paesb.ESBCDFormat"/>
+				<field id="ESBArray" value="core.communication.format.paesb.ESBArrayFormat"/>
+				<field id="ESBField" value="core.communication.format.paesb.ESBFieldFormat"/>
+				<field id="ESBFieldFlt" value="core.communication.format.paesb.ESBFieldFloatFormat"/>
+				<field id="XMLHead" value="core.communication.format.xml.XMLHeadFormat"/>
+				<field id="XMLKC" value="core.communication.format.xml.XMLWrapFormat"/>
+				<field id="XMLArray" value="core.communication.format.xml.XMLArrayFormat"/>
+				<field id="XMLField" value="core.communication.format.xml.XMLFieldFormat"/>
+				
+				<!-- EMP底层 -->
+				<field id="xmlWrap" value="com.ecc.emp.format.xml.XMLWrapFormat"/>
+				<field id="xmlHead" value="com.ecc.emp.format.xml.XMLHeadTagFormat"/>
+				<field id="xmlIColl" value="com.ecc.emp.format.xml.XMLIndexedFormat"/>
+				<field id="xmlFullTag" value="com.ecc.emp.format.xml.XMLFullTagFormat"/>
+				<field id="xmlTag" value="com.ecc.emp.format.xml.XMLTagFormat"/>
+				<field id="ISO8583PkgFmt" value="com.ecc.emp.format.ISO8583.ISO8583Format"/>
+				<field id="ISO8583Field" value="com.ecc.emp.format.ISO8583.ISO8583Field"/>
+				<field id="xmlConstantTag" value="com.ecc.emp.format.xml.XMLConstantTagFormat"/>
+			</kColl>
+			<kColl id="opSteps"/>
+			<kColl id="services">
+				<field id="resultSet" value="core.jdbc.procedure.ResultSetDefine"/>
+				<field id="JDBCProcedureDefine" value="core.jdbc.procedure.JDBCProcedureDefine"/>
+				<field id="SFSqlDefine" value="common.services.SQLDefine"/>
+				<field id="input" value="com.ecc.emp.jdbc.sql.SQLParameterCollection"/>
+				<field id="output" value="com.ecc.emp.jdbc.sql.SQLParameterCollection"/>
+				<field id="JDBCSQLDef" value="com.ecc.emp.jdbc.sql.JDBCSQLDef"/>
+				<field id="param" value="core.jdbc.sql.SQLParameter"/>
+				<field id="QParam" value="core.jdbc.sql.SQLQueryParameter"/>
+				<field id="DataSourceTransactionManager" value="com.ecc.emp.transaction.DataSourceTransactionManager"/>
+				<field id="JTATransactionManager" value="com.ecc.emp.transaction.JTATransactionManager"/>
+				<field id="JDBCDriverDataSource" value="com.ecc.emp.jdbc.JDBCDriverDataSource"/>
+				<field id="JNDIDataSource" value="com.ecc.emp.jdbc.JNDIDataSource"/>
+				<field id="JDBCSQLExecService" value="com.ecc.emp.jdbc.sql.JDBCSQLExecService"/>
+				<field id="JDBCTableService" value="com.ecc.emp.jdbc.table.JDBCTableService"/>
+				<field id="column" value="com.ecc.emp.jdbc.table.TableColumn"/>
+				<field id="QuartzScheduleManager" value="com.ecc.emp.schedule.quartz.EMPQuartzScheduleManager"/>
+				<field id="CommonjScheduleManager" value="com.ecc.emp.schedule.EMPCommonJScheduleManager"/>
+				<field id="scheduledJob" value="com.ecc.emp.schedule.EMPScheduledJob"/>
+				<field id="timmerManagerResource" value="com.ecc.emp.schedule.commonj.TimerManagerResource"/>
+				<field id="workManagerResource" value="com.ecc.emp.schedule.commonj.WorkManagerResource"/>
+				<field id="simpleTimerJob" value="com.ecc.emp.schedule.EMPSimpleTimerScheduledJob"/>
+				<field id="cronTimerJob" value="com.ecc.emp.schedule.EMPCronTimerScheduledJob"/>
+				<field id="simpleTimer" value="com.ecc.emp.schedule.EMPSimpleTimerSchedule"/>
+				<field id="cronTimer" value="com.ecc.emp.schedule.EMPCronTimerSchedule"/>
+				<field id="empFlowJob" value="com.ecc.emp.schedule.EMPFlowExecuteWork"/>
+				<field id="EMPClassMethodInvorkWork" value="com.ecc.emp.schedule.EMPClassMethodInvorkWork"/>
+				<field id="TimerScheduleManager" value="com.ecc.emp.schedule.timer.EMPTimerScheduleManager"/>
+				<field id="JDBCBatchSQLService" value="com.ecc.emp.jdbc.batchsql.JDBCBatchSQLService"/>
+			</kColl>
+		</kColl>
+		<!-- SQL文件定义 -->
+		<kColl id="SF">
+			<kColl id="files">
+				<kColl id="sfSqlDefines">
+					<!--<field id="sysCache" value="SF_SqlDefine_SysCache.xml"/>-->
+					<field id="schedule" value="SF_SqlDefine_SCHEDULE.xml"/>
+				</kColl>
+			</kColl>
+			<!-- 引用服务 -->
+			<kColl id="servicesname">
+				<field id="factoryname" value="SFOnline"/>
+				<field id="datasourcename" value="tbpmdatasource0"/>
+				<field id="sqlexecservice" value="sfsqlexecservice0"/>
+				<field id="gencontextbysql" value="sfgencontextbysql0"/>
+				<field id="expresscalculate" value="sfexpresscalculate0"/>
+				<field id="sfprocedureservice" value="sfprocedureaccessservice0"/>
+				<field id="ftpFileService" value="ftpFileService"/>
+				<field id="cacheManagerService" value="cacheManagerService"/>
+				<field id="publicservice" value="publicservice0"/>
+			</kColl>
+			<!-- 报文格式定义文件 -->
+			<kColl id="ESBformats">
+				<!-- ESB报文头 -->
+				<field id="PAESBHEAD_I" value="PAESBHEAD_I"/>
+				<field id="PAESBHEAD_O" value="PAESBHEAD_O"/>
+				
+				<!-- 服务端接口 -->
+				<field id="09001000003_70_I" value="09001000003_70_I"/><field id="09001000003_70_O" value="09001000003_70_O"/><!-- 零售客户银转证 -->			
+				<field id="09001000003_04_I" value="09001000003_04_I"/><field id="09001000003_04_O" value="09001000003_04_O"/><!-- 对公客户银转证 -->	
+				<field id="09001000004_70_I" value="09001000004_70_I"/><field id="09001000004_70_O" value="09001000004_70_O"/><!-- 零售客户证转银 -->			
+				<field id="09001000004_03_I" value="09001000004_03_I"/><field id="09001000004_03_O" value="09001000004_03_O"/><!-- 对公客户证转银 -->	
+				<field id="04002000002_23_I" value="04002000002_23_I"/><field id="04002000002_23_O" value="04002000002_23_O"/><!-- 零售客户开户预约-->
+				<field id="09002000002_72_I" value="09002000002_72_I"/><field id="09002000002_72_O" value="09002000002_72_O"/>		
+				<field id="09002000002_37_I" value="09002000002_37_I"/><field id="09002000002_37_O" value="09002000002_37_O"/>
+				<field id="09002000002_75_I" value="09002000002_75_I"/><field id="09002000002_75_O" value="09002000002_75_O"/><!-- 零售客户变更银行结算帐号 -->
+				<field id="09002000002_38_I" value="09002000002_38_I"/><field id="09002000002_38_O" value="09002000002_38_O"/><!-- 对公客户变更银行结算帐号 -->
+				<field id="09002000002_74_I" value="09002000002_74_I"/><field id="09002000002_74_O" value="09002000002_74_O"/><!-- 预约撤销 -->
+				<field id="11003000007_70_I" value="11003000007_70_I"/><field id="11003000007_70_O" value="11003000007_70_O"/><!-- 查询签约关系（零售） -->
+				<field id="09003000001_74_I" value="09003000001_74_I"/><field id="09003000001_74_O" value="09003000001_74_O"/><!-- 查询签约关系（对公） -->
+				<field id="11003000003_75_I" value="11003000003_75_I"/><field id="11003000003_75_O" value="11003000003_75_O"/><!-- 查询资金台帐余额（零售） -->
+				<field id="09003000014_04_I" value="09003000014_04_I"/><field id="09003000014_04_O" value="09003000014_04_O"/><!-- 查询资金台帐余额（对公） -->				
+				<field id="11003000008_71_I" value="11003000008_71_I"/><field id="11003000008_71_O" value="11003000008_71_O"/><!-- 查询交易明细（零售） -->
+				<field id="09003000006_87_I" value="09003000006_87_I"/><field id="09003000006_87_O" value="09003000006_87_O"/><!-- 查询交易明细（对公） -->
+				<field id="09003000007_71_I" value="09003000007_71_I"/><field id="09003000007_71_O" value="09003000007_71_O"/><!-- 查询三方存管劵商列表 -->
+				<field id="09003000006_70_I" value="09003000006_70_I"/><field id="09003000006_70_O" value="09003000006_70_O"/><!-- 预约查询-->
+				<field id="11003000007_73_I" value="11003000007_73_I"/><field id="11003000007_73_O" value="11003000007_73_O"/><!-- 一户通查询签约关系-->
+				<field id="09002000002_73_I" value="09002000002_73_I"/><field id="09002000002_73_O" value="09002000002_73_O"/><!-- 银行个人客户预指定 -->
+				<field id="11002000008_61_I" value="11002000008_61_I"/><field id="11002000008_61_O" value="11002000008_61_O"/>
+				<field id="11002000008_62_I" value="11002000008_62_I"/><field id="11002000008_62_O" value="11002000008_62_O"/>
+				<field id="11002000034_32_I" value="11002000034_32_I"/><field id="11002000034_32_O" value="11002000034_32_O"/>
+				<field id="11002000012_70_I" value="11002000012_70_I"/><field id="11002000012_70_O" value="11002000012_70_O"/>
+				<!-- 内部通讯接口 -->
+				<field id="900481_01_I" value="900481_01_I"/><field id="900481_01_O" value="900481_01_O"/>
+				<!-- 消费端接口 -->
+				<field id="G1010_I" value="G1010_I"/><field id="G1010_O" value="G1010_O"/>
+				<field id="G1001_I" value="G1001_I"/><field id="G1001_O" value="G1001_O"/>
+				<field id="R3036_I" value="R3036_I"/><field id="R3036_O" value="R3036_O"/>
+				<field id="R3034_I" value="R3034_I"/><field id="R3034_O" value="R3034_O"/>
+				<field id="C3019_I" value="C3019_I"/><field id="C3019_O" value="C3019_O"/>
+				<field id="BCARD93432_I" value="BCARD93432_I"/><field id="BCARD93432_O" value="BCARD93432_O"/>
+				<field id="BCARD93439_I" value="BCARD93439_I"/><field id="BCARD93439_O" value="BCARD93439_O"/>
+				<field id="C3011_I" value="C3011_I"/><field id="C3011_O" value="C3011_O"/>
+				<field id="M7030_I" value="M7030_I"/><field id="M7030_O" value="M7030_O"/>
+				<field id="M8010_I" value="M8010_I"/><field id="M8010_O" value="M8010_O"/>
+				<field id="R3042_I" value="R3042_I"/><field id="R3042_O" value="R3042_O"/>
+				<field id="C3048_I" value="C3048_I"/><field id="C3048_O" value="C3048_O"/>
+				<field id="M9002_I" value="M9002_I"/>
+				<field id="906166_01_I" value="906166_01_I"/><field id="906166_01_O" value="906166_01_O"/>
+				<field id="906167_01_I" value="906167_01_I"/><field id="906167_01_O" value="906167_01_O"/>
+				<field id="906168_01_I" value="906168_01_I"/><field id="906168_01_O" value="906168_01_O"/>
+				<field id="906169_01_I" value="906169_01_I"/><field id="906169_01_O" value="906169_01_O"/>
+			</kColl>
+			
+			<kColl id="Cobankformats">
+				<!-- 报文头 -->
+				<field id="A_REQUEST_HEAD" value="A_REQUEST_HEAD"/>
+				<field id="A_RESPONSE_HEAD" value="A_RESPONSE_HEAD"/>
+				<!-- 服务端接口 -->
+				<field id="810005_I" value="810005_I"/><field id="810005_O" value="810005_O" /><!-- 查询签约关系 -->
+				<field id="810007_I" value="810007_I"/><field id="810007_O" value="810007_O" /><!-- 签约确认  -->
+				<field id="810006_I" value="810006_I"/><field id="810006_O" value="810006_O" /><!-- 修改客户信息 -->
+				<field id="810009_I" value="810009_I"/><field id="810009_O" value="810009_O" /><!-- 修改客户所属机构 -->
+				<field id="810004_I" value="810004_I"/><field id="810004_O" value="810004_O" /><!-- 变更结算帐号 -->
+				<field id="810010_I" value="810010_I"/><field id="810010_O" value="810010_O" /><!-- 银转证 -->
+				<field id="810002_I" value="810002_I"/><field id="810002_O" value="810002_O" /><!-- 证转银 -->
+				<field id="810011_I" value="810011_I"/><field id="810011_O" value="810011_O" /><!-- 资金预警设置 -->
+				<field id="810001_I" value="810001_I"/><field id="810001_O" value="810001_O" /><!-- 查询证券资金 -->
+				<field id="810003_I" value="810003_I"/><field id="810003_O" value="810003_O" /><!-- 查询交易明细 -->
+				<field id="810008_I" value="810008_I"/><field id="810008_O" value="810008_O" /><!-- 查询流水处理情况-->
+				<field id="812436_I" value="812436_I"/><field id="812436_O" value="812436_O" /><!-- 行E通发起增删改查合作行信息-->
+				<field id="888888_I" value="888888_I"/><field id="888888_O" value="888888_O"/><!-- IoMoney测试 -->
+				<!-- 消费端接口 -->		 
+				<field id="810022_I" value="810022_I"/><field id="810022_O" value="810022_O" /><!-- 资金划转 -->
+				<field id="810024_I" value="810024_I"/><field id="810024_O" value="810024_O" /><!-- 资金预警 -->
+				<field id="812431_I" value="812431_I"/><field id="812431_O" value="812431_O" /><!-- 行E通发起查询合作行信息-->
+				<field id="812432_I" value="812432_I"/><field id="812432_O" value="812432_O" /><!-- 行E通发起查询下级机构信息-->
+				<field id="812434_I" value="812434_I"/><field id="812434_O" value="812434_O" /><!-- 行E通发起查询流水处理情况交易-->
+				<field id="810021_I" value="810021_I"/><field id="810021_O" value="810021_O" /><!-- 撤销签约 -->
+				<field id="810026_I" value="810026_I"/><field id="810026_O" value="810026_O" /><!-- 一步式、同步客户信息查询客户信息 -->
+				
+			</kColl>
+			
+			<kColl id="ZLSecuformats">
+				<!-- 报文头 -->
+				<field id="B_REQUEST_HEAD" value="B_REQUEST_HEAD"/>
+				<field id="B_RESPONSE_HEAD" value="B_RESPONSE_HEAD"/>
+				<field id="ZLSECU_REQUEST_HEAD" value="ZLSECU_REQUEST_HEAD"/>
+				<field id="ZLSECU_RESPONSE_HEAD" value="ZLSECU_RESPONSE_HEAD"/>
+				<!-- 服务端接口 -->
+				<field id="6021_I" value="6021_I"/>	<field id="6021_O" value="6021_O"/>
+				<field id="6022_I" value="6022_I"/>	<field id="6022_O" value="6022_O"/>
+				<field id="6023_I" value="6023_I"/>	<field id="6023_O" value="6023_O"/>
+				<field id="6025_I" value="6025_I"/>	<field id="6025_O" value="6025_O"/>
+				<field id="6026_I" value="6026_I"/>	<field id="6026_O" value="6026_O"/>
+				<field id="6027_I" value="6027_I"/>	<field id="6027_O" value="6027_O"/>	
+				<field id="6028_I" value="6028_I"/>	<field id="6028_O" value="6028_O"/>	
+				<field id="6029_I" value="6029_I"/>	<field id="6029_O" value="6029_O"/>	
+				<field id="6030_I" value="6030_I"/>	<field id="6030_O" value="6030_O"/>	
+				<field id="6031_I" value="6031_I"/>	<field id="6031_O" value="6031_O"/>		
+				<field id="6032_I" value="6032_I"/>	<field id="6032_O" value="6032_O"/>				
+				<field id="6034_I" value="6034_I"/> <field id="6034_O" value="6034_O"/>
+				<field id="6041_I" value="6041_I"/>	<field id="6041_O" value="6041_O"/>
+				<field id="6042_I" value="6042_I"/>	<field id="6042_O" value="6042_O"/>
+				<field id="6045_I" value="6045_I"/><field id="6045_O" value="6045_O"/>
+				<field id="6065_I" value="6065_I"/><field id="6065_O" value="6065_O"/>
+				<field id="6052_I" value="6052_I"/><field id="6052_O" value="6052_O"/>
+				<field id="6044_I" value="6044_I"/><field id="6044_O" value="6044_O"/>
+				<field id="6043_I" value="6043_I"/><field id="6043_O" value="6043_O"/>
+				<field id="6024_I" value="6024_I"/><field id="6024_O" value="6024_O"/>
+				
+				<field id="6166_I" value="6166_I"/><field id="6166_O" value="6166_O"/>
+				<field id="6167_I" value="6167_I"/><field id="6167_O" value="6167_O"/>
+				<field id="6168_I" value="6168_I"/><field id="6168_O" value="6168_O"/>
+				<field id="6169_I" value="6169_I"/><field id="6169_O" value="6169_O"/>
+				<!-- 消费端接口 -->		
+			</kColl>
+			<kColl id="SZTSecuformats">
+				<!-- 报文头 -->
+				<field id="C_REQUEST_HEAD" value="C_REQUEST_HEAD"/>
+				<field id="C_RESPONSE_HEAD" value="C_RESPONSE_HEAD"/>
+				<field id="MsgHdr" value="MsgHdr"/>
+				
+				<!-- 服务端接口 -->
+				<field id="Acmt.001.01" value="Acmt.001.01"/>
+				<field id="Acmt.002.01" value="Acmt.002.01"/>
+				<field id="Acmt.003.01" value="Acmt.003.01"/>
+				<field id="Acmt.004.01" value="Acmt.004.01"/>
+				<field id="Acmt.005.01" value="Acmt.005.01"/>
+				<field id="Acmt.006.01" value="Acmt.006.01"/>
+				<field id="Acmt.007.01" value="Acmt.007.01"/>				
+				<field id="Acmt.008.01" value="Acmt.008.01"/>
+				<field id="Acmt.009.01" value="Acmt.009.01"/>
+				<field id="Acmt.010.01" value="Acmt.010.01"/>
+				<field id="Sysm.001.01" value="Sysm.001.01"/>
+				<field id="Sysm.002.01" value="Sysm.002.01"/>
+				<field id="Trf.001.01" value="Trf.001.01"/>
+				<field id="Trf.002.01" value="Trf.002.01"/>
+				<field id="Trf.003.01" value="Trf.003.01"/>
+				<field id="Trf.004.01" value="Trf.004.01"/>
+				<field id="Trf.007.01" value="Trf.007.01"/>
+				<field id="Trf.008.01" value="Trf.008.01"/>
+			</kColl>
+		</kColl>
+	</kColl>
+</settings.xml>

@@ -1,0 +1,397 @@
+package module.trans;
+
+import java.sql.Connection;
+
+import module.bean.InvestData;
+import module.bean.LocalInfo;
+import module.bean.SecCompData;
+import module.bean.SecServStatus;
+import module.bean.SignAccountData;
+import module.bean.Trans;
+import module.cache.TransCache;
+import module.dao.AcctAdmDetailDao;
+import module.dao.AcctDetailDao;
+import module.dao.AcctJourDao;
+import module.dao.AgtAgentBranchDao;
+import module.dao.AgtAgentInfoDao;
+import module.dao.AgtCardBinInfoDao;
+import module.dao.AgtCustomerInfoDao;
+import module.dao.AgtTranListDao;
+import module.dao.AllyDataDao;
+import module.dao.AutoBecifDao;
+import module.dao.BankCodeInfoDao;
+import module.dao.BankSignDataDao;
+import module.dao.CardBinInfoDao;
+import module.dao.DesSignDataDao;
+import module.dao.InvestDataDao;
+import module.dao.LocalInfoDao;
+import module.dao.SecCompDataDao;
+import module.dao.SecServStatusDao;
+import module.dao.SignAccountDataDao;
+import module.dao.SpecialConfigDao;
+import module.service.InvestorService;
+import module.service.SecuService;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.BizUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * 交易基础类
+ * 
+ * @author 汪华
+ * 
+ */
+public abstract class TranBase {
+
+	protected AcctJourDao acctJourDao = new AcctJourDao();
+
+	protected InvestDataDao investDataDao = new InvestDataDao();
+
+	protected SignAccountDataDao signAccountDataDao = new SignAccountDataDao();
+
+	protected AcctAdmDetailDao acctAdmDetailDao = new AcctAdmDetailDao();
+
+	protected AcctDetailDao acctDetailDao = new AcctDetailDao();
+
+	protected AgtCustomerInfoDao agtCustomerInfoDao = new AgtCustomerInfoDao();
+
+	protected AutoBecifDao autoBecifDao = new AutoBecifDao();
+
+	protected BankSignDataDao bankSignDataDao = new BankSignDataDao();
+
+	protected SecCompDataDao secCompDataDao = new SecCompDataDao();
+
+	protected AgtAgentInfoDao agtAgentInfoDao = new AgtAgentInfoDao();
+
+	protected AllyDataDao allyDataDao = new AllyDataDao();
+
+	protected SpecialConfigDao specialConfigDao = new SpecialConfigDao();
+
+	protected LocalInfoDao localInfoDao = new LocalInfoDao();
+
+	protected SecServStatusDao secServStatusDao = new SecServStatusDao();
+
+	protected AgtAgentBranchDao agtAgentBranchDao = new AgtAgentBranchDao();
+
+	protected CardBinInfoDao cardBinInfoDao = new CardBinInfoDao();
+
+	protected DesSignDataDao desSignDataDao = new DesSignDataDao();
+
+	protected AgtCardBinInfoDao agtCardBinInfoDao = new AgtCardBinInfoDao();
+
+	protected BankCodeInfoDao bankCodeInfoDao = new BankCodeInfoDao();
+
+	protected AgtTranListDao agtTranListDao = new AgtTranListDao();
+
+	// 全局数据库联接
+	protected Connection tranConnection = null;
+
+	/**
+	 * 交易执行入口
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	public void execute( Context context ) throws SFException {
+		tranConnection = SFUtil.getDataValue( context, SFConst.PUBLIC_TRAN_CONNECTION );
+		/*
+		 * 初始化:定义私有上下文属性
+		 */
+		SFLogger.info( context, "initialize()开始" );
+		initialize( context );
+		SFLogger.info( context, "initialize()结束" );
+		/*
+		 * 交易检查:填充公共数据、私有交易前置检查、券商检查、客户身份检查、私有交易后置检查
+		 */
+		SFLogger.info( context, "doChk()开始" );
+		doChk( context );
+		SFLogger.info( context, "doChk()结束" );
+		/*
+		 * 私有交易处理
+		 */
+		SFLogger.info( context, "doHandle()开始" );
+		doHandle( context );
+		SFLogger.info( context, "doHandle()结束" );
+	}
+
+	/**
+	 * 初始化BIZ参数
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	protected abstract void initialize( Context context ) throws SFException;
+
+	/**
+	 * doChk检查
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	private void doChk( Context context ) throws SFException {
+		SFLogger.info( context, "chkStart()开始" );
+		chkStart( context );
+		SFLogger.info( context, "chkStart()结束" );
+
+		SFLogger.info( context, "chkSecu()开始" );
+		chkSecu( context );
+		SFLogger.info( context, "chkSecu()结束" );
+
+		SFLogger.info( context, "chkInvestor()开始" );
+		chkInvestor( context );
+		SFLogger.info( context, "chkInvestor()结束" );
+
+		SFLogger.info( context, "chkEnd()开始" );
+		chkEnd( context );
+		SFLogger.info( context, "chkEnd()结束" );
+	}
+
+	/**
+	 * 券商参数公共检查
+	 * 
+	 * @param tranConnection
+	 * @param context
+	 * @throws SFException
+	 */
+	private void chkSecu( Context context ) throws SFException {
+
+		try {
+			String secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" );// 从上下文取出券商代码
+			if( SFUtil.isEmpty( secCompCode ) ) {
+				SFUtil.setDataValue( context, SFConst.PUBLIC_SECU, null );
+				SFUtil.setDataValue( context, SFConst.PUBLIC_SEC_SERV_STATUS, null );
+			} else {
+
+				// 临时注释，券商代码合并待确认
+				// if (("300200".equals(tranCode) || "300201".equals(tranCode))
+				// && SFConst.CTX_PUBLIC_SECU_ZHONGXINJT
+				// .equals(secCompCode)) {// 合作行银转证或证转银交易，如果为中信金通，则合并为中信证券
+				// secCompCode = SFConst.CTX_PUBLIC_SECU_ZHONGXINZQ;// 中信证券
+				// //TODO *修改context中的券商代码，并设置标记，在交易结束需要改回来为中信金通
+				//
+				// SFLogger.info(context, String.format(
+				// "中信金通和中信证券合并，secCompCode[%s]", secCompCode));
+				// }
+
+				SecCompData secCompData = SFUtil.getDataValue( context, SFConst.PUBLIC_SECU );
+				if( null == secCompData ) {
+					secCompData = secCompDataDao.qrySecCompData( context, tranConnection, secCompCode );
+					if( SFUtil.isNotEmpty( secCompData ) ) {
+						SFUtil.setDataValue( context, SFConst.PUBLIC_SECU_TYPE, secCompData.getSztFlag() );// 将券商类型放入上下文中
+					}
+					SFUtil.setDataValue( context, SFConst.PUBLIC_SECU, secCompData ); // 在上下文中存入券商对象
+				}
+
+				SecServStatus secServStatus = secServStatusDao.qrySecServStatus( context, tranConnection, secCompCode, "03" );
+				SFUtil.setDataValue( context, SFConst.PUBLIC_SEC_SERV_STATUS, secServStatus );
+			}
+
+			LocalInfo localInfo = localInfoDao.qryLocalInfo( context, tranConnection );
+			SFUtil.setDataValue( context, SFConst.PUBLIC_LOCAL_INFO, localInfo );// 在上下文中存入系统工作对象
+
+			BizUtil.setWorkMode( context, tranConnection );// 获取当前工作模式
+
+			String txCode = SFUtil.getDataValue( context, SFConst.PUBLIC_TX_CODE );// 获取交易码
+			Trans trans = TransCache.getValue( txCode );// 获取交易缓存对象
+			SFUtil.chkCond( context, null == trans, "ST4895", "获取交易缓存对象失败" );
+			String secuCtlFlags = trans.getSecuCtlFlags();// 券商检查标志
+			// secuCtlFlags = "0000000000";
+			boolean chkFlag = false;
+			if( '1' == secuCtlFlags.charAt( 0 ) ) {// 检查系统状态
+				SecuService.chkSubCenterStatus( context );
+			}
+			if( '1' == secuCtlFlags.charAt( 1 ) || '1' == secuCtlFlags.charAt( 2 ) || '1' == secuCtlFlags.charAt( 3 ) ) {
+				if( '1' == secuCtlFlags.charAt( 1 ) && !chkFlag ) {
+					chkFlag = SecuService.chkSecuStatus( context, tranConnection ); // 检查系统停启状态
+				}
+				if( '1' == secuCtlFlags.charAt( 2 ) && !chkFlag ) {
+					chkFlag = SecuService.chkSecu724( context, tranConnection );// 检查是否允许进行724交易
+				}
+				if( '1' == secuCtlFlags.charAt( 3 ) && !chkFlag ) {
+					chkFlag = SecuService.chkSecuHoliday( context, tranConnection );// 检查是否允许进行节假日交易
+				}
+				if( !chkFlag ) {
+					SFUtil.chkCond( context, "ST4895", "非正常交易时间不允许做此交易" );
+				}
+			}
+			if( '1' == secuCtlFlags.charAt( 4 ) ) {// 检查账户类服务标志
+				SecuService.chkSecuAcctFlag( context, tranConnection );
+			}
+			if( '1' == secuCtlFlags.charAt( 5 ) ) {// 检查单户结息服务标志
+				SecuService.chkSecuAccrualFlag( context );
+			}
+			if( '1' == secuCtlFlags.charAt( 6 ) ) {// 检查是否允许银行发起银转证
+				SecuService.chkSecuBankChlB2S( context );
+			}
+			if( '1' == secuCtlFlags.charAt( 7 ) ) {// 检查是否允许银行发起证转银
+				SecuService.chkSecuBankChlS2B( context );
+			}
+			if( '1' == secuCtlFlags.charAt( 8 ) ) {// 检查是否允许券商发起银转证
+				SecuService.chkSecuChlB2S( context );
+			}
+			if( '1' == secuCtlFlags.charAt( 9 ) ) {// 检查是否允许券商发起证转银
+				SecuService.chkSecuChlS2B( context );
+			}
+			if( '1' == secuCtlFlags.charAt( 10 ) ) {// 是否允许办理该币种交易
+				SecuService.chkCurCode( context, tranConnection );
+			}
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+	}
+
+	/**
+	 * 客户参数公共检查
+	 * 
+	 * @param tranConnection
+	 * @param context
+	 * @throws SFException
+	 */
+	private void chkInvestor( Context context ) throws SFException {
+		try {
+			String secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" );// 从上下文取出券商代码
+			String capAcct = SFUtil.getReqDataValue( context, "CAP_ACCT" );// 从上下文获取保证金管理帐号
+			String idType = SFUtil.getReqDataValue( context, "ID_TYPE" );// 证件类型
+			String invIdCode = SFUtil.getReqDataValue( context, "INV_ID_CODE" );// 证件号码
+			String initSide = SFUtil.getReqDataValue( context, "INIT_SIDE" );// 获取渠道
+			SFUtil.setDataValue( context, SFConst.PUBLIC_INV_TYPE, SFUtil.getReqDataValue( context, "INV_TYPE" ) );
+
+			if( SFUtil.isEmpty( initSide ) ) {// 如果渠道为空，则在上下文公共变量取出
+				initSide = SFUtil.getDataValue( context, SFConst.PUBLIC_INIT_SIDE );
+			}
+			if( SFUtil.isNotEmpty( idType ) ) {
+				if( SFConst.INIT_SIDE_COBANK.equals( initSide ) ) {// 合作行渠道
+					idType = BizUtil.convCoBank2SF4IdType( context, idType );
+				} else if( SFConst.INIT_SIDE_SECU.equals( initSide ) ) {// 券商渠道
+					idType = BizUtil.convSecu2SF4IdType( context, idType );
+				} else {// 我行渠道
+					idType = BizUtil.convHost2SF4IdType( context, idType );
+				}
+				SFUtil.setDataValue( context, SFConst.PUBLIC_ID_TYPE, idType );
+			}
+
+			InvestData investData = null;
+			if( SFUtil.isNotEmpty( capAcct ) && SFUtil.isNotEmpty( secCompCode ) ) {
+				SignAccountData signAccountData = signAccountDataDao.qrySignAccountData( context, tranConnection, capAcct, secCompCode, false );
+				SFUtil.setDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA, signAccountData );// 在上下文中存入签约数据对象
+				if( signAccountData != null ) {
+					investData = investDataDao.qryInvestDataBySecAcct( context, tranConnection, signAccountData.getSecAcct() );
+					SFUtil.setDataValue( context, SFConst.PUBLIC_INVEST_DATA, investData );// 在上下文中存入客户信息对象
+					SFUtil.setDataValue( context, SFConst.PUBLIC_INV_TYPE, investData == null ? "1" : investData.getInvType() );// 客户类型
+				} else {
+					SFUtil.setDataValue( context, SFConst.PUBLIC_INVEST_DATA, null );
+				}
+			} else if( SFUtil.isNotEmpty( idType ) && SFUtil.isNotEmpty( invIdCode ) ) {
+
+				investData = investDataDao.qryInvestData( context, tranConnection, idType, invIdCode );
+				SFUtil.setDataValue( context, SFConst.PUBLIC_INVEST_DATA, investData );// 在上下文中存入客户信息对象
+				if( investData != null ) {
+					SFUtil.setDataValue( context, SFConst.PUBLIC_INV_TYPE, investData.getInvType() );// 客户类型
+				}
+				SFUtil.setDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA, null );
+			} else {
+				SFUtil.setDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA, null );
+				SFUtil.setDataValue( context, SFConst.PUBLIC_INVEST_DATA, null );
+			}
+			String bankId = null;
+			if( SFConst.INIT_SIDE_COBANK.equals( initSide ) ) {// 合作行渠道
+				bankId = SFUtil.getDataValue( context, "A_REQUEST_HEAD.BANKNO" );// 从头信息取出BankId
+			} else {
+				bankId = SFUtil.getReqDataValue( context, "BANK_ID" );// 其他渠道从报文体中取出BankId
+			}
+
+			if( SFUtil.isEmpty( bankId ) ) {
+				SFUtil.setDataValue( context, SFConst.PUBLIC_AGENTINFO, null );
+			} else {
+				SFUtil.setDataValue( context, SFConst.PUBLIC_AGENTINFO, agtAgentInfoDao.qryAgtAgentInfo( context, tranConnection, bankId ) );
+			}
+			String txCode = SFUtil.getDataValue( context, SFConst.PUBLIC_TX_CODE );// 交易码
+			Trans trans = TransCache.getValue( txCode );
+			SFUtil.chkCond( context, trans == null, "ST4895", "获取交易缓存对象失败" );
+			String sfCtlFlags = trans.getSfCtlFlags();// 客户检查标志
+			// sfCtlFlags = "0000000000";
+			if( '1' == sfCtlFlags.charAt( 0 ) ) {// 投资人身份信息检查
+				InvestorService.chkInvestor( context );
+			}
+			if( '1' == sfCtlFlags.charAt( 1 ) ) {// 签约关系和状态检查
+				InvestorService.chkSignAccount( context );
+			}
+			if( '1' == sfCtlFlags.charAt( 2 ) ) {// 合作行客户不允许在节假日时间段发起该交易检查
+				InvestorService.chkCobankHoliday( context );
+			}
+			if( '1' == sfCtlFlags.charAt( 3 ) ) {// 合作行客户不允许在724时间段发起该交易检查
+				InvestorService.chkCobank724( context );
+			}
+			if( '1' == sfCtlFlags.charAt( 4 ) ) {// 账户激活状态检查
+				InvestorService.chkActiveFlag( context );
+			}
+			if( '1' == sfCtlFlags.charAt( 5 ) ) {// 是否允许该券商的机构户发起银证交易检查
+				InvestorService.chkSecuCorpTrans( context );
+			}
+			if( '1' == sfCtlFlags.charAt( 6 ) ) {// 不允许我行个人客户发起该交易检查
+				InvestorService.chkBankChlRetailTrans( context );
+			}
+			if( '1' == sfCtlFlags.charAt( 7 ) ) {// 不允许我行机构客户发起该交易检查
+				InvestorService.chkCorpTrans( context );
+			}
+			if( '1' == sfCtlFlags.charAt( 8 ) ) {// 不允许合作行个人客户发起该交易
+				InvestorService.chkCobankRetailTrans( context );
+			}
+			if( '1' == sfCtlFlags.charAt( 9 ) ) {// 不允许合作行机构客户发起该交易检查
+				InvestorService.chkCobankCorpTrans( context );
+			}
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+	}
+
+	/**
+	 * 私有交易处理
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	public abstract void doHandle( Context context ) throws SFException;
+
+	/**
+	 * 上主机处理
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	public abstract void doHost( Context context ) throws SFException;
+
+	/**
+	 * 发券商处理
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	public abstract void doSecu( Context context ) throws SFException;
+
+	/**
+	 * chkStart检查
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	protected abstract void chkStart( Context context ) throws SFException;
+
+	/**
+	 * chkEnd检查
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	protected abstract void chkEnd( Context context ) throws SFException;
+
+}

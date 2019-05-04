@@ -1,0 +1,200 @@
+package core.communication.tcpip;
+
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.sql.Connection;
+
+import module.dao.AgtAgentInfoDao;
+
+import com.ecc.emp.concurrent.HealthyBlockingQueue;
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.SFConst;
+
+import core.log.SFLogger;
+
+
+
+/**
+ * 监听IP端口是否有效
+ * 监听处理类
+ * 
+ * @author 李其聪
+ */
+public class ListenCobankPort implements Runnable {
+	
+	/**
+	 * 侦听IP
+	 */
+	protected String ip;
+	
+	/**
+	 * 侦听端口
+	 */
+	protected int port = 0;
+	
+	/**
+	 * connect 连接超时时间
+	 */
+	protected int connectTimeOut = 0;
+	
+	/**
+	 * 监听次数
+	 */
+	protected int listenCount;
+	
+	protected Connection tranConnection;
+	
+	/**
+	 * 上下文根
+	 */
+	protected Context context;
+	
+	protected String bankid;
+	
+	private DataInputStream in;
+	private DataOutputStream out;
+
+	/**
+	 * 超过当前并发线程的连接等待队列
+	 */
+	protected HealthyBlockingQueue socketWaitingQueue = null;
+
+	public ListenCobankPort(){
+		super();
+	}
+	
+	public ListenCobankPort(Context context,String bankid,String ip,int port,int listenCount,int timeout){
+		super();
+		this.context = context;
+		this.bankid = bankid;
+		this.ip = ip;
+		this.port = port;
+		this.listenCount = listenCount;
+		this.connectTimeOut = timeout;
+	}
+	
+	
+	
+	
+	public void run()
+	{
+		int failCount = 0;
+		for(int i=0;i<listenCount;i++){
+			String ret = sendCMD(context,"".getBytes(),ip, String.valueOf(port),connectTimeOut,connectTimeOut);
+			if(!"0".equals(ret)){
+				++ failCount; 
+			}else{
+				break;
+			}
+		}
+		if(listenCount == failCount){
+			try {
+				tranConnection = DBHandler.getConnection( context );//获得连接
+				//停用合作行
+				DBHandler.beginTransaction( context, tranConnection );// 开启事务
+				new AgtAgentInfoDao().updAgtAgentInfoStatus(context, tranConnection, bankid, SFConst.SF_COBANK_STATUS_NO);
+				DBHandler.commitTransaction( context, tranConnection );// 提交事务
+				
+				SFLogger.info( context,"合作行号为["+ bankid+"]网络异常，已经停用" );
+			} catch (SFException e) {
+				try {
+					DBHandler.rollBackTransaction(context, tranConnection);
+				} catch (SFException e1) {
+					e1.printStackTrace();
+				}
+				e.printStackTrace();
+			} finally {
+				try {
+					DBHandler.releaseConnection( context, tranConnection );//释放连接
+				} catch (SFException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	private String sendCMD(Context context,byte[] sCmd,String sIP,String sPort,int connectTimeOut,int socketTimeOut) {
+		int state = 1;
+		Socket sock = null;
+		ByteArrayOutputStream swapStream = null;
+//		SFLogger.info(context,"请求报文:[" + new String(sCmd) + "]");
+//		String sResult;
+		try {
+			SFLogger.info(context,"connect ip:" + sIP + ",port:" + sPort + ",connectTimeOut:"+ connectTimeOut + ",socketTimeOut:"+ socketTimeOut);
+
+			sock = new Socket();
+			SocketAddress addr = new InetSocketAddress( sIP, Integer.parseInt( sPort ) );
+			sock.connect( addr,  connectTimeOut);			
+			sock.setSoTimeout(socketTimeOut);//设置超时
+			out = new DataOutputStream(sock.getOutputStream());
+
+			// 发送报文内容
+			out.write(sCmd);
+			out.flush();
+		
+			// 设置为接收状态
+//			state = 2;
+//			in = new DataInputStream(sock.getInputStream());
+//			swapStream = new ByteArrayOutputStream();
+//			int rc = 0;
+//
+//			byte[] buff = new byte[256]; // buff用于存放循环读取的临时数据
+//			while ((rc = in.read(buff, 0, buff.length)) > 0) {
+//				swapStream.write(buff, 0, rc);
+//			}
+//			sResult = new String(swapStream.toByteArray());
+//
+//			SFLogger.info(context,"应答报文:[" + sResult + "]");
+		} catch (ConnectException e) {
+			SFLogger.error(context,"ConnectException通讯异常:",e);
+			return "1:为无法建立连接";
+		} catch (SocketTimeoutException e) {
+			if (state == 1)
+				return "2:为发送超时";
+			else{
+				SFLogger.error(context,"SocketTimeoutException通讯异常:接收超时",e);
+				return "3:为接收超时";
+			}
+		} catch (SocketException e) {
+			SFLogger.error(context,	"SocketException通讯异常:" ,e);
+			return "4:为出现异常";
+		} catch (IOException e) {
+			SFLogger.error(context,	"IOException通讯异常:" ,e);	
+			return "4:为出现异常";
+		} catch (Exception e) {
+			SFLogger.error(context,	"Exception通讯异常:" ,e);	
+			return "5:其他错误";
+		} finally {
+			try {
+				if (in != null) {
+					in.close();
+				}
+				if (out != null) {
+					out.close();
+				}
+				if (swapStream != null) {
+					swapStream.close();
+				}
+				if (sock != null) {
+					sock.close();
+				}
+			} catch (IOException e) {				
+				SFLogger.error(context,"IOException关闭数据流异常:",e);
+				return "5:其他错误";
+			}
+		}
+		return "0";//成功返回
+	}
+
+
+}

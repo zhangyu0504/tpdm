@@ -1,0 +1,41 @@
+package module.trans.sf2bankchl;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import module.communication.ESBClientBase;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+/**
+ * 联机通用冲销:G1010
+ * @author 汪华
+ *
+ */
+public class ReverseClient extends ESBClientBase{
+	
+	protected Context doHandle(Context context,Map<String,Object>msg)throws SFException{
+		SFLogger.info(context, "上主机联机通用冲销-开始");
+		if(SFUtil.isNotEmpty(msg.get( "BIZ_SEQ_NO" ))){
+			SFUtil.setDataValue( context, SFConst.PUBLIC_MSG_SEQ_NO, msg.get( "BIZ_SEQ_NO" ) );
+		}
+		KeyedCollection keyColl = new KeyedCollection("MSG_I");
+		SFUtil.addDataField(context, keyColl, "OLD_BUSS_SEQ_NO",msg.get("OLD_BUSS_SEQ_NO"));//原业务流水号     TRANSEQID	
+		SFUtil.addDataField(context, keyColl, "OLD_TRAN_SEQ_NO",msg.get("OLD_TRAN_SEQ_NO"));//原交易流水号 BUSISEQID	
+		SFUtil.addDataField(context, keyColl, "REASON",msg.get("REASON"));//原因
+		SFUtil.addDataField(context, keyColl, "FLAG",msg.get("FLAG"));//标志
+		Map<String,Object> tmpMsg = new HashMap<String,Object>();
+		tmpMsg.put("MSG_I",keyColl);
+		
+		//发送报文
+		Context msgContext=super.send(context,tmpMsg,"G1010","01004000001_24");
+		SFLogger.info(context, "上主机联机通用冲销-结束");
+	    return msgContext;
+	}
+}

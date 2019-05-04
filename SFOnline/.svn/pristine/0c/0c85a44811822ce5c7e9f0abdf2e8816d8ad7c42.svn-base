@@ -1,0 +1,590 @@
+package module.trans.bankchl2sf;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import module.bean.AcctDetail;
+import module.bean.AcctJour;
+import module.bean.BankUnit;
+import module.bean.InvestData;
+import module.bean.LocalInfo;
+import module.bean.ProductInfo;
+import module.bean.SecCompData;
+import module.bean.SecTruAcct;
+import module.bean.SignAccountData;
+import module.communication.ESBClientBase;
+import module.communication.SecuClientBase;
+import module.trans.TranBase;
+import module.trans.sf2bankchl.ReverseClient;
+import module.trans.sf2bankchl.TransferClient;
+import module.trans.sf2secu.S2BTransferClient;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.BizUtil;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * (银行渠道发起) 证转银
+ * 交易码 : 200201
+ * @author 张钰
+ */
+public class T200201 extends TranBase{
+	private AcctJour acctJour = new AcctJour();
+	private	AcctDetail acctDetail = new AcctDetail();
+	
+	private SignAccountData signAccountData = null;
+	private InvestData investData = null;
+	private SecCompData secCompData = null;
+	private LocalInfo localInfo = null;
+	private	BankUnit bankUnit = null;
+	private ProductInfo productInfo = null;
+	private SecTruAcct secTruAcct = null;
+	
+	private String secCompCode = null;//券商代码
+	private String txTime = null;	//交易时间
+	private String txDate = null;	//交易日期
+	private String subTxSeqId = null;//交易流水
+	private String tranSeqId = null;//主机交易流水号
+	private String idType = null;//证件类型
+	private double txAmount = 0.0;	//交易余额
+	private double acctBal = 0.0;	//账户余额
+	@Override
+	protected void initialize(Context context) throws SFException {
+		txTime = DateUtil.getMacTime();//交易时间
+		subTxSeqId = SFUtil.getDataValue(context, SFConst.PUBLIC_LOG_ID);
+		tranSeqId = BizUtil.getChlSeqId(context,subTxSeqId);//发送主机22位流水号
+	}
+
+	@Override
+	public void doHandle(Context context) throws SFException {
+		//记录流水
+		SFLogger.info(context,String.format("addAcctJour()开始"));
+    	addAcctJour(context);
+    	SFLogger.info(context,String.format("addAcctJour()结束"));
+    	
+    	// 开始发券商
+    	SFLogger.info(context,String.format("doSecu()开始"));
+    	doSecu(context);
+    	SFLogger.info(context,String.format("doSecu()结束"));
+    	
+    	// 开始上主机
+    	SFLogger.info(context,String.format("doHost()开始"));
+		doHost(context);
+		SFLogger.info(context,String.format("doHost()结束"));
+	}
+
+	@Override
+	public void doHost(Context context) throws SFException {
+		String invType = SFUtil.getReqDataValue(context,"INV_TYPE");//客户类型
+		String remark = SFUtil.getReqDataValue(context,"REMARK");//备注
+		String acctId = SFUtil.getReqDataValue(context,"ACCT_ID");//卡号
+		String curCode = SFUtil.getReqDataValue(context,"CUR_CODE");//币种
+		String capAcct = SFUtil.getReqDataValue(context,"CAP_ACCT");//资金帐号
+		String bizSeqNo = SFUtil.getDataValue(context, "APP_HEAD.BIZ_SEQ_NO");//业务流水号
+		try {
+			DBHandler.beginTransaction(context, tranConnection);//开启事务
+			//帐户行送券商帐号开户网点
+			//String icsBranch = secTruAcct.getOpenDepId();
+			//SFLogger.info(context, String.format("券商开户网点：[%s]", icsBranch));
+			
+			/********************************************************************
+		    *                    上主机记客户帐开始
+		    ********************************************************************/
+			SFLogger.info(context, String.format("上主机记客户帐开始"));
+			//组交易请求包
+			Map<String,Object> hostMap = new HashMap<String,Object>();
+			hostMap.put("BIZ_SEQ_NO",tranSeqId);//上主机流水SYS_HEAD.CONSUMER_SEQ_NO字段//APP_HEAD.BIZ_SEQ_NO送bizSeqNo
+			hostMap.put("VALIDATION_FLAG","");//验证标志VALIDATION_FLAG
+			hostMap.put("OUT_ACCT_NO",acctId);//转出账号OUT_ACCT_NO
+			hostMap.put("OUT_TOTAL_DETAIL_FLAG","1");//转出汇总明细标志OUT_TOTAL_DETAIL_FLAG
+			hostMap.put("OUT_ACCT_USAGE",SFConst.STATEMENT_NO_S2B);//转出账户用途OUT_ACCT_USAGE
+			hostMap.put("OUT_BRANCH_ID",signAccountData.getOpenBranchId());//转出行号OUT_BRANCH_ID
+			hostMap.put("IN_ACCT_NO",productInfo.getTruAcctId());//转入账号IN_ACCT_NO
+			hostMap.put("IN_TOTAL_DETAIL_FLAG","");//转入汇总明细标志IN_TOTAL_DETAIL_FLAG
+			hostMap.put("IN_ACCT_USAGE",SFConst.STATEMENT_NO_S2B);//转入账户用途IN_ACCT_USAGE
+			hostMap.put("IN_BRANCH_ID",bankUnit.getBranchId());//转入行号IN_BRANCH_ID
+			hostMap.put("CERT_TYPE","");//凭证类型CERT_TYPE
+			hostMap.put("CERT_NO","");//凭证号码CERT_NO
+			hostMap.put("ISSUE_DATE","");//签发日期ISSUE_DATE
+			hostMap.put("CANCEL_FLAG","");//撤销标志CANCEL_FLAG
+			hostMap.put("TX_AMOUNT",txAmount);//金额AMT
+			hostMap.put("CUR_CODE",curCode);//币种CCY
+			hostMap.put("REMARK",remark);//备注REMARK
+			hostMap.put("OUT_COUNTER_CLIENT_NAME",secTruAcct.getAcctName());//转出对方行客户名称OUT_COUNTER_CLIENT_NAME
+			hostMap.put("OUT_COUNTER_BANK_NAME",SFConst.SYS_BANK_CNAME);//转出对方行银行名称OUT_COUNTER_BANK_NAME
+			hostMap.put("OUT_COUNTER_BRANCH_NAME",bankUnit.getDepName());//转出对方行行名OUT_COUNTER_BRANCH_NAME
+			hostMap.put("OUT_COUNTER_ACCT_NO",productInfo.getTruAcctId());//转出对方行账号OUT_COUNTER_ACCT_NO
+			hostMap.put("IN_COUNTER_CLIENT_NAME","");//转入对方行客户名称IN_COUNTER_CLIENT_NAME
+			hostMap.put("IN_COUNTER_BANK_NAME",SFConst.SYS_BANK_CNAME);//转入对方行银行名称IN_COUNTER_BANK_NAME
+			hostMap.put("IN_COUNTER_BRANCH_NAME",bankUnit.getDepName());//转入对方行分行名称IN_COUNTER_BRANCH_NAME
+			hostMap.put("IN_COUNTER_ACCT_NO",acctId);//转入对方行账号IN_COUNTER_ACCT_NO
+			hostMap.put("STATEMENT_NO",BizUtil.getStatmentId(context));//对账单号STATEMENT_NO
+			hostMap.put("TRAN_TYPE",SFConst.INV_TYPE_RETAIL.equals(invType)?"B":"");//交易类型TRAN_TYPE
+			hostMap.put("TRADER_TYPE_CODE",SFConst.INV_TYPE_RETAIL.equals(invType)?"SFCG":"");//商户类型代码TRADER_TYPE_CODE
+			ESBClientBase esbClient = new TransferClient();
+			Context hostContext = esbClient.send(context, hostMap);// 发送报文
+			String retFlag=SFUtil.getDataValue(hostContext,SFConst.PUBLIC_RET_FLAG);
+			
+			IndexedCollection iColl = SFUtil.getDataElement(hostContext,"RET");
+			KeyedCollection kColl = (KeyedCollection) iColl.getElementAt(0);// 获取响应数组
+			String retCode = SFUtil.getDataValue(hostContext, kColl, "RET_CODE");
+			String retMsg = SFUtil.getDataValue(hostContext, kColl,"RET_MSG");//响应信息
+			if (SFConst.RET_SUCCESS.equals(retFlag)) {//交易成功
+	 			//更新 TRDAcctJour
+	 			acctJour.setJourFlag("00");
+	 			acctJour.setRespCode(SFConst.RESPCODE_SUCCCODE_ESB);
+	 			acctJour.setRespMsg(SFConst.RESPCODE_SUCCMSG);
+	 			acctJour.setAcctHostSeqId(null);
+	 			acctJour.setPreSeqId(subTxSeqId);
+	 			acctJour.setAcctDealDate(txDate);
+	 			acctJour.setTxDate(txDate);
+	 			acctJour.setSubTxSeqId(subTxSeqId);
+	 			acctJourDao.saveAcctJour(context, tranConnection, acctJour);
+
+	 			//更新 TRDAcctDetail
+	 			acctDetail.setJourFlag("00");
+	 			acctDetail.setAcctHostSeqId(null);
+	 			acctDetail.setPreSeqId(subTxSeqId);
+	 			acctDetail.setAcctDealDate(txDate);
+	 			acctDetail.setTxDate(txDate);
+	 			acctDetail.setSubTxSeqId(subTxSeqId);
+	 			acctDetailDao.saveAcctDetail(context, tranConnection, acctDetail);
+	 	        
+	 			SFLogger.info(context,String.format("银行端发起证转银纪录数据库结束"));
+			} else if (SFConst.RET_FAILURE.equals(retFlag)) {//上主机失败
+				acctJour.setJourFlag("20");
+				acctJour.setRespCode("ST4895");
+				acctJour.setRespMsg("银行证转银主机交易失败");
+				acctJour.setTxDate(txDate);
+				acctJour.setSubTxSeqId(subTxSeqId);
+				acctJourDao.saveAcctJour(context, tranConnection, acctJour);
+				
+				 /*********************************************************/
+						/*   银行证转银，主机失败，冲正券商         */
+			     /*********************************************************/
+				
+				//调用冲正接口G1010
+				//组交易请求包
+				hostMap = new HashMap<String,Object>();
+				//hostMap.put("OLD_BUSS_SEQ_NO",tranSeqId);//原业务流水号     TRANSEQID	
+				//hostMap.put("OLD_TRAN_SEQ_NO",SFUtil.getReqDataValue(context, "APP_HEAD.BIZ_SEQ_NO"));//原交易流水号 BUSISEQID	
+				hostMap.put("OLD_BUSS_SEQ_NO", bizSeqNo);//原业务流水号     TRANSEQID	
+				hostMap.put("OLD_TRAN_SEQ_NO", tranSeqId);//原交易流水号 BUSISEQID
+				
+				hostMap.put("REASON",retMsg);//原因
+				hostMap.put("FLAG","0");//标志
+				ESBClientBase reverseClient = new ReverseClient();
+				Context msgContext = reverseClient.send(context, hostMap);// 发送报文
+				
+				retFlag=SFUtil.getDataValue(msgContext,SFConst.PUBLIC_RET_FLAG);
+				iColl = SFUtil.getDataElement(msgContext,"RET");
+				kColl = (KeyedCollection) iColl.getElementAt(0);// 获取响应数组
+				retCode = SFUtil.getDataValue(msgContext, kColl, "RET_CODE");
+				if (SFUtil.isNotEmpty(retCode)&&retCode.length()>6)
+					retCode=retCode.substring(retCode.length()-6);
+				String czRetMsg = SFUtil.getDataValue(msgContext, kColl,"RET_MSG");//响应信息
+	            
+				if (SFConst.RET_FAILURE.equals(retFlag)) {//失败或异常
+					SFUtil.chkCond(context, retCode, String.format("证转银冲正失败:%s", czRetMsg));
+				} else if (SFConst.RET_OVERTIME.equals(retFlag)) {
+					SFUtil.chkCond(context, retCode, String.format("证转银冲正异常:%s", czRetMsg));
+				}
+			    /*回置账务流水*/
+				acctBal = SFUtil.add(acctBal,txAmount);
+		        acctJour.setAcctBal(acctBal);
+		        acctJour.setJourFlag("44");
+		        acctJour.setTxDate(txDate);
+		        acctJour.setSubTxSeqId(subTxSeqId);
+		        acctJourDao.saveAcctJour(context, tranConnection, acctJour);
+		        
+		        acctDetail.setAcctBal(acctBal);
+		        acctDetail.setJourFlag("44");
+	 			acctDetail.setTxDate(txDate);
+	 			acctDetail.setSubTxSeqId(subTxSeqId);
+	 			acctDetailDao.saveAcctDetail(context, tranConnection, acctDetail);
+	 			/*回置金额*/
+	 			signAccountData.setAcctBal(acctBal);
+				signAccountData.setSecCompCode(secCompCode);
+				signAccountData.setCapAcct(capAcct);
+				signAccountDataDao.saveSignAccountData(context, tranConnection, signAccountData);
+				
+				DBHandler.commitTransaction(context, tranConnection); 
+				
+		        SFUtil.chkCond(context, "ST4895", String.format("银行证转银主机失败:%s", retMsg));
+		          
+			} else {//上主机异常
+				acctJour.setRespCode("ST4895");
+				acctJour.setRespMsg(retMsg);
+				acctJour.setTxDate(txDate);
+				acctJour.setSubTxSeqId(subTxSeqId);
+				acctJourDao.saveAcctJour(context, tranConnection, acctJour);
+				//银行证转银主机异常
+				SFUtil.chkCond(context, "ST4895", String.format("银行证转银主机异常:%s", retMsg));
+			}
+ 			DBHandler.commitTransaction(context, tranConnection); 
+ 			
+ 			// 交易成功，组返回报文
+ 			SFUtil.setResDataValue(context, "CAP_ACCT",capAcct);//证券资金账号SEC_ACCT_NO
+ 			SFUtil.setResDataValue(context, "SEC_COMP_NAME",secCompData.getSecCompName());//券商名称STOCKJOBBER_NAME
+ 			SFUtil.setResDataValue(context, "ACCT_ID",acctId);//卡号CARD_NO
+ 			SFUtil.setResDataValue(context, "INV_NAME",SFUtil.getReqDataValue(context,"INV_NAME"));//客户名称CLIENT_NAME
+ 			SFUtil.setResDataValue(context, "CUR_CODE",curCode);//币种CCY
+ 			SFUtil.setResDataValue(context, "TX_AMOUNT",txAmount);//转账金额TRANSFER_AMT
+ 			SFUtil.setResDataValue(context, "TPDM_FLAG","5".equals(secCompData.getTpdmFlag())? "1": "0");//第三方存管类型THIRD_TYPE
+ 			if (SFConst.INV_TYPE_RETAIL.equals(invType)) {
+ 				SFUtil.setResDataValue(context, "SEC_COMP_CODE",secCompCode);//券商代码STOCKJOBBER_CODE
+ 	 			SFUtil.setResDataValue(context, "TRU_ACCT_ID",secTruAcct.getAcctId());//券商账号STOCKJOBBER_ACCT_NO
+ 	 			SFUtil.setResDataValue(context, "COMMISSION","");//手续费COMMISSION
+ 	 			SFUtil.setResDataValue(context, "CURR_TYPE","");//币种类型CURR_TYPE
+ 			} else {
+ 				SFUtil.setResDataValue(context, "REMARK",SFUtil.getReqDataValue(context,"REMARK"));//备注
+ 			}
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context,  "ST4895", String.format("doHost()处理失败%s",e.getMessage()));
+		} 
+		
+	}
+
+	@Override
+	public void doSecu(Context context) throws SFException {
+		String initSide = SFUtil.getReqDataValue(context, "INIT_SIDE");//发起渠道
+		String secAcctPwd = SFUtil.getReqDataValue(context, "CAP_ACCT_PWD");//券商资金密码
+		String capAcct = SFUtil.getReqDataValue(context,"CAP_ACCT");//
+		String invType = SFUtil.getReqDataValue(context,"INV_TYPE");//客户类型
+		String acctId = SFUtil.getReqDataValue(context,"ACCT_ID");//卡号
+		String curCode = SFUtil.getReqDataValue(context,"CUR_CODE");//币种
+		
+		String unitTellerId = SFUtil.getDataValue(context, "APP_HEAD.USER_ID");//网点操作号
+		String unitId = SFUtil.getDataValue(context,"APP_HEAD.BRANCH_ID");//网点号
+	    String tempBizSeq = SFUtil.getDataValue(context, "APP_HEAD.BIZ_SEQ_NO");//业务流水号
+		try {
+			DBHandler.beginTransaction(context, tranConnection);//开启事务
+			String secAcct = investData.getSecAcct();
+			SFUtil.chkCond(context,SFUtil.isEmpty(secAcct), "ST4141",String.format("客户签约信息不存在"));
+
+			
+			//转加密资金密码
+	   	    String capAcctPwd = BizUtil.convBankChLEncryptPwd(context, secCompCode,initSide, invType,secAcctPwd);
+	   	    //String sysType = "9999".equals(secCompCode.substring(4, 8))?"3":"0";//系统应用类型
+	   	    String secuType = SFUtil.getDataValue(context, SFConst.PUBLIC_SECU_TYPE);//券商类型 1-深证通 0-直连
+	   	    //发券商处理
+	 		String secSeqId = null;
+	 		//发券商参数map
+	 		Map<String,Object> secuMap = new HashMap<String, Object>();
+	 		secuMap.put("BIZ_SEQ_NO", subTxSeqId);
+	 		secuMap.put("INV_TYPE", invType);
+	 		secuMap.put("INV_NAME", SFUtil.getReqDataValue(context, "INV_NAME"));
+	 		secuMap.put("ID_TYPE", idType);
+	 		secuMap.put("ACCT_ID", acctId);
+	 		secuMap.put("CAP_ACCT", capAcct);
+	 		secuMap.put("CUR_CODE", curCode);
+	 		secuMap.put("TX_AMOUNT", SFUtil.objectToString(txAmount));
+	 		secuMap.put("SEC_COMP_CODE", secCompCode);
+	 		secuMap.put("CAP_ACCT_PWD", capAcctPwd);
+	 		if (SFConst.SECU_SZT.equals(secuType)) {//深证通
+				secuMap.put("INV_ID_CODE", SFUtil.getReqDataValue(context, "INV_ID_CODE"));
+				secuMap.put("NATIONALITY", "");
+				secuMap.put("ADDR", "");
+				secuMap.put("ZIP", "");
+				secuMap.put("EMAIL_ADDR", "");
+				secuMap.put("FAX", "");
+				secuMap.put("MOBILE", "");
+				secuMap.put("PHONE", "");
+				secuMap.put("SEC_BRCH_ID", "");
+				
+			} else {//直连
+		 		secuMap.put("SEC_ACCT", secAcct);
+		 		secuMap.put("CASH_REMIT_FLAG", SFConst.CASH_FLAG);
+		 		secuMap.put("BOOK_NO", "");
+		 		secuMap.put("UNIT_TELLER_ID", unitTellerId);
+		 		secuMap.put("REPT_FLAG", "0");
+		 		secuMap.put("NEW_SUB_TX_SEQ_ID", subTxSeqId);
+			}
+			
+			SecuClientBase secuClient = new S2BTransferClient();
+			Context secuContext = secuClient.send(context, secuMap);
+			String retFlag=SFUtil.getDataValue(secuContext,SFConst.PUBLIC_RET_FLAG);
+ 			
+ 			KeyedCollection kColl = null;
+   			String	respMsg = null;
+   			String	respCode = null;
+			if(SFConst.SECU_SZT.equals(secuType)){//深证通方式
+				kColl = SFUtil.getDataElement(secuContext, "Trf00201");
+				KeyedCollection rstKcoll = SFUtil.getDataElement(secuContext, kColl,"Rst");
+	   			respMsg = SFUtil.getDataValue(secuContext, rstKcoll, "RESP_MSG");//接收深证通返回错误信息
+	   			respCode = SFUtil.getDataValue(secuContext,rstKcoll, "RESP_CODE");//接收返回码
+			}else{//直联方式
+				kColl = SFUtil.getDataElement(secuContext, "6032_O");
+				respMsg = SFUtil.getDataValue(secuContext, kColl, "RESP_MSG");//直联返回错误码
+				respCode = SFUtil.getDataValue(secuContext, kColl, "RESP_CODE");//直联返回错误信息
+			}
+	 		if (SFConst.RET_SUCCESS.equals(retFlag)) {//发券商成功
+	 			//记录转账交易明细表
+				acctDetail.setTxDate(txDate);
+				acctDetail.setInitSide(initSide);
+				acctDetail.setUserId(SFConst.DEFAULT_USER_ID);
+				acctDetail.setTxSeqId(BizUtil.getTxSeqId(subTxSeqId));
+				acctDetail.setSecSeqId(secSeqId);
+				acctDetail.setSubTxSeqId(subTxSeqId);
+				acctDetail.setInvType(invType);
+				acctDetail.setSecAcct(secAcct);
+				acctDetail.setSecAcctSeq(signAccountData.getSecAcctSeq());
+				acctDetail.setSecCompCode(secCompCode);
+				acctDetail.setCapAcct(capAcct);
+				acctDetail.setAcctId(acctId);
+				acctDetail.setCurCode(curCode);
+				acctDetail.setDcFlag(SFConst.DEBIT_FLAG);
+				acctDetail.setTxAmount(txAmount);
+				acctDetail.setAcctBal(acctBal);
+				acctDetail.setAbst(SFConst.INV_TYPE_RETAIL.equals(invType)?"1002":"2002");
+				acctDetail.setAbstractStr("银行端发起证转银");
+				acctDetail.setJourFlag("00");
+				acctDetail.setTxCode(SFConst.SF_TX_CODE_BANK_S2B);
+				acctDetail.setBusiType(SFConst.BUSI_TYPE_S2B);
+				acctDetail.setTxTime(txTime);
+				acctDetail.setDepId(unitId);
+				acctDetail.setBranchId(bankUnit.getBranchId());
+				acctDetail.setOpenDepId(signAccountData.getOpenDepId());
+				acctDetail.setOpenBranchId(signAccountData.getOpenBranchId());
+				acctDetail.setCashRemitFlag(SFConst.CASH_FLAG);
+				acctDetail.setUnitTellerId(unitTellerId);
+				acctDetail.setAcctDealId(BizUtil.getAcctDealId(context));
+				acctDetail.setAcctHostSeqId("");
+				acctDetail.setPreSeqId(subTxSeqId);
+				acctDetail.setAcctDealDate(txDate);
+				acctDetail.setColFlag("0");
+				acctDetail.setMemo("银行端发起银转证");
+				acctDetail.setTranSeqId(tranSeqId);
+				acctDetail.setBusiSeqId(tempBizSeq);
+				acctDetailDao.saveAcctDetail(context, tranConnection, acctDetail);
+	 			DBHandler.commitTransaction(context, tranConnection);//提交事务
+	 			DBHandler.beginTransaction(context, tranConnection);//开启事务
+		    	
+	 			//锁定记录
+	 			signAccountData = signAccountDataDao.signAccountDataLock(context, tranConnection, secCompCode,capAcct);
+	 			SFUtil.chkCond(context,signAccountData == null, "ST4440",String.format("客户签约信息查询失败"));
+	 			String openDate = signAccountData.getOpenDate();
+	 			
+	 			signAccountData = new SignAccountData();
+	 			signAccountData.setPreTxDate(txDate);
+	 			signAccountData.setAcctBal(acctBal);
+				signAccountData.setSecCompCode(secCompCode);
+				signAccountData.setCapAcct(capAcct);
+				signAccountDataDao.saveSignAccountData(context, tranConnection, signAccountData);
+				DBHandler.commitTransaction(context, tranConnection);//提交事务
+				 //开户当日控制余额
+				SFUtil.chkCond(context,txDate.equals(openDate)&&acctBal<0, "ST4498",String.format("资金账户处理异常"));
+		        
+				DBHandler.beginTransaction(context, tranConnection);//开启事务
+		 		//更新 TRDAcctJour
+		 		acctJour = new AcctJour();	
+	 			acctJour.setJourFlag("30");
+	 			acctJour.setSecSeqId(secSeqId);
+	 			acctJour.setTxDate(txDate);
+	 			acctJour.setSubTxSeqId(subTxSeqId);
+	 			acctJourDao.saveAcctJour(context, tranConnection, acctJour);
+	 		} else {//发券商失败或异常
+	 			//保存错误码及错误信息
+	 			acctJour.setJourFlag("w2");
+	 			acctJour.setSecAcctSeq(signAccountData.getSecAcctSeq());
+	 			acctJour.setRespCode(respCode);
+	 			acctJour.setRespMsg(respMsg);
+	 			acctJour.setTxDate(txDate);
+	 			acctJour.setSubTxSeqId(subTxSeqId);
+	 			acctJourDao.saveAcctJour(context, tranConnection, acctJour);
+	 			
+	 			SFUtil.chkCond(context, "ST4034", String.format("发券商失败或异常:%s", respMsg));
+	 		}
+	 		DBHandler.commitTransaction(context, tranConnection); //提交事务  
+		} catch (SFException e){
+			throw e;
+		}  catch (Exception e) {
+			SFUtil.chkCond(context,  "ST4895", String.format("发券商失败%s",e.getMessage()));
+		}
+	}
+	
+	private void addAcctJour(Context context) throws SFException{
+		String initSide = SFUtil.getReqDataValue(context, "INIT_SIDE");//发起渠道
+		String capAcct = SFUtil.getReqDataValue(context,"CAP_ACCT");//券商端客户资金台账号
+		String invType = SFUtil.getReqDataValue(context,"INV_TYPE");//客户类型
+		String acctId = SFUtil.getReqDataValue(context,"ACCT_ID");//卡号
+		String curCode = SFUtil.getReqDataValue(context,"CUR_CODE");//币种
+		
+		String unitTellerId = SFUtil.getDataValue(context, "APP_HEAD.USER_ID");//网点操作号
+		String unitId = SFUtil.getDataValue(context,"APP_HEAD.BRANCH_ID");//网点号
+		String tempBizSeq = SFUtil.getDataValue(context, "APP_HEAD.BIZ_SEQ_NO");//业务流水号
+	    	//交易流水号
+	    String chlTranSeq = SFUtil.getDataValue(context, "SYS_HEAD.CONSUMER_SEQ_NO");//业务流水号//渠道交易流水号
+	    
+		try {
+			DBHandler.beginTransaction(context, tranConnection);//开启事务
+			
+			String invName = null;
+			String invIdCode = null;	
+			String stkAcct = null;
+		    //若网银和电话银行来的交易,从库里取出客户信息
+			if (!SFConst.INIT_SIDE_ABBANK.equals(initSide)) {
+				invName = investData.getInvName();
+				idType = investData.getIdType();
+				invIdCode = investData.getInvIdCode();
+				capAcct = signAccountData.getCapAcct();
+				
+			} else {
+				SFUtil.chkCond(context,SFUtil.isEmpty(idType),"ST4027",String.format("客户证件类型不允许为空"));
+				invIdCode = SFUtil.getReqDataValue(context,"INV_ID_CODE");
+				SFUtil.chkCond(context,SFUtil.isEmpty(invIdCode),"ST4027",String.format("客户证件号码不允许为空"));
+				invName = SFUtil.getReqDataValue(context,"INV_NAME");
+				SFUtil.chkCond(context,SFUtil.isEmpty(invName),"ST4027",String.format("客户姓名不允许为空"));
+				stkAcct = capAcct;
+			}
+			String secAcct = investData.getSecAcct();
+			SFUtil.setReqDataValue(context, "CAP_ACCT", capAcct);
+			SFUtil.setReqDataValue(context, "INV_ID_CODE", invIdCode);
+			SFUtil.setReqDataValue(context, "INV_NAME", invName);
+			SFUtil.setReqDataValue(context, "ID_TYPE", idType);
+			SFUtil.chkCond(context,SFUtil.isEmpty(secAcct), "ST4804", String.format("客户身份信息不存在"));
+			
+			String signFlag = signAccountData.getSignFlag();//签约状态
+			SFUtil.chkCond(context,"-".equals(signFlag), "ST4889", String.format("此卡号或账号未签约"));
+			SFUtil.chkCond(context,SFConst.SIGN_FLAG_CANCEL.equals(signFlag), "ST4785", String.format("已撤销签约"));
+			SFUtil.chkCond(context,"*".equals(signFlag), "ST4045", String.format("签约信息不符"));
+			SFUtil.chkCond(context,!SFConst.SIGN_FLAG_SIGN.equals(signFlag), "ST4030",String.format("客户当前状态不允许办理此交易"));
+			
+			
+			SFLogger.info(context, String.format("银行端发起银转证纪录数据库开始"));
+			signAccountData = signAccountDataDao.qrySignAccountData(context, tranConnection,capAcct,secCompCode,false);
+			SFUtil.chkCond(context,signAccountData == null, "ST4440", String.format("客户签约账号信息查询失败"));
+			
+			String activeFlag = signAccountData.getActiveFlag();   
+			SFUtil.chkCond(context,"1".equals(activeFlag), "ST4492", String.format("请先从银行端发起银转证交易以激活此资金账号"));
+			acctBal = signAccountData.getAcctBal();
+			String openDeId = signAccountData.getOpenDepId();
+			String openBranch = signAccountData.getOpenBranchId();
+			String account = signAccountData.getSavAcct();
+			int secAcctSeq = signAccountData.getSecAcctSeq();
+			String openDate = signAccountData.getOpenDate();
+		
+			acctBal = SFUtil.sub(acctBal, txAmount);
+			 if ("1".equals(secCompData.getOverDraftFlag())){//该券商允许透支
+				 //开户当日控制余额
+				SFUtil.chkCond(context,txDate.equals(openDate)&&acctBal<0, "ST4894", String.format("资金账户可用余额不足"));
+				
+			 } else {
+				SFUtil.chkCond(context,acctBal<0, "ST4894", String.format("资金账户可用余额不足"));
+			 }
+			
+			bankUnit = bankUnitDao.qryBankUnit(context, tranConnection, productInfo.getTruOpnDepId());
+			SFUtil.chkCond(context,bankUnit == null,"ST5705", String.format("找不到券商托管专户账号开户网点"));
+			
+			bankUnit = bankUnitDao.qryBankUnit(context, tranConnection, openDeId);
+			SFUtil.chkCond(context,bankUnit == null,"ST4044", String.format("查找转出账号网点名称失败!"));
+		
+			SFUtil.chkCond(context,SFUtil.isEmpty(unitId),"ST4044", String.format("交易网点不允许为空"));
+			//记录交易流水
+			acctJour.setTxDate(txDate);
+			acctJour.setInitSide(initSide);
+			acctJour.setUserId(SFConst.DEFAULT_USER_ID);
+			acctJour.setTxSeqId(BizUtil.getTxSeqId(subTxSeqId));
+			acctJour.setSecSeqId("");
+			acctJour.setSubTxSeqId(subTxSeqId);
+			acctJour.setInvType(invType);
+			acctJour.setInvName(invName);
+			acctJour.setIdType(idType);
+			acctJour.setInvIdCode(invIdCode);
+			acctJour.setSecAcct(secAcct);
+			acctJour.setSecAcctSeq(secAcctSeq);
+			acctJour.setSecCompCode(secCompCode);
+			acctJour.setCapAcct(stkAcct);
+			acctJour.setAcctId(acctId);
+			acctJour.setCurCode(curCode);
+			acctJour.setDcFlag(SFConst.DEBIT_FLAG);
+			acctJour.setTxAmount(txAmount);
+			acctJour.setAcctBal(acctBal);
+			acctJour.setAbst(SFConst.INV_TYPE_RETAIL.equals(invType)?"1002":"2002");
+			acctJour.setAbstractStr("银行端发起证转银");
+			acctJour.setJourFlag("3w");
+			acctJour.setTxCode(SFConst.SF_TX_CODE_BANK_S2B);
+			acctJour.setBusiType(SFConst.BUSI_TYPE_S2B);
+			acctJour.setTxTime(txTime);
+			acctJour.setDepId(unitId);
+			acctJour.setBranchId(bankUnit.getBranchId());
+			acctJour.setOpenDepId(openDeId);
+			acctJour.setOpenBranchId(openBranch);
+			acctJour.setCashRemitFlag(SFConst.CASH_FLAG);
+			acctJour.setUnitTellerId(unitTellerId);
+			acctJour.setAcctDealId(BizUtil.getAcctDealId(context));
+			acctJour.setAcctHostSeqId("");
+			acctJour.setPreSeqId(subTxSeqId);
+			acctJour.setAcctDealDate(txDate);
+			acctJour.setColFlag("0");
+			acctJour.setBankSeqId("");
+			acctJour.setProductType("03");
+			acctJour.setMemo("银行端发起证转银");
+			acctJour.setSavAcct(account);
+			acctJour.setTranSeqId(tranSeqId);
+			acctJour.setBusiSeqId(tempBizSeq);
+			acctJour.setChlSeqId(tempBizSeq);
+			acctJour.setChlTranSeqId(chlTranSeq);
+			acctJourDao.saveAcctJour(context, tranConnection, acctJour);
+			DBHandler.commitTransaction(context, tranConnection);//提交事务
+			
+		}  catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context,"ST4895",String.format("addAcctJour()失败",e.getMessage()));
+		} 
+	}
+	
+	@Override
+	protected void chkStart(Context context) throws SFException {
+		txAmount = SFUtil.object2Double((String) SFUtil.getReqDataValue(context,"TX_AMOUNT"));//交易金额
+		//交易金额不能小于等于0
+		SFUtil.chkCond(context, txAmount<=0, "ST4465", String.format("交易金额不能小于等于零"));
+		//千亿检查
+		BizUtil.chkMaxAmount(context, txAmount);
+	}
+
+	@Override
+	protected void chkEnd(Context context) throws SFException {
+		secCompCode = SFUtil.getReqDataValue(context, "SEC_COMP_CODE");//券商代码
+		String curCode = SFUtil.getReqDataValue(context,"CUR_CODE");//币种
+		String invType = SFUtil.getReqDataValue(context,"INV_TYPE");//客户类型
+		idType = SFUtil.getDataValue(context, SFConst.PUBLIC_ID_TYPE);//转换后的证件类型
+		//币种为空, 则默认为RMB   
+		curCode = SFUtil.isEmpty(curCode)?SFConst.CUR_CODE_RMB:curCode; 
+		SFUtil.setReqDataValue(context, "CUR_CODE", curCode);
+		//客户类型若为空,则默认为个人   备注:由于银行端渠道交易不送客户类型，已直接配置在ESBFormats.xml文件中
+		invType = SFUtil.isEmpty(invType)?SFConst.INV_TYPE_RETAIL:invType;
+		SFUtil.setReqDataValue(context, "INV_TYPE", invType);
+		
+		//直连券商金额除100处理
+		if (SFConst.SECU_ZL.equals(SFUtil.getDataValue(context, SFConst.PUBLIC_SECU_TYPE))){ 
+			txAmount = BizUtil.conv2SecuDivAmout(context, txAmount);
+		} 
+		
+		//查询产品信息
+		productInfo = productInfoDao.qryProductInfo(context, tranConnection, secCompCode);
+		SFUtil.chkCond(context, productInfo == null,"ST4074", String.format("该券商未开通此币种的业务"));
+	
+		//查询券商汇总账户信息
+		secTruAcct = secTruAcctDao.qrySecTruAcctBySecCompCode(context, tranConnection, secCompCode);
+		SFUtil.chkCond(context, secTruAcct == null,"ST4029", String.format("未查到券商汇总账户名称"));
+		
+		secCompData = SFUtil.getDataValue(context, SFConst.PUBLIC_SECU);//获取券商信息
+		investData = SFUtil.getDataValue(context, SFConst.PUBLIC_INVEST_DATA);//获取投资人信息
+		signAccountData = SFUtil.getDataValue(context,SFConst.PUBLIC_SIGN_ACCOUNT_DATA);//获取签约信息
+		localInfo = SFUtil.getDataValue(context,SFConst.PUBLIC_LOCAL_INFO);//获取营业时间信息
+		txDate = localInfo.getWorkdate();//营业日期
+	}
+	
+}

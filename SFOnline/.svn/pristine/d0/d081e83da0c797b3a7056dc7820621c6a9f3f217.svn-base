@@ -1,0 +1,80 @@
+package core.communication.access.esb;
+
+import com.dc.eai.data.CompositeData;
+import com.dcfs.esb.client.converter.PackUtil;
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.cache.CacheMap;
+import core.communication.access.tcpip.BBCPCommClient;
+import core.log.SFLogger;
+
+
+
+/**
+ * 
+ * ESB发送TCPIP实类
+ * @author 邹磊
+ *
+ */
+public class ESBSendAction{
+	private final static int pkLen = 8;
+	
+	
+	public String send(Context context,CompositeData requestCD) throws SFException{
+		
+		String ESBIp=null,ESBPort=null;
+		int timeOut = 40000;
+		String isTranSpond = SFUtil.getDataValue(context, SFConst.PUBLIC_IS_TRANSPOND);
+		
+		if("Y".equals(isTranSpond)){   //转发给管理台
+			SFAccessParam SFParam = CacheMap.getCache("SF_ACCESS_PARAM");
+			ESBIp = SFParam.getSFIp();
+			ESBPort = SFParam.getSFPort();
+			timeOut = SFParam.getSFTimeOut();
+		}else{
+			ESBAccessParam esbParam = CacheMap.getCache("ESB_ACCESS_PARAM");
+			ESBIp = esbParam.getEsbIp();
+			ESBPort = esbParam.getEsbPort();
+			timeOut = esbParam.getEsbTimeOut();
+		}
+		
+		BBCPCommClient client =  new BBCPCommClient(ESBIp,ESBPort,timeOut,pkLen);
+		
+		String repMsg = PackUtil.packXmlStr(requestCD);
+		byte[] retMsg  = repMsg.getBytes();
+		
+		String len = "00000000"+retMsg.length;
+		byte[] toSendMessage = new byte[8+retMsg.length];
+		System.arraycopy((len.substring(len.length()-pkLen, len.length())).getBytes(), 0, toSendMessage, 0, pkLen);
+		System.arraycopy(retMsg, 0, toSendMessage, pkLen, retMsg.length);
+		
+		String ret = client.SendCMD(context,toSendMessage);
+		if(!"0".equals(ret)){
+			
+//			if("2".equals(ret)){
+			SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPCODE", SFConst.RESPCODE_TIMEOUT_ESB);
+			SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPMSG","主机响应报文超时");
+//			}
+			
+			throw new SFException("YYPTERROR9999","BBCPTCPIPDynamicAccessAction通讯错误："+ret);	
+		}
+		
+		byte[] toReciveMessage = null;
+		toReciveMessage = client.getResult().getBytes();//接收下来的全部报文
+		if(toReciveMessage == null || toReciveMessage.length == 0){
+			SFLogger.info(context,"BBCPTCPIPDynamicAccessAction通讯错误：接收返回数据为空。当做超时返回处理，返回超时4" );
+		}
+		
+		String reqData = new String(toReciveMessage);
+		return reqData.trim();
+		
+	}
+	
+	
+	
+	
+	
+}

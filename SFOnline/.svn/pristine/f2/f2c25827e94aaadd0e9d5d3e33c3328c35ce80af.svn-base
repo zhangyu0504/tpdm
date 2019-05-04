@@ -1,0 +1,135 @@
+package module.dao;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import module.bean.AgtTranList;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.data.InvalidArgumentException;
+import com.ecc.emp.data.ObjectNotFoundException;
+import common.exception.SFException;
+import common.sql.dao.DaoBase;
+import common.util.SFUtil;
+
+public class AgtTranListDao extends DaoBase {
+	
+	private StringBuffer getQryAgtTranListSQLStruct(){
+		StringBuffer buffer = new StringBuffer();
+		buffer.append("SELECT BANKID AS bankId,OPENBRANCH AS openBranch,TRANFUNC AS tranFunc,BUSINESSTYPE AS businessType,TRANTYPE AS tranType,PICSLOGNO AS picsLogNo,FRONTLOGNO AS frontLogNo,AGENTLOGNO AS agentLogNo,ACCTNO AS acctNo,");	   		
+		buffer.append("STKCODE AS stkCode,STKACCT AS stkAcct,BANKACCT AS bankAcct,COMPACCT AS compAcct,CCYCODE AS ccyCode,TRANAMOUNT AS tranAmount,THIRDTIME AS thirdTime,TRADEDATE AS tradeDate,HOSTDATE AS hostDate,INSERTTIME AS insertTime,");
+		buffer.append(" VOIDFLAG AS voidFlag,TRANRESULT AS tranResult,HOSTCHECK AS hostCheck,CHKRESULT AS chkResult,HOSTLOGNO AS hostLogNo,VOUCHERNO AS voucherNo,COMPLETETIME AS completeTime,BACKLOGNO AS backLogNo,BACKRESULT AS backResult,reserve AS reserve");
+		buffer.append(" FROM AGT_TRANLIST WHERE 1=1 ");
+		
+		return buffer;
+	}
+	
+	/**
+	 * 保存交易记录
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @throws SFException
+	 */
+	public void saveAgtTranList(Context context,Connection connection,AgtTranList bean)throws SFException{
+		try {
+		 	SFUtil.chkCond(context, SFUtil.isEmpty(bean.getFrontLogNo()), "ST4895", "必要参数[FRONTLOGNO]没有提供");
+			super.save(context,connection, bean.getSaveAgtAutoAgtSQLConstruct());
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}finally{
+			if(null != bean){
+				bean.resetChangedFlag();
+			}
+		}
+	}
+	
+	/**
+	 * （行E通发起) 查询流水处理情况
+	 * @param context
+	 * @return
+	 * @throws EMPException
+	 * @throws SQLException
+	 * @throws InvalidArgumentException 
+	 * @throws ObjectNotFoundException 
+	 */
+	public AgtTranList qryAgtTranListBylogNo(Context context,Connection connection,String queryLogNo)throws SFException{
+		AgtTranList agtTranList = null;
+		try{
+
+			StringBuffer buffer = getQryAgtTranListSQLStruct();
+			buffer.append(" AND (PICSLOGNO=? OR FRONTLOGNO=? OR AGENTLOGNO=? )");
+			
+		    agtTranList = super.qry(context, connection, buffer.toString(), AgtTranList.class, queryLogNo,queryLogNo,queryLogNo);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}finally{
+			if(agtTranList!=null){
+				agtTranList.resetChangedFlag();
+			}
+		}
+		return agtTranList;
+    }	
+	
+	/**
+	 * 关联TranList 和 CustomerInfo 查询流水处理情况
+	 * @param context
+	 * @param connection
+	 * @param bankId
+	 * @param queryLogNo
+	 * @return
+	 * @throws SFException
+	 */
+	public AgtTranList qryAgtTranListByBankIdAndQueryLogNo(Context context,Connection connection,String bankId,String queryLogNo) throws SFException{
+		AgtTranList agtTranList = null;
+		try {
+			StringBuffer buffer = getQryAgtTranListSQLStruct();
+			buffer.append(" AND BANKID=? AND (PICSLOGNO=? OR AGENTLOGNO=?)");
+			agtTranList = super.qry(context, connection, buffer.toString(), AgtTranList.class, bankId,queryLogNo,queryLogNo);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}finally{
+			if(agtTranList!=null){
+				agtTranList.resetChangedFlag();
+			}
+		}
+		return agtTranList;
+	}
+	
+	/**
+	 * 查询合作行行号BankNo
+	 * @param context
+	 * @param connection
+	 * @param businessType
+	 * @param PICSLogno
+	 * @return
+	 * @throws SFException
+	 */
+	public AgtTranList qryAgtTranListByBankId(Context context,Connection connection,String businessType,String PICSLogno)throws SFException{
+		AgtTranList agtTranList = null;
+		try {
+			StringBuffer buffer = getQryAgtTranListSQLStruct();
+			buffer.append(" AND BUSINESSTYPE = ? AND PICSLOGNO = ? ");
+			buffer.append(" AND FRONTLOGNO IN (SELECT MAX(FRONTLOGNO) FROM AGT_TRANLIST WHERE BUSINESSTYPE = ? AND PICSLOGNO = ?)");
+			agtTranList = super.qry(context,connection,buffer.toString(),AgtTranList.class,businessType,PICSLogno,businessType,PICSLogno);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally{
+			if(null!=agtTranList){
+				agtTranList.resetChangedFlag();	
+			}
+			
+		}
+		return agtTranList;
+	}
+	
+}

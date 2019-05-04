@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="GBK" ?>
+
+<EditorProfile rootElement="flow">
+	<elementCatalog id="rootCatalog" name="rootCatalog" showInToolPanel="false">
+		<Element id="flow" name="flow">
+			<childElements>
+				<child id="FBSJDBCProcedureAction" allowedCount="*" desc="FBSJDBCProcedureAction"/>
+				<child id="PageQueryTemplateAction" allowedCount="*" desc="PageQueryTemplateAction"/>
+				<child id="SFCompareExprAction" allowedCount="*" desc="SFCompareExprAction"/>
+				<child id="SFComputeExprAction" allowedCount="*" desc="SFComputeExprAction"/>
+				<child id="SFCopyKcollAction" allowedCount="*" desc="SFCopyKcollAction"/>
+				<child id="SFInsIcollAction" allowedCount="*" desc="SFInsIcollAction"/>
+				<child id="SFPageQueryAction" allowedCount="*" desc="SFPageQueryAction"/>
+				<child id="SFPageQueryParamAction" allowedCount="*" desc="SFPageQueryParamAction"/>
+				<child id="SFUpdateICollAction" allowedCount="*" desc="SFUpdateICollAction"/>
+				<child id="CreateTransactionAction" allowedCount="*" desc="CreateTransactionAction"/>
+				<child id="SqlExecAction" allowedCount="*" desc="SqlExecAction"/>
+				<child id="SendHostAccessAction" allowedCount="*" desc="SendHostAccessAction"/>
+				<child id="SFExceptionAction" allowedCount="*" desc="SFExceptionAction"/>
+				<child id="FtpFileAction" allowedCount="*" desc="FtpFileAction"/>
+				<child id="EsbInterfaceBase" allowedCount="*" desc="EsbInterfaceBase"/>
+				<child id="PmisInterfaceBase" allowedCount="*" desc="PmisInterfaceBase"/>
+				<child id="SFHostAccessAction" allowedCount="*" desc="SFHostAccessAction"/>
+				<child id="HostInterfaceBase" allowedCount="*" desc="HostInterfaceBase"/>
+				<child id="JDBCProcedureAction" allowedCount="*" desc="JDBCProcedureAction"/>
+			</childElements>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="扩展数据库组件" name="扩展数据库组件">
+	</elementCatalog>
+	<elementCatalog id="扩展基础组件" name="基础组件">
+	</elementCatalog>
+	<elementCatalog id="存管通讯组件" name="存管通讯组件">
+	</elementCatalog>
+	<elementCatalog id="数据操作类扩展ACTION" name="数据操作类扩展ACTION">
+		<Element id="FBSInsIcollAction" name="添加ICOLL记录" implClass="com.sdb.fbs.action.dataoper.FBSInsIcollAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;-1=异常;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="flag" attrName="清空记录" attrType="boolean" mustSet="true" defaultValue="false" valueList="false=false;true=true;" desc= "清空记录"/>
+				<attr id="icollName" attrName="ICOLL名" attrType="String" mustSet="true" desc= "ICOLL名"/>
+				<attr id="updateFields" attrName="目标数据域名" attrType="String" mustSet="true" desc= "目标数据,用|分隔"/>
+				<attr id="retrieveFields" attrName="数据源" attrType="String" mustSet="true" desc= "数据源,用|分隔,支持表达式"/>
+			</attributes>
+			<document>为ICOLL添加一条记录</document>
+		</Element>
+		<Element id="FBSPageQueryAction" name="数据分页查询" implClass="com.sdb.fbs.action.dataoper.FBSPageQueryAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=成功;-1=异常;2=不存在记录数;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="transactionType" attrName="事务类型" attrType="string" mustSet="true" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;">
+						</attr>
+				<attr id="pageQuerySql" attrName="分页的SQL语句" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor">
+						</attr>
+				<attr id="pageCountSql" attrName="查询集合数SQL" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor">
+						</attr>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSPageQueryParamAction" name="动态数据分页查询" implClass="com.sdb.fbs.action.dataoper.FBSPageQueryParamAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=成功;-1=异常;2=不存在记录数;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="transactionType" attrName="事务类型" attrType="string" mustSet="true" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;">
+						</attr>
+				<attr id="pageQuerySql" attrName="分页的SQL语句" mustSet="true" editorClass="com.ecc.ide.editor.TextAreaPropertyEditor">
+						</attr>
+				<attr id="pageCountSql" attrName="查询集合数SQL" mustSet="true" editorClass="com.ecc.ide.editor.TextAreaPropertyEditor">
+						</attr>
+				<attr id="orderByStr" attrName="排序语句" desc= "当动态排序数据域名未配时，按此设置排序"/>
+				<attr id="paramOrderByStr" attrName="动态排序数据域名" desc= "为支持前端可选择排序字段而加，排序条件将从DATAFIELD中取"/>
+				<attr id="groupByStr" attrName="分组方式">
+						</attr>
+				<attr id="paramStr" attrName="条件参数设定" editorClass="com.ecc.ide.editor.TextAreaPropertyEditor">
+						</attr>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSPageQueryTemplateAction" name="动态数据模板分页查询" implClass="com.sdb.fbs.action.dataoper.FBSPageQueryTemplateAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=成功;-1=异常;2=不存在记录数;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="pageQueryDefine" attrName="分页的SQL语句服务名称" mustSet="true" editorClass="com.ecc.ide.editor.TextAreaPropertyEditor">
+						</attr>
+				<attr id="orderSql" attrName="分页的SQL排序语句" mustSet="true" editorClass="com.ecc.ide.editor.TextAreaPropertyEditor">
+						</attr>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSHasFieldInICollAction" name="判断KCOLL数据域是否为null" implClass="com.sdb.fbs.action.dataoper.FBSHasFieldInICollAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;-1=异常;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="kCollName" attrName="KColl名称" attrType="string" mustSet="true" desc= "KColl名称"/>
+				<attr id="FieldName" attrName="要要判断是否为空的DataField名称" attrType="string" mustSet="true">
+						</attr>
+				<attr id="updateField" attrName="需要更新的DataFiled名称" attrType="string" mustSet="true">
+						</attr>
+			</attributes>
+			<document>判断集合中的某项数据域的值是否为null并将结果更新另一个字段</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="数据操作类ACTION" name="数据操作类ACTION">
+		<Element id="SFComputeExprAction" name="扩展表达式计算" implClass="common.action.dataoper.SFComputeExprAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=成功;-1=失败;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="exp" attrName="表达式" mustSet="true" editorClass="com.ecc.ide.editor.TextAreaPropertyEditor" desc= "要计算的表达式。"/>
+				<attr id="param" attrName="结果数据域" mustSet="true" desc= "存放表达式计算结果的数据域。"/>
+			</attributes>
+			<document>
+				功能描述：表达式求值 返回值：0=成功;-1=失败。
+				配置示例:$(payAmt)-9+$(payAmt)*2/(10)
+			</document>
+		</Element>
+		<Element id="SFCompareExprAction" name="比较表达式数据" implClass="common.action.dataoper.SFCompareExprAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=相等;1=不等;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="exp1" attrName="表达式1" mustSet="true" editorClass="com.ecc.ide.editor.TextAreaPropertyEditor" desc= "要比较的表达式1。"/>
+				<attr id="exp2" attrName="表达式1" mustSet="true" editorClass="com.ecc.ide.editor.TextAreaPropertyEditor" desc= "要比较的表达式2。"/>
+			</attributes>
+			<document>
+				功能描述：比较两个表达式运算结果是否相等。
+			</document>
+		</Element>
+		<Element id="SFUpdateICollAction" name="更新ICOLL数据域" implClass="common.action.dataoper.SFUpdateICollAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;-1=异常;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="iCollName" attrName="IColl名称" attrType="string" mustSet="true" desc= "IColl名称更新多项使用;号分隔"/>
+				<attr id="updateFields" attrName="要更新的DataField名称" attrType="string" mustSet="true" desc= "更新多项使用;号分隔"/>
+				<attr id="retrieveFields" attrName="更新的数据来源" attrType="string" mustSet="true" desc= "多项使用;号，顺序与要更新的DataField名称相同"/>
+			</attributes>
+			<document>无条件更新集合中的某项数据域的值。</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="extendedElements" name="extendedElements">
+		<Element id="PageQueryTemplateAction" name="FBSPageQueryTemplateAction" implClass="common.action.dataoper.PageQueryTemplateAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;-1=异常;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SFCompareExprAction" name="SFCompareExprAction" implClass="common.action.dataoper.SFCompareExprAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SFComputeExprAction" name="SFComputeExprAction" implClass="common.action.dataoper.SFComputeExprAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SFCopyKcollAction" name="SFCopyKcollAction" implClass="common.action.dataoper.SFCopyKcollAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SFInsIcollAction" name="SFInsIcollAction" implClass="common.action.dataoper.SFInsIcollAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SFPageQueryAction" name="PageQueryAction" implClass="common.action.dataoper.SFPageQueryAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;-1=异常;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="transactionType" attrName="事务类型" attrType="string" mustSet="true" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= ""/>
+				<attr id="dataSourceName" attrName="数据源" attrType="string" mustSet="true">
+						</attr>
+				<attr id="sqlServiceName" attrName="执行SQL语句的服务" attrType="string" mustSet="true">
+						</attr>
+				<attr id="pageQuerySql" attrName="分页的SQL语句" attrType="string" mustSet="true">
+						</attr>
+				<attr id="pageCountSql" attrName="查询集合数SQL" attrType="string" mustSet="true">
+						</attr>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SFPageQueryParamAction" name="PageQueryAction" implClass="common.action.dataoper.SFPageQueryParamAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;-1=异常;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="transactionType" attrName="事务类型" attrType="string" mustSet="true" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= ""/>
+				<attr id="pageQuerySql" attrName="分页的SQL语句" attrType="string" mustSet="true">
+						</attr>
+				<attr id="pageCountSql" attrName="查询集合数SQL" attrType="string" mustSet="true">
+						</attr>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SFUpdateICollAction" name="SFUpdateICollAction" implClass="common.action.dataoper.SFUpdateICollAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="CreateTransactionAction" name="CreateTransactionAction" implClass="common.action.db.CreateTransactionAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="transactionType" attrName="事务类型" mustSet="true" defaultValue="TRX_REQUIRED" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= "选择该步骤是全局事务还是独有事务"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SqlExecAction" name="执行SQL语句" implClass="common.action.db.SqlExecAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=正常;2=记录未找到;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="transactionType" attrName="事务类型" mustSet="true" defaultValue="TRX_REQUIRED " valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= "选择该步骤是全局事务还是独有事务"/>
+				<attr id="dataSource" attrName="数据源服务定义名称" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor">
+						</attr>
+				<attr id="sqlService" attrName="SQL语句执行服务定义名称" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor">
+						</attr>
+				<attr id="refSQL" attrName="SQL语句定义名称" mustSet="true">
+						</attr>
+			</attributes>
+			<document>执行SQL语句的操作步骤，通过执行SQL语句服务（SFSqlExecService），实现在一个事务中执行多条SQL语句的操作。</document>
+		</Element>
+		<Element id="SendHostAccessAction" name="SendHostAccessAction" implClass="common.action.expand.commu.SendHostAccessAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="FtpFileAction" name="FtpFileAction" implClass="common.action.expand.ftp.FtpFileAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="JDBCProcedureAction" name="访问存储过程" implClass="core.jdbc.procedure.JDBCProcedureAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="dataSource" attrName="数据源服务定义名称" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor">
+						</attr>
+				<attr id="procedureDefine" attrName="数据库存储过程定义名称" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor">
+						</attr>
+				<attr id="procedureService" attrName="数据库存储过程访问服务定义名称" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor">
+						</attr>
+				<attr id="transactionType" attrName="事务类型" mustSet="true" defaultValue="TRX_REQUIRED " valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= "选择该步骤是全局事务还是独有事务"/>
+				<attr id="throwException" attrName="是否抛出异常" defaultValue="false">
+						</attr>
+			</attributes>
+			<document>访问存储过程的操作步骤，通过存储过程访问服务（ProcedureAccessService），调用并执行本地数据库的存储过程。</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="存管系统(SF)扩展ACTION" name="存管系统(SF)扩展ACTION">
+		<Element id="SFExceptionAction" name="存管系统(SF)异常抛出" implClass="common.action.expand.exception.SFExceptionAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;-1=异常;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="errCode" attrName="错误码" attrType="string" mustSet="true">
+						</attr>
+				<attr id="errMsg" attrName="错误信息" attrType="string" mustSet="true">
+						</attr>
+			</attributes>
+			<document>生成一个本系统异常抛出</document>
+		</Element>
+	</elementCatalog>
+</EditorProfile>

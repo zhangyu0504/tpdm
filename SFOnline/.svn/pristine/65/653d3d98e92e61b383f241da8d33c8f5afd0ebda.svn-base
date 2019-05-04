@@ -1,0 +1,59 @@
+package module.trans;
+
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * 公共跳转类
+ * @author 邹磊
+ *
+ */
+public class TranHandler{
+	/**
+	 * 
+	 * @param context
+	 * @throws SFException
+	 */
+	public static void doHandle(Context context) throws SFException{
+		//SFLogger.info(context,"公共交易处理类模型执行开始");		
+		try {
+			String tranClass = SFUtil.getDataValue(context,"CLASS_NAME"); //FileUtil.getInstance().getProperties((String)context.getDataValue(BBCPConstent.BBCP_SERVICEID));			
+			TranBase tranBase = (TranBase)Class.forName(tranClass).newInstance();
+			tranBase.execute(context);	
+		} catch (InstantiationException e) {
+			SFLogger.error(context,e);
+			throw new SFException(e);
+		} catch (IllegalAccessException e) {
+			SFLogger.error(context,e);
+			throw new SFException(e);
+		} catch (ClassNotFoundException e) {
+			SFLogger.error(context,e);
+			throw new SFException(e);
+		}
+		//SFLogger.info(context,"公共交易处理类模型执行结束");		
+	}
+	
+	
+	private static void doInit(Context context) throws SFException{
+		SFLogger.info(context,"公共交易处理类模型执行开始");		
+		try {
+			String tranClass = SFUtil.getDataValue(context,"CLASS_NAME"); //FileUtil.getInstance().getProperties((String)context.getDataValue(BBCPConstent.BBCP_SERVICEID));			
+			TranBase tranBase = (TranBase)Class.forName(tranClass).newInstance();
+			tranBase.initialize(context);	
+		} catch (InstantiationException e) {
+			SFLogger.error(context,e);
+			throw new SFException(e);
+		} catch (IllegalAccessException e) {
+			SFLogger.error(context,e);
+			throw new SFException(e);
+		} catch (ClassNotFoundException e) {
+			SFLogger.error(context,e);
+			throw new SFException(e);
+		}
+		SFLogger.info(context,"公共交易处理类模型执行结束");		
+	}
+}

@@ -1,0 +1,387 @@
+package module.service;
+
+import java.sql.Connection;
+
+import module.bean.LocalInfo;
+import module.bean.ProductInfo;
+import module.bean.SecCompData;
+import module.bean.SecNoServTime;
+import module.bean.SecServStatus;
+import module.bean.ServStatus;
+import module.dao.HolidayDateDao;
+import module.dao.ProductInfoDao;
+import module.dao.SecNoServTimeDao;
+import module.dao.ServStatusDao;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+
+import common.exception.SFException;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+public class SecuService {
+
+	/**
+	 * 检查当前券商是否允许进行该币种交易
+	 * 
+	 * @param secComCode
+	 *            券商代码
+	 * @param productType
+	 *            产品种类
+	 * @param curCode
+	 *            币种
+	 */
+	public static void chkCurCode(Context context, Connection connection)
+			throws SFException {
+		SFLogger.info(context, "chkCurCode()开始");
+		SFLogger.info(context, "检查当前券商是否允许进行该币种交易");
+		String secCompCode = ((SecCompData) SFUtil.getDataValue(context,
+				SFConst.PUBLIC_SECU)).getSecCompCode();
+		String curCode = SFUtil.getReqDataValue( context, "CUR_CODE" );//取出币种
+		//币种为空, 则默认为RMB   
+		curCode = SFUtil.isEmpty(curCode)?SFConst.CUR_CODE_RMB:curCode; 
+		try {
+			ProductInfo productInfo = new ProductInfoDao().qryProductInfo(context,
+					connection, secCompCode,curCode);
+			SFUtil.chkCond(context,productInfo == null,"该券商不支持此币种业务");
+			String permiFlag = productInfo.getPermitFlag();
+			SFUtil.chkCond(context,
+					"".equals(permiFlag) || "0".equals(permiFlag), "ST4074",
+					"该券商不支持此币种业务");
+			if(SFUtil.getDataValue( context, SFConst.PUBLIC_TX_CODE ).equals( "100100" )){
+				KeyedCollection keyColl = SFUtil.getDataElement( context, "PUBLIC" );
+				SFUtil.addDataField(context,keyColl, "productinfo", productInfo);// 在上下文中存入产品信息
+			}
+			SFLogger.info(context, "chkCurCode()结束");
+		} catch (SFException e) {
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+	}
+
+	/**
+	 * 检查724状态
+	 * 
+	 * @param context
+	 *            上下文对象
+	 * @param secCompCode
+	 *            券商代码
+	 * @throws SFException
+	 * @return 1-开通了增值服务并且是服务时间
+	 */
+	public static boolean chkSecu724(Context context, Connection connection)
+			throws SFException {
+		SFLogger.info(context, String.format("chkSecu724()开始"));
+		SFLogger.info(context, "检查券商724状态");
+		boolean chkFlag = true;
+		String allDayFlag = null;// 增值服务标识
+		String adBeginTime = null;// 增值服务开始时间
+		String adEndTime = null;// 增值服务结束时间
+		String txDate = DateUtil.getMacDate();// 获取日期 getMacDateShort
+		String txTime = DateUtil.getMacTime();// 获取时分秒
+		SecCompData secCompData = SFUtil.getDataValue(context,
+				SFConst.PUBLIC_SECU);
+		SecNoServTime secNoSerTime = null;
+		SecNoServTimeDao secNoServTimeDao = new SecNoServTimeDao();
+		try {
+			String secCompCode = null;
+			if(secCompData!=null){
+				secCompCode = secCompData.getSecCompCode();
+				allDayFlag = secCompData.getAllDayFlag();
+				adBeginTime = secCompData.getADBeginTime();
+				adEndTime = secCompData.getADENDTIME();
+			}
+			
+			if(SFUtil.isNotEmpty(allDayFlag)){
+				if ("1".equals(allDayFlag)) {// 表明开通了7*24小时
+					secNoSerTime = secNoServTimeDao.qrySecNoServTimeByBetweenTime(context, connection, secCompCode, txDate, txTime,txTime);
+					if (secNoSerTime!=null) {
+						chkFlag = false;
+					}
+				} else if ("2".equals(allDayFlag)) {// 表明开通了7*8
+					String workDate = null;// 交易日期
+					String bankDate = null;// 营业日期
+					LocalInfo localInfo = SFUtil.getDataValue(context,
+							SFConst.PUBLIC_LOCAL_INFO);
+					workDate = localInfo.getWorkdate();
+					bankDate = localInfo.getBankDate();
+					if (txDate.equals(bankDate) && workDate.equals(bankDate)) {
+						chkFlag = false;
+					}
+					if (!txDate.equals(bankDate) && !workDate.equals(bankDate)) {/* 节假日 */
+						if (txTime.compareTo(adBeginTime) < 0
+								&& txTime.compareTo(adEndTime) > 0) {
+							chkFlag = false;
+						}
+						secNoSerTime = secNoServTimeDao.qrySecNoServTimeByBetweenTime(context, connection, secCompCode, txDate, txTime, txTime);
+						if (secNoSerTime!=null) {
+							chkFlag = false;
+						}
+					}
+				}
+			}else{//未开通增值业务
+				chkFlag = false;
+			}
+		} catch (SFException e) {
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+
+		SFLogger.info(context, "chkSecu724()结束");
+		return chkFlag;
+	}
+
+	/**
+	 * 检查券商假日无忧标志
+	 * 
+	 * @param context
+	 * @param secCompCode
+	 * @return 0：正常三方存管交易日 ;1：假日无忧
+	 */
+	public static boolean chkSecuHoliday(Context context, Connection connection)
+			throws SFException {
+		SFLogger.info(context, "chkSecuHoliday()开始");
+		SFLogger.info(context, "检查券商假日无忧标识");
+		boolean chkFlag = true;
+		String bankDate = null;
+		String lastBankDate = null;
+		String holidayFlag = null;
+		String startTime = null;
+		String endTime = null;// 初始化假日无忧标志等字段
+		SecCompData secCompData = SFUtil.getDataValue(context,
+				SFConst.PUBLIC_SECU);
+		String txTime = DateUtil.getMacTime();
+		String tranDate = DateUtil.getMacDate();
+		LocalInfo localInfo = SFUtil.getDataValue(context,
+				SFConst.PUBLIC_LOCAL_INFO);
+		try {
+			bankDate = localInfo.getBankDate();
+			String secCompCode = null;
+			if(secCompData!=null){
+				secCompCode = secCompData.getSecCompCode();// 获取券商代码
+				lastBankDate = localInfo.getLastBankDate();
+				holidayFlag = secCompData.getHolidayFlag();
+				startTime = secCompData.getStartTime();
+				endTime = secCompData.getEndTime();
+			}
+		
+			if (tranDate.compareTo(bankDate) == 0
+					|| tranDate.compareTo(lastBankDate) == 0 ){
+				chkFlag = true;
+			}else if(tranDate.compareTo(lastBankDate) < 0 || tranDate.compareTo( bankDate )>0 || !"1".equals(holidayFlag)){
+				chkFlag = false;
+			}else if("1".equals(holidayFlag)){//有开通假日无忧判断是否在服务时间内
+				if((txTime.compareTo(startTime) < 0
+					&& txTime.compareTo(endTime) > 0)||new HolidayDateDao().qryHolidayData(
+							context, connection, secCompCode, tranDate)!=null){
+					chkFlag = false;
+				}
+			}
+		} catch (SFException e) {
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		SFLogger.info(context, "chkSecuHoliday()结束");
+		return chkFlag;
+	}
+
+	/**
+	 * 检查服务停启状态
+	 * 
+	 * @param context
+	 * @return 0-停止 1-启动
+	 * @throws SFException
+	 */
+	public static boolean chkSecuStatus(Context context, Connection connection)
+			throws SFException {
+		SFLogger.info(context, "检查服务停启状态，chkSecuStatus开始");
+		boolean chkFlag = true;
+		try {
+			LocalInfo localInfo = SFUtil.getDataValue(context,
+					SFConst.PUBLIC_LOCAL_INFO);
+			if (null != localInfo) {
+				ServStatus servStatus = new ServStatusDao().qryServStatus(
+						context, connection, localInfo.getBankDate());
+				if (servStatus!=null) {
+					chkFlag = false;
+				}
+			}
+		} catch (SFException e) {
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+
+		SFLogger.info(context, "chkSecuStatus结束");
+		return chkFlag;
+	}
+
+	/**
+	 * 检查账户类服务标志
+	 * 
+	 * @param context
+	 * @param secCompCode
+	 *            券商代码
+	 * @return 0-停止 1-启动
+	 * @throws SFException
+	 */
+	public static void chkSecuAcctFlag(Context context, Connection connection)
+			throws SFException {
+		SFLogger.info(context, "chkAcctFlag()开始");
+		SFLogger.info(context, "检查账户类服务标志");
+		try {
+			SecServStatus secSerStatus = SFUtil.getDataValue(context,
+					SFConst.PUBLIC_SEC_SERV_STATUS);
+			SFUtil.chkCond(context,secSerStatus==null || "0".equals(secSerStatus.getAcctServFlag()), "ST4371",
+					"未开启账户类服务");
+		} catch (SFException e) {
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+
+		SFLogger.info(context, "chkAcctFlag()结束");
+	}
+
+	/**
+	 * 检查单户结息服务标志
+	 * 
+	 * @param context
+	 * @param secCompCode
+	 *            券商代码
+	 * @return 0-停止 1-启动
+	 * @throws SFException
+	 */
+	public static void chkSecuAccrualFlag(Context context) throws SFException {
+		SFLogger.info(context, "chkAccrualFlag()开始");
+		SFLogger.info(context, "检查单户结息服务标志");
+		try {
+			SecServStatus secServStatus = SFUtil.getDataValue(context,
+					SFConst.PUBLIC_SEC_SERV_STATUS);
+			SFUtil.chkCond(context,secServStatus==null || "0".equals(secServStatus.getIntServFlag()), "ST4371",
+					"未开启单户结息服务");
+		} catch (SFException e) {
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		SFLogger.info(context, "chkAccrualFlag()结束");
+	}
+
+	/**
+	 * 检查是否允许银行发起银转证
+	 * 
+	 * @param context
+	 * @param secCompCode
+	 *            券商代码
+	 * @return 0-停止 1-启动
+	 * @throws SFException
+	 */
+	public static void chkSecuBankChlB2S(Context context) throws SFException {
+		SFLogger.info(context, "chkBankChlB2S()开始");
+		SFLogger.info(context, "检查是否允许银行发起银转证");
+		SecCompData secCompData =  SFUtil.getDataValue(context,
+				SFConst.PUBLIC_SECU);
+		SFUtil.chkCond(context, secCompData==null, "ST4036", "券商代码为空");
+		try {
+			SecServStatus secServStatus = SFUtil.getDataValue(context,
+					SFConst.PUBLIC_SEC_SERV_STATUS);
+			SFUtil.chkCond(context,secServStatus==null || "0".equals(secServStatus.getTransServFlag1()), "ST4371",
+					"不允许银行发起银转证");
+		} catch (SFException e) {
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		SFLogger.info(context, "chkBankChlB2S()结束");
+
+	}
+
+	/**
+	 * 检查是否允许银行发起证转银
+	 * 
+	 * @param context
+	 * @param secCompCode
+	 *            券商代码
+	 * @return 0-停止 1-启动
+	 * @throws SFException
+	 */
+	public static void chkSecuBankChlS2B(Context context) throws SFException {
+		SFLogger.info(context, "chkBankChlS2B()开始");
+		SFLogger.info(context, "检查是否允许银行发起证转银");
+		SecCompData secCompData =  SFUtil.getDataValue(context,
+				SFConst.PUBLIC_SECU);
+		SFUtil.chkCond(context, secCompData==null, "ST4036", "券商代码为空");
+		try {
+			SecServStatus secServStatus = SFUtil.getDataValue(context,
+					SFConst.PUBLIC_SEC_SERV_STATUS);
+			SFUtil.chkCond(context,secServStatus==null || "0".equals(secServStatus.getTransServFlag2()), "ST4371",
+					"不允许银行发起证转银");
+		} catch (SFException e) {
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		SFLogger.info(context, "chkBankChlS2B()结束");
+
+	}
+
+	/**
+	 * 检查是否允许券商发起银转证
+	 * 
+	 * @param context
+	 * @param secCompCode
+	 *            券商代码
+	 * @return 0-停止 1-启动
+	 * @throws SFException
+	 */
+	public static void chkSecuChlB2S(Context context) throws SFException {
+		SFLogger.info(context, "chkSecuChlBank2Secu()开始");
+		SFLogger.info(context, "检查是否允许券商发起银转");
+		try {
+			SecServStatus secServStatus = SFUtil.getDataValue(context,
+					SFConst.PUBLIC_SEC_SERV_STATUS);
+			SFUtil.chkCond(context,secServStatus==null || "0".equals(secServStatus.getTransServFlag3()), "ST4371",
+					"不允许券商发起银转证");
+		} catch (SFException e) {
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		SFLogger.info(context, "chkSecuChlBank2Secu()结束");
+
+	}
+
+	/**
+	 * 检查是否允许券商发起证转银
+	 * 
+	 * @param context
+	 * @param secCompCode
+	 *            券商代码
+	 * @return 0-停止 1-启动
+	 * @throws SFException
+	 */
+	public static void chkSecuChlS2B(Context context) throws SFException {
+		SFLogger.info(context, "chkSecuChlS2B()开始");
+		SFLogger.info(context, "检查是否允许券商发起证转银");
+		try {
+			SecServStatus secServStatus = SFUtil.getDataValue(context,
+					SFConst.PUBLIC_SEC_SERV_STATUS);
+			SFUtil.chkCond(context,secServStatus==null|| "0".equals(secServStatus.getTransServFlag4()), "ST4371",
+					"不允许券商发起银转证");
+		} catch (SFException e) {
+			throw e;
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}
+		SFLogger.info(context, "chkSecuChlS2B()结束");
+	}
+
+}

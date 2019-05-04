@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+<mbeans.xml>
+	<classMap>
+		<map id="EMPMBean" class="com.ecc.emp.jmx.support.EMPMBeanInfo" />
+		<map id="attr" class="com.ecc.emp.jmx.support.AttrInfo" />
+		<map id="op" class="com.ecc.emp.jmx.support.OperationInfo" />
+		<map id="mbeanExportor" class="com.ecc.emp.jmx.support.EMPMBeanExportor" />
+		<map id="notifies" class="com.ecc.emp.jmx.support.RegistryInfo" />
+		<map id="param" class="com.ecc.emp.jmx.support.ParameterInfo" />
+	</classMap>
+
+	<mbeanExportor id="mbeanExportor">
+		<!--  直接实例化JavaClass 并导出为MBean -->
+		<EMPMBean id="systemInfoBean" name="systemInfo" objectClass="com.ecc.emp.jmx.support.SystemInfoMBean" description="System info bean" type="native">
+			<attr id="freeMemory" name="freeMemory" displayName="freeMemory" description="current free memory" access="R"/>
+			<attr id="totalMemory" name="totalMemory" displayName="totalMemory" description="current total memory" access="R"/>
+			<attr id="maxMemory" name="maxMemory" displayName="maxMemory" description="current max memory" access="R"/>
+			<op id="doGC" name="doGC" displayName="doGarbageCollection" description="doGarbageColl"/>
+		</EMPMBean>
+
+		<EMPMBean id="propertiesInfoBean" name="propertiesInfo" objectClass="com.ecc.emp.jmx.support.PropertiesInfoMBean" description="Properties info bean" type="native">
+			<attr id="javaClassPath" name="javaClassPath" displayName="javaClassPath" description="current java class path" access="R"/>
+			<attr id="javaClassVersion" name="javaClassVersion" displayName="javaClassVersion" description="current java class version" access="R"/>
+			<attr id="javaHome" name="javaHome" displayName="javaHome" description="current java home" access="R"/>
+			<attr id="javaSpecificationVendor" name="javaSpecificationVendor" displayName="javaSpecificationVendor" description="current java specification vendor" access="R"/>
+			<attr id="javaSpecificationVersion" name="javaSpecificationVersion" displayName="javaSpecificationVersion" description="current java specification version" access="R"/>
+			<attr id="javaVendor" name="javaVendor" displayName="javaVendor" description="current java vendor" access="R"/>
+			<attr id="javaVendorUrl" name="javaVendorUrl" displayName="javaVendorUrl" description="current java vendor url" access="R"/>
+			<attr id="javaVersion" name="javaVersion" displayName="javaVersion" description="current java version" access="R"/>
+			<attr id="javaVmName" name="javaVmName" displayName="javaVmName" description="current java vm name" access="R"/>
+			<attr id="javaVmSpecificationName" name="javaVmSpecificationName" displayName="javaVmSpecificationName" description="current java vm specification name" access="R"/>
+			<attr id="javaVmSpecificationVendor" name="javaVmSpecificationVendor" displayName="javaVmSpecificationVendor" description="current java vm specification vendor" access="R"/>
+			<attr id="javaVmSpecificationVersion" name="javaVmSpecificationVersion" displayName="javaVmSpecificationVersion" description="current java vm specification version" access="R"/>
+			<attr id="javaVmVendor" name="javaVmVendor" displayName="javaVmVendor" description="current java vm vendor" access="R"/>
+			<attr id="javaVmVersion" name="javaVmVersion" displayName="javaVmVersion" description="current java vm version" access="R"/>
+		</EMPMBean>
+		
+		
+		<EMPMBean id="SFOnline" name="EMPFlowComponentFactory" objectId="SFOnline" description="The EMP Flow component factory!" type="factory">
+			<op name="getBizList" displayName="获得所有BIZ的列表"
+				description="获得所有BIZ的列表，包含信息为ID，中文名称，说明。如果BIZ已被实例化，则可以取到中文名称和说明信息；否则只能取到ID" />
+			<op name="getBizCount" displayName="获得所有BIZ的数量"
+				description="获得所有BIZ的数量。数量等同于getBizList获取的列表的尺寸" />
+			<op name="reloadBiz" displayName="重新实例化某个BIZ"
+				description="重新实例化某个BIZ。调用该接口后BIZ会被重新实例化，而不是简单的把它从flowCache中删掉">
+				<param id="bizId" displayName="BIZ的ID"
+					description="要实例化的BIZ的ID" />
+			</op>
+			<op name="getOpList" displayName="获得指定BIZ的OP列表"
+				description="获得指定BIZ的OP列表，只包含OP的ID。调用该方法会实例化未实例化的BIZ">
+				<param id="bizId" displayName="BIZ的ID"
+					description="要获取OP列表的BIZ的ID" />
+			</op>
+			<op name="getOpInfoList" displayName="批量获取指定OP的信息"
+				description="批量获取指定OP的信息，包括ID，中文名称，说明，可访问状态。调用该方法会实例化未实例化的BIZ">
+				<param id="opList" displayName="OP的全名列表"
+					description="OP的全名列表，OP的全名指BIZID.OPID" />
+			</op>
+			<op name="startOp" displayName="设置某个OP的可访问状态为允许访问"
+				description="设置某个OP的可访问状态为允许访问。调用该方法会实例化未实例化的BIZ">
+				<param id="bizId" displayName="BIZ的ID"
+					description="设置允许访问的BIZ的ID" />
+				<param id="opId" displayName="OP的ID"
+					description="设置允许访问的OP的ID" />
+			</op>
+			<op name="stopOp" displayName="设置某个OP的可访问状态为禁止访问"
+				description="设置某个OP的可访问状态为禁止访问。调用该方法会实例化未实例化的BIZ">
+				<param id="bizId" displayName="BIZ的ID"
+					description="设置禁止访问的BIZ的ID" />
+				<param id="opId" displayName="OP的ID"
+					description="设置禁止访问的OP的ID" />
+			</op>
+			<op name="getStoppedOpCount" displayName="获取禁止访问的OP数量"
+				description="获取禁止访问的OP数量，数量等同于getStoppedOpList获取的列表的尺寸" />
+			<op name="getStoppedOpList" displayName="获取禁止访问的OP全名列表"
+				description="获取禁止访问的OP全名列表" />
+			<op name="getContextCount" displayName="统计所有Context节点数量"
+				description="遍历Context树形结构，统计所有Context节点数量" />
+			<attr name="flowMonitorOpened" access="RW"
+				displayName="访问信息采集开关" description="访问信息采集开关，设置为true才会对业务逻辑的访问进行统计" />
+			<attr name="iCollAlarmSize" access="RW"
+				displayName="Icoll尺寸的全局报警阈值"
+				description="Icoll尺寸的全局报警阈值，当Icoll尺寸超过阈值时发出报警"
+				externalizedId="iCollAlarmSize" />
+			<op name="getFlowAccessInfoMap" displayName="获取BIZ/OP的访问信息"
+				description="获取BIZ/OP的访问信息。若该BIZ/OP当前无访问信息，则返回null。调用该方法会实例化未实例化的BIZ">
+				<param id="flowId" displayName="OP的ID或BIZ的全名"
+					description="要获取访问信息的OP的ID或BIZ的全名" />
+			</op>
+			<op name="getTopAccessInfoMap" displayName="获取交易访问信息排名"
+				description="获取交易访问信息排名，该方法只从已实例化的BIZ中统计">
+				<param id="accessType" displayName="访问信息种类"
+					description="要获取访问信息的种类" legalValuesStr="0,1,2,3,4,5"
+					legalValueDescsStr="0:访问总计,1:当前的并发访问,2:最大并发访问,3:最近的访问响应时间,4:最大响应时间,5:平均响应时间" />
+				<param id="count" displayName="取前多少记录"
+					description="要获取访问信息的OP的ID或BIZ的全名" legalValuesStr="3,5,10" />
+			</op>
+		</EMPMBean>
+
+		<EMPMBean id="FBSBase" name="EMPFlowComponentFactory" objectId="FBSBase" description="The EMP Flow component factory!" type="factory">
+			<op name="getBizList" displayName="获得所有BIZ的列表"
+				description="获得所有BIZ的列表，包含信息为ID，中文名称，说明。如果BIZ已被实例化，则可以取到中文名称和说明信息；否则只能取到ID" />
+			<op name="getBizCount" displayName="获得所有BIZ的数量"
+				description="获得所有BIZ的数量。数量等同于getBizList获取的列表的尺寸" />
+			<op name="reloadBiz" displayName="重新实例化某个BIZ"
+				description="重新实例化某个BIZ。调用该接口后BIZ会被重新实例化，而不是简单的把它从flowCache中删掉">
+				<param id="bizId" displayName="BIZ的ID"
+					description="要实例化的BIZ的ID" />
+			</op>
+			<op name="getOpList" displayName="获得指定BIZ的OP列表"
+				description="获得指定BIZ的OP列表，只包含OP的ID。调用该方法会实例化未实例化的BIZ">
+				<param id="bizId" displayName="BIZ的ID"
+					description="要获取OP列表的BIZ的ID" />
+			</op>
+			<op name="getOpInfoList" displayName="批量获取指定OP的信息"
+				description="批量获取指定OP的信息，包括ID，中文名称，说明，可访问状态。调用该方法会实例化未实例化的BIZ">
+				<param id="opList" displayName="OP的全名列表"
+					description="OP的全名列表，OP的全名指BIZID.OPID" />
+			</op>
+			<op name="startOp" displayName="设置某个OP的可访问状态为允许访问"
+				description="设置某个OP的可访问状态为允许访问。调用该方法会实例化未实例化的BIZ">
+				<param id="bizId" displayName="BIZ的ID"
+					description="设置允许访问的BIZ的ID" />
+				<param id="opId" displayName="OP的ID"
+					description="设置允许访问的OP的ID" />
+			</op>
+			<op name="stopOp" displayName="设置某个OP的可访问状态为禁止访问"
+				description="设置某个OP的可访问状态为禁止访问。调用该方法会实例化未实例化的BIZ">
+				<param id="bizId" displayName="BIZ的ID"
+					description="设置禁止访问的BIZ的ID" />
+				<param id="opId" displayName="OP的ID"
+					description="设置禁止访问的OP的ID" />
+			</op>
+			<op name="getStoppedOpCount" displayName="获取禁止访问的OP数量"
+				description="获取禁止访问的OP数量，数量等同于getStoppedOpList获取的列表的尺寸" />
+			<op name="getStoppedOpList" displayName="获取禁止访问的OP全名列表"
+				description="获取禁止访问的OP全名列表" />
+			<op name="getContextCount" displayName="统计所有Context节点数量"
+				description="遍历Context树形结构，统计所有Context节点数量" />
+			<attr name="flowMonitorOpened" access="RW"
+				displayName="访问信息采集开关" description="访问信息采集开关，设置为true才会对业务逻辑的访问进行统计" />
+			<attr name="iCollAlarmSize" access="RW"
+				displayName="Icoll尺寸的全局报警阈值"
+				description="Icoll尺寸的全局报警阈值，当Icoll尺寸超过阈值时发出报警"
+				externalizedId="iCollAlarmSize" />
+			<op name="getFlowAccessInfoMap" displayName="获取BIZ/OP的访问信息"
+				description="获取BIZ/OP的访问信息。若该BIZ/OP当前无访问信息，则返回null。调用该方法会实例化未实例化的BIZ">
+				<param id="flowId" displayName="OP的ID或BIZ的全名"
+					description="要获取访问信息的OP的ID或BIZ的全名" />
+			</op>
+			<op name="getTopAccessInfoMap" displayName="获取交易访问信息排名"
+				description="获取交易访问信息排名，该方法只从已实例化的BIZ中统计">
+				<param id="accessType" displayName="访问信息种类"
+					description="要获取访问信息的种类" legalValuesStr="0,1,2,3,4,5"
+					legalValueDescsStr="0:访问总计,1:当前的并发访问,2:最大并发访问,3:最近的访问响应时间,4:最大响应时间,5:平均响应时间" />
+				<param id="count" displayName="取前多少记录"
+					description="要获取访问信息的OP的ID或BIZ的全名" legalValuesStr="3,5,10" />
+			</op>
+		</EMPMBean>
+	</mbeanExportor>
+</mbeans.xml>

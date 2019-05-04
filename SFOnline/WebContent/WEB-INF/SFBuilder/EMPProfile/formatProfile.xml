@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+
+<HostPackageProfile>
+	<package id="ISO8583" fmtGenClass="com.ecc.ide.builder.format.ISO8583FormatGenerator">
+		<attributes>
+			<attr id="codeSet" name="编码" defaultValue="ASCII" valueList="ASCII;EBCDIC;" mustSet="false" editable="true" attrType="string">
+				<document>报文编码ASCII/EBCDIC</document>
+			</attr>
+			<attr id="msgType" name="报文类型" attrType="string">
+				<document>ISO8583报文类型(头部的4位数字,MTI)</document>
+			</attr>
+			<attr id="formatDefine" name="格式定义类" editorClass="com.ecc.ide.editor.ClassNamePropertyEditor" mustSet="false" editable="true">
+				<document>自定义的类ISO8583格式定义类名</document>
+			</attr>
+		</attributes>
+		<dataAttributes>
+			<attr id="fieldIdx" name="域索引" mustSet="true" attrType="string">
+				<document>使用域的编号(1-192)</document>
+			</attr>
+			<attr id="IOType" name="IO类型" defaultValue="O" valueList="I=接收;O=发送;IO=发送/接收;" mustSet="true" editable="true" attrType="string">
+				<document>该域为接收或发送域</document>
+			</attr>
+			<attr id="fieldState" name="必需域" valueList="M=必需;NotM=非必需;" mustSet="false" editable="true" attrType="string">
+				<document>该域是否必需</document>
+			</attr>
+			<attr id="refFormat" name="引用格式" mustSet="false" editable="true">
+				<document>允许某些域的值通过Format的方式得到，此refFmt指向Format定义的ID</document>
+			</attr>
+			<attr id="fieldType" name="域类型" valueList="LVAR;LLVAR;LLLVAR;N;FN;AN;H;Other;" mustSet="false" editable="true">
+				<document>该域的格式类型。L*VAR代表变长域，前面的几个L代表几位长度数字；其他为定长域，区别在于对齐方式和填充字符；H为二进制数据</document>
+			</attr>
+			<attr id="fieldLength" name="长度" enableFormula="($fieldType!='LVAR') and ($fieldType!='LLVAR') and ($fieldType!='LLLVAR')" mustSet="false" editable="true">
+				<document>该域的固定长度</document>
+			</attr>
+			<attr id="fieldValue" name="取值" mustSet="false" editable="true">
+				<document>该域的值，若无定义则使用数据域中的值</document>
+			</attr>
+			<attr id="padchar" name="填充字符" enableFormula="$fieldType='Other'" mustSet="false" editable="true">
+				<document>该域在不足固定长度时的填充字符</document>
+			</attr>
+			<attr id="alignment" name="对齐方式" valueList="left;right;center;" enableFormula="$fieldType='Other'" mustSet="false" editable="true">
+				<document>该域在不足固定长度时的对齐方式</document>
+			</attr>
+			<attr id="codeConvert" name="转换编码" mustSet="false" editable="true" attrType="boolean">
+				<document>是否需要转换编码</document>
+			</attr>
+			<attr id="codeSet" name="编码" valueList="ASCII;EBCDIC;" enableFormula="$codeConvert='true'" mustSet="false" editable="true">
+				<document>该域的编码</document>
+			</attr>
+		</dataAttributes>
+		<groupAttributes/>
+		<iCollAttributes/>
+		<document>可扩展的8583报文格式</document>
+	</package>
+	<package id="WrapXMLFormat" fmtGenClass="com.ecc.ide.builder.format.WrapXMLFormatGenerator">
+		<document>可变换的XML报文定义</document>
+		<attributes>
+			<attr id="version" name="版本" defaultValue="1.0" mustSet="true">
+				<document>XML头部信息version属性</document>
+			</attr>
+			<attr id="encoding" name="编码" defaultValue="gb2312" mustSet="true">
+				<document>XML头部信息encoding属性</document>
+			</attr>
+		</attributes>
+		<dataAttributes>
+			<attr id="xmlTag" name="标签名" mustSet="true" defaultValue="$refId">
+				<document>XML标签名</document>
+			</attr>
+			<attr id="constant" name="常量域" defaultValue="false" attrType="boolean">
+				<document>是否常量域</document>
+			</attr>
+			<attr id="constValue" name="常量值" enableFormula="$constant='true'">
+				<document>直接设置该域的值，若取值为&quot;Time&quot;、&quot;Date&quot;、&quot;DateTime&quot;时表示当前日期和时间；当取值为&quot;TimeMillis&quot;时，生成的报文内容为1970年1月1日开始经历的毫秒数</document>
+			</attr>
+			<attr id="constFormat" name="时间格式" enableFormula="$constant='true'" mustSet="false" editable="true">
+				<document>日期时间的格式，默认为&quot;yyyy-MM-dd hh:mm:ss&quot;</document>
+			</attr>
+			<attr id="dataNameType" name="数据域名来源" valueList="0=dataName;1=tagName;2=dataNameAttr;" mustSet="false" editable="true">
+				<document>反格式化时的数据域名取得来源。可以使用设置的数据域名、标签名或指定属性的值</document>
+			</attr>
+			<attr id="dataNameAttr" name="数据域名属性" enableFormula="$dataNameType='2'" mustSet="false" editable="true">
+				<document>反格式化时XML标签中指定数据域名的属性名</document>
+			</attr>
+			<attr id="fullTag" name="完整标签" defaultValue="true" mustSet="false" editable="true" attrType="boolean">
+				<document>选择类似&lt;tag&gt;value&lt;/tag&gt;的完整标签，或是&lt;tag value=&quot;value&quot; /&gt;的空标签</document>
+			</attr>
+			<attr id="needDesc" name="是否需要注释" defaultValue="false" mustSet="false" editable="true" attrType="boolean">
+				<document>是否根据数据字典定义生成desc=&quot;数据域注释&quot;属性</document>
+			</attr>
+			<attr id="customAttr" name="自定义属性" mustSet="false" editable="true">
+				<document>XML标签上的自定义属性，设置格式为attrName1=attrValue1;attrName2=attrValue2...</document>
+			</attr>
+		</dataAttributes>
+		<groupAttributes>
+			<attr id="xmlTag" name="标签名" mustSet="false" editable="true">
+				<document>XML标签名</document>
+			</attr>
+			<attr id="dataNameType" name="数据域名来源" valueList="0=dataName;1=tagName;2=dataNameAttr;" mustSet="false" editable="true">
+				<document>反格式化时的数据域名取得来源。可以使用设置的数据域名、标签名或指定属性的值</document>
+			</attr>
+			<attr id="dataNameAttr" name="数据域名属性" enableFormula="$dataNameType='2'" mustSet="false" editable="true">
+				<document>反格式化时XML标签中指定数据域名的属性名</document>
+			</attr>
+		</groupAttributes>
+		<iCollAttributes>
+			<attr id="xmlTag" name="标签名" mustSet="false" editable="true">
+				<document>XML标签名</document>
+			</attr>
+			<attr id="append" name="解包时附加在当前ICOLL后" mustSet="false" editable="true" attrType="boolean">
+				<document>解包时附加在当前ICOLL后</document>
+			</attr>
+		</iCollAttributes>
+	</package>
+	<package id="VariousStringFormat" fmtGenClass="com.ecc.ide.builder.format.VariousStringFormatGenerator">
+		<document>多种类型的字符串格式</document>
+		<attributes/>
+		<dataAttributes>
+			<attr id="stringType" name="字符串类型" valueList="StringFormat;FixedLenFormat;IDStringFormat;ConstantFormat;" mustSet="true" editable="true">
+				<document>该数据域对应的字符串类型</document>
+			</attr>
+			<attr id="idName" name="ID" enableFormula="$stringType='IDStringFormat'" mustSet="false" editable="true">
+				<document>IDStringFormat类型字符串的ID</document>
+			</attr>
+			<attr id="hasQuot" name="是否有引号" enableFormula="$stringType='IDStringFormat'" mustSet="false" editable="true" attrType="boolean">
+				<document>IDStringFormat类型字符串的值是否加引号</document>
+			</attr>
+			<attr id="constant" name="是否常量" enableFormula="$stringType='ConstantFormat'" mustSet="false" editable="true" attrType="boolean">
+				<document>ConstantFormat类型字符串一般设为true，在反格式化时若需要回填数据域则设为false</document>
+			</attr>
+			<attr id="value" name="常量缺省值" enableFormula="$constant='true'" mustSet="false" editable="true">
+				<document>报文中数据常量的缺省取值，若未设置，则取系统时间作为缺省值</document>
+			</attr>
+			<attr id="format" name="时间格式" enableFormula="$stringType='ConstantFormat'" mustSet="false" editable="true">
+				<document>ConstantFormat类型字符串的日期时间格式，默认为&quot;yyyy-MM-dd hh:mm:ss&quot;</document>
+			</attr>
+			<attr id="fixed" name="是否固定长度" enableFormula="$stringType='ConstantFormat'" mustSet="false" editable="true" attrType="boolean">
+				<document>ConstantFormat类型字符串是否固定长度</document>
+			</attr>
+			<attr id="len" name="固定长度" enableFormula="($stringType='FixedLenFormat') or (($stringType='ConstantFormat') and ($fixed='true'))" mustSet="false" editable="true" mustInputFormula="($stringType='FixedLenFormat') or (($stringType='ConstantFormat') and ($fixed='true'))">
+				<document>固定长度</document>
+			</attr>
+			<attr id="padChar" name="填充字符" enableFormula="($stringType='FixedLenFormat') or (($stringType='ConstantFormat') and ($fixed='true'))" mustSet="false" editable="true">
+				<document>不足固定长度时的填充字符</document>
+			</attr>
+			<attr id="aligment" name="对齐方式" valueList="none;left;right;center;" enableFormula="($stringType='FixedLenFormat') or (($stringType='ConstantFormat') and ($fixed='true'))" mustSet="false" editable="true">
+				<document>不足固定长度的对齐方式</document>
+			</attr>
+			<attr id="delimChar" name="修饰符" mustSet="false" editable="true">
+				<document>字符串的修饰字符</document>
+			</attr>
+			<attr id="nullCheck" name="检查空值" mustSet="false" editable="true" attrType="boolean">
+				<document>是否检查空值</document>
+			</attr>
+		</dataAttributes>
+		<groupAttributes>
+			<attr id="delimChar" name="修饰字符" mustSet="false" editable="true">
+				<document>字符串的修饰字符</document>
+			</attr>
+			<attr id="nullCheck" name="检查空值" mustSet="false" editable="true" attrType="boolean">
+				<document>是否检查空值</document>
+			</attr>
+		</groupAttributes>
+		<iCollAttributes>
+			<attr id="delimChar" name="修饰字符" mustSet="false" editable="true">
+				<document>字符串的修饰字符</document>
+			</attr>
+			<attr id="nullCheck" name="检查空值" mustSet="false" editable="true" attrType="boolean">
+				<document>是否检查空值</document>
+			</attr>
+			<attr id="append" name="解包时附加在当前ICOLL后" mustSet="false" editable="true" attrType="boolean">
+				<document>解包时附加在当前ICOLL后</document>
+			</attr>
+			<attr id="recordSizeField" name="记录ICOLL长度的数据域" mustSet="false" editable="true">
+				<document>记录ICOLL长度的数据域</document>
+			</attr>	
+			<attr id="class" name="实现ICOLL的类名" mustSet="false" editable="true">
+				<document>实现ICOLL的类名</document>
+			</attr>		
+		</iCollAttributes>
+	</package>
+</HostPackageProfile>

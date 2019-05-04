@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<EMPJMXManager>
+	<classMap>
+		<map id="EMPJMXManager" class="com.ecc.emp.jmx.support.EMPJMXManager"/>
+		<map id="registry" class="com.ecc.emp.jmx.support.RegistryInfo"/>
+		<map id="connector" class="com.ecc.emp.jmx.support.ConnectorInfo"/>
+		<map id="adaptor" class="com.ecc.emp.jmx.support.AdaptorInfo"/>
+		<map id="EMPMBean" class="com.ecc.emp.jmx.support.EMPMBeanInfo"/>
+		<map id="attr" class="com.ecc.emp.jmx.support.AttrInfo"/>
+		<map id="op" class="com.ecc.emp.jmx.support.OperationInfo"/>
+		<map id="notifies" class="com.ecc.emp.jmx.support.RegistryInfo"/>
+	</classMap>
+</EMPJMXManager>

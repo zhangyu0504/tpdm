@@ -1,0 +1,345 @@
+package module.batch;
+
+import java.sql.Connection;
+import java.util.List;
+
+import module.bean.AutoBecif;
+import module.bean.CycleService;
+import module.cache.TransCache;
+import module.dao.AutoBecifDao;
+import module.dao.CycleServiceDao;
+
+import com.dc.eai.data.CompositeData;
+import com.dc.eai.data.Field;
+import com.dc.eai.data.FieldAttr;
+import com.dc.eai.data.FieldType;
+import com.ecc.emp.core.Context;
+import core.communication.isc.ISCMessageBroker;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+import core.schedule.ScheduleActionInterface;
+
+/**
+ * (轮询)发送签解约协议给BECIF系统
+ * 
+ * 
+ * 功能描述： 轮询发送表trdautobecif中的记录给BECIF系统
+ * 
+ * 轮询时间段：工作日8:30开始
+ * 间隔时间：5分钟
+ *   
+ * tran code :800020
+ * @author 吕超鸿
+ *
+ */
+public class T800020 implements ScheduleActionInterface{
+
+	@Override
+	public boolean init( Context context ) throws SFException {
+		String tranCode = SFUtil.getDataValue( context, SFConst.PUBLIC_TX_CODE );
+		TransCache.getValue( tranCode );
+
+		return true;
+	}
+
+	@Override
+	public void execute(Context context) throws SFException {
+
+		SFLogger.info( context, "发送签解约协议给BECIF系统开始" );
+
+		Connection tranConnection = null;
+		// 服务名称
+		String serviceName = "ProcSendBECIF";
+		// 物理日期
+		String curDate = DateUtil.getMacDate();
+		// 物理时间
+		String curTime = DateUtil.getMacTime();
+		// 轮询开始时间
+		String beginTime = null;
+		// 轮询结束时间
+		String endTime = null;
+
+		CycleServiceDao cycleServiceDao = new CycleServiceDao();
+		AutoBecifDao autoBecifDao = new AutoBecifDao();
+
+		try {
+			tranConnection = DBHandler.getConnection(context);
+
+			CycleService cycleService = cycleServiceDao.qryCycleService( context, tranConnection, serviceName );
+			if( cycleService != null ) {
+				beginTime = cycleService.getBeginTime();
+				endTime = cycleService.getEndTime();
+			}
+
+			/* 发送签解约协议到BECIF */
+			/* 只扫描TRDAUTOBECIF表中当天且status='0'的记录，过了当天可将txdate改一下，即可自动发送 */
+			if( !"1".equals( cycleService.getProcSwitch() ) ) {
+				Thread.sleep( 300 );
+			}
+			if( curTime.compareTo( beginTime ) > 1 && curTime.compareTo( endTime ) < 1 ) {
+				Thread.sleep( 60 );
+			}
+		
+			// 查询全部待处理记录数
+			List<AutoBecif> autoBecifList = autoBecifDao.qryAutoBecifByStatus( context, tranConnection, curDate, "0" ); 
+			
+			/* 全部待处理记录数=0,或只有失败过待处理的记录，等待N秒 */
+			if( null != autoBecifList && autoBecifList.size() > 0 ) {
+				SFLogger.info( context, String.format( "待上送becif签解约数为[%s]",String.valueOf( autoBecifList.size() )) );
+				for( AutoBecif autoBecif : autoBecifList ) {
+					if( SFUtil.isEmpty( autoBecif.getSubTxSeqId() ) ) {
+						SFLogger.info( context, String.format( "subtxseqid不能为空，跳过进入下一条记录!") );
+					    continue;
+					}
+					if( SFUtil.isEmpty( autoBecif.getAgreementNo() ) ) {
+						autoBecif.setAgreementNo( "zzz" );
+					}
+					if( SFUtil.isEmpty( autoBecif.getBecifNo() ) ) {
+						autoBecif.setBecifNo( "zzz" );
+					}
+					if( SFUtil.isEmpty( autoBecif.getAgreementType() ) ) {
+						autoBecif.setAgreementType( "zzz" );
+					}
+					if( SFUtil.isEmpty( autoBecif.getAgreementSubType() ) ) {
+						autoBecif.setAgreementSubType( "zzz" );
+					}
+					if( SFUtil.isEmpty( autoBecif.getProductNo() ) ) {
+						autoBecif.setProductNo( "zzz" );
+					}
+					if( SFUtil.isEmpty( autoBecif.getAgreementStatus() ) ) {
+						autoBecif.setAgreementStatus( "zzz" );
+					}
+					if( SFUtil.isEmpty( autoBecif.getOpenDate() ) ) {
+						autoBecif.setOpenDate( "zzz" );
+					}
+					if( SFUtil.isEmpty( autoBecif.getCloseDate() ) ) {
+						autoBecif.setCloseDate( "zzz" );
+					}
+					if( SFUtil.isEmpty( autoBecif.getDeptNo() ) ) {
+						autoBecif.setDeptNo( "zzz" );
+					}
+					if( SFUtil.isEmpty( autoBecif.getUserId() ) ) {
+						autoBecif.setUserId( "zzz" );
+					}
+					if( SFUtil.isEmpty( autoBecif.getBusinessSeriesCD() ) ) {
+						autoBecif.setBusinessSeriesCD( "zzz" );
+					}
+
+					
+					SFLogger.info( context, "调用MQ发送消息到BECIF系统去建立取消协议" );
+					String cmd = String.format( "MQ消息主体： %s %s %s %s %s %s %s %s %s %s %s %s  ", autoBecif.getSubTxSeqId(), autoBecif.getAgreementNo(), autoBecif.getBecifNo(), autoBecif.getAgreementType(), autoBecif.getAgreementSubType(), autoBecif.getAgreementStatus(), autoBecif.getProductNo(), autoBecif.getOpenDate(), autoBecif.getCloseDate(), autoBecif.getDeptNo(), autoBecif.getUserId(), autoBecif.getBusinessSeriesCD() );
+					SFLogger.info( context, cmd );
+
+					// 发送报文
+					sendMsg(context,autoBecif);
+					
+					//发送成功后更新状态为 "1"
+					DBHandler.beginTransaction( context, tranConnection );
+					autoBecif.setStatus( "1" );
+					autoBecifDao.saveAutoBecif( context, tranConnection, autoBecif );
+					DBHandler.commitTransaction( context, tranConnection );
+					Thread.sleep( 1 );
+					
+				}
+
+			} else {
+				Thread.sleep( 60 );
+			}
+
+		} catch( SFException e ) {
+			throw  e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}finally{
+			DBHandler.releaseConnection( context, tranConnection );
+		}
+		SFLogger.info( context, "发送签解约协议给BECIF系统结束" );
+	}
+
+	/**
+	 * MQ发送消息
+	 */
+	public void sendMsg(Context context,AutoBecif autoBecif) throws SFException {
+		SFLogger.info( context, "发送签解约协议给BECIF系统 sendMsg()开始" );
+		try {
+
+			//数据结构体对象
+			CompositeData MsgData = new CompositeData();
+
+			CompositeData iscSysData = new CompositeData();
+			CompositeData iscPubData = new CompositeData();
+			CompositeData bodyData = new CompositeData();
+			CompositeData iscRepBody = new CompositeData();
+
+			MsgData.addStruct( "ISC_SYS_HEAD", iscSysData );
+			MsgData.addStruct( "ISC_PUB_HEAD", iscPubData );
+			MsgData.addStruct( "ISC_REP_BODY", iscRepBody );
+			MsgData.addStruct( "BODY", bodyData );
+
+			/**************ISC_SYS_HEAD************/
+			
+			// 主题
+			Field field = new Field( new FieldAttr( FieldType.FIELD_STRING, 10, 0 ) );
+			field.setValue( "40" );
+			iscSysData.addField( "MAIN_TOPIC", field );
+
+			// 子主题
+			field = new Field( new FieldAttr( FieldType.FIELD_STRING, 48, 0 ) );
+			field.setValue( "40088" );
+			iscSysData.addField( "SUB_TOPIC", field );
+
+			// 应用流水号，每一条消息要唯一
+			field = new Field( new FieldAttr( FieldType.FIELD_STRING, 42, 0 ) );
+			field.setValue( SFConst.SYS_SYSID + autoBecif.getSubTxSeqId() );
+			iscSysData.addField( "APP_MSG_SEQ_NO", field );
+			
+			/**************ISC_PUB_HEAD************/
+
+			// 系统ID和ESB的系统ID一样
+			field = new Field( new FieldAttr( FieldType.FIELD_STRING, 42, 0 ) );
+			field.setValue( "10001" );
+			iscPubData.addField( "MSG_PRODUCER_ID", field );
+			
+			// 系统ID和ESB的系统ID一样
+			field = new Field( new FieldAttr( FieldType.FIELD_STRING, 42, 0 ) );
+			field.setValue( SFConst.SYS_SYSID );
+			iscPubData.addField( "SERVICE_CODE", field );
+
+			/**************BODY参数****************/
+			
+			
+			//协议号
+			if(!"zzz".equals( autoBecif.getAgreementNo() )){
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 50, 0 ) );
+				field.setValue( autoBecif.getAgreementNo() );
+				bodyData.addField( "AGREEMENT_NO", field );
+			}else{
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 50, 0 ) );
+				field.setValue( "" );
+				bodyData.addField( "AGREEMENT_NO", field );
+			}
+			
+			//客户号
+			if(!"zzz".equals( autoBecif.getBecifNo() )){
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 12, 0 ) );
+				field.setValue( autoBecif.getBecifNo() );
+				bodyData.addField( "BECIF_NO", field );
+			}else{
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 12, 0 ) );
+				field.setValue( "" );
+				bodyData.addField( "BECIF_NO", field );
+			}
+			
+			//协议大类
+			if(!"zzz".equals( autoBecif.getAgreementType() )){
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 10, 0 ) );
+				field.setValue( autoBecif.getAgreementType() );
+				bodyData.addField( "AGREEMENT_TYPE", field );
+			}else{
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 10, 0 ) );
+				field.setValue( "" );
+				bodyData.addField( "AGREEMENT_TYPE", field );	
+			}
+			
+			//协议小类
+			if(!"zzz".equals( autoBecif.getAgreementSubType() )){
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 10, 0 ) );
+				field.setValue( autoBecif.getAgreementSubType() );
+				bodyData.addField( "AGREEMENT_SUB_TYPE", field );
+			}else{
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 10, 0 ) );
+				field.setValue( "" );
+				bodyData.addField( "AGREEMENT_SUB_TYPE", field );	
+			}
+			
+			//协议状态
+			if(!"zzz".equals( autoBecif.getAgreementStatus() )){
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 3, 0 ) );
+				field.setValue( autoBecif.getAgreementStatus() );
+				bodyData.addField( "AGREEMENT_STATUS", field );
+			}else{
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 3, 0 ) );
+				field.setValue( "" );
+				bodyData.addField( "AGREEMENT_STATUS", field );	
+			}
+			
+			//绑定的卡帐号
+			if(!"zzz".equals( autoBecif.getProductNo() )){
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 60, 0 ) );
+				field.setValue( autoBecif.getProductNo() );
+				bodyData.addField( "PRODUCT_NO", field );
+			}else{
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 60, 0 ) );
+				field.setValue( "" );
+				bodyData.addField( "PRODUCT_NO", field );	
+			}
+			
+			//签约时间
+			if(!"zzz".equals( autoBecif.getOpenDate() )){
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 8, 0 ) );
+				field.setValue( autoBecif.getOpenDate() );
+				bodyData.addField( "OPEN_DATE", field );
+			}else{
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 8, 0 ) );
+				field.setValue( "" );
+				bodyData.addField( "OPEN_DATE", field );	
+			}
+			
+			//解约时间
+			if(!"zzz".equals( autoBecif.getCloseDate() )){
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 8, 0 ) );
+				field.setValue( autoBecif.getCloseDate() );
+				bodyData.addField( "CLOSE_DATE", field );
+			}else{
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 8, 0 ) );
+				field.setValue( "" );
+				bodyData.addField( "CLOSE_DATE", field );	
+			}
+			
+			//签解约机构
+			if(!"zzz".equals( autoBecif.getDeptNo() )){
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 10, 0 ) );
+				field.setValue( autoBecif.getDeptNo() );
+				bodyData.addField( "DEPT_NO", field );
+			}else{
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 10, 0 ) );
+				field.setValue( "" );
+				bodyData.addField( "DEPT_NO", field );	
+			}
+			
+			//经办人
+			if(!"zzz".equals( autoBecif.getUserId() )){
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 100, 0 ) );
+				field.setValue( autoBecif.getUserId() );
+				bodyData.addField( "USER_ID", field );
+			}else{
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 100, 0 ) );
+				field.setValue( "" );
+				bodyData.addField( "USER_ID", field );	
+			}
+			
+			//业务系统代码
+			if(!"zzz".equals( autoBecif.getBusinessSeriesCD() )){
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 10, 0 ) );
+				field.setValue( autoBecif.getBusinessSeriesCD() );
+				bodyData.addField( "BUSINESS_SERIES_CD", field );
+			}else{
+				field = new Field( new FieldAttr( FieldType.FIELD_STRING, 10, 0 ) );
+				field.setValue( "" );
+				bodyData.addField( "BUSINESS_SERIES_CD", field );	
+			}
+			
+			//开始发送ISC消息
+			ISCMessageBroker.send( context, MsgData );
+			
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+		SFLogger.info( context, "发送签解约协议给BECIF系统 sendMsg() 结束" );
+	}
+}

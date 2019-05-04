@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+
+<FunctionDef>
+	<classMap>
+		<map id="Functions" class="com.ecc.util.formula.function.FunctionManager"/>
+	</classMap>
+	<Functions id="Functions">
+		<Fuction id="isEmpty" name="isEmpty" class="core.emp.func.IsEmptyFunc"/>
+	</Functions>
+</FunctionDef>

@@ -1,0 +1,103 @@
+package module.communication;
+
+import java.util.Map;
+
+import module.bean.SecCompData;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.cache.CacheMap;
+import core.communication.access.stzsecu.SZTSendAction;
+import core.log.SFLogger;
+
+/**
+ * 深证通消费端处理类
+ * @author 汪华
+ *
+ */
+public final class SZTSecuClientBase{
+	public Context send(Context msgContext,Map<String,Object>msg,String msgCode)throws SFException{
+		/*
+		 * 克隆新的通信上下文
+		 */
+		//Context msgContext=SFUtil.cloneMsgContext(context, msg);
+		try{
+			/*
+//			 * 上下文获取当前券商信息
+//			 */
+			SecCompData secCompData =SFUtil.getDataValue(msgContext,SFConst.PUBLIC_SECU);
+			//判断券商是否存在
+			if(secCompData==null){
+				SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+				SFLogger.error(msgContext, String.format("深证通模式执行业务功能码【%s】报文失败，券商不存在！", msgCode));
+				return msgContext;
+			}
+			/*
+			 * 发送报文
+			 */
+			SZTSendAction sender=  new SZTSendAction();
+			sender.setSvrCode(msgCode);
+			sender.setSecCompCode(secCompData.getSecCompCode());
+			sender.doExecute(msgContext);
+		}catch(Exception e){
+			SFLogger.error(msgContext, String.format("深证通模式执行业务功能码【%s】报文失败，%s", msgCode, e.getMessage()));
+			SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+			/*
+			 * 设置返回值
+			 */
+			Map<String,Map<String,String>> tcpipServiceMap =  CacheMap.getCache("SZT_TCPIPSERVICE");
+			Map<String,String> tcpipService = tcpipServiceMap.get(msgCode);		
+			String outKcollName = tcpipService.get("formatOutput");// ReadProperty.getValue(msgCode+ "_O");		
+			outKcollName = outKcollName.replaceAll("\\.", "");
+			
+			if(!msgContext.containsKey(outKcollName)){
+				return msgContext;
+			}
+			
+			KeyedCollection outKcoll = SFUtil.getDataElement(msgContext,outKcollName);		
+			KeyedCollection rstKcoll = SFUtil.getDataElement(msgContext,outKcoll, "Rst");
+			//填充响应结果至公共上下文
+			String retCode=SFUtil.getDataValue(msgContext,rstKcoll,"RESP_CODE");
+			String retMsg=SFUtil.getDataValue(msgContext,rstKcoll,"RESP_MSG");
+			SFUtil.setDataValue(msgContext, SFConst.CTX_ERRCODE, retCode);
+			SFUtil.setDataValue(msgContext, SFConst.CTX_ERRMSG, retMsg);
+			if(!SFConst.RESPCODE_SUCCCODE_SZTSECU.equals(retCode)&&!SFConst.RESPCODE_TIMEOUT_SZTSECU.equals(retCode)){//失败
+				SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_FAILURE);//增加errorMSG参数
+			}else if(SFConst.RESPCODE_TIMEOUT_SZTSECU.equals(retCode)){//超时
+				SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+			}
+			return msgContext;
+		}
+		/*
+		 * 设置返回值
+		 */
+		
+		// 处理body信息
+		//String tranCode = SFUtil.getDataValue(msgContext, SFConst.CTX_PUBLIC_TX_CODE);
+		
+		
+		Map<String,Map<String,String>> tcpipServiceMap =  CacheMap.getCache("SZT_TCPIPSERVICE");
+		Map<String,String> tcpipService = tcpipServiceMap.get(msgCode);		
+		String outKcollName = tcpipService.get("formatOutput");// ReadProperty.getValue(msgCode+ "_O");		
+		outKcollName = outKcollName.replaceAll("\\.", "");
+		KeyedCollection outKcoll = SFUtil.getDataElement(msgContext,outKcollName);		
+		KeyedCollection rstKcoll = SFUtil.getDataElement(msgContext,outKcoll, "Rst");
+		//填充响应结果至公共上下文
+		String retCode=SFUtil.getDataValue(msgContext,rstKcoll,"RESP_CODE");
+		String retMsg=SFUtil.getDataValue(msgContext,rstKcoll,"RESP_MSG");
+		SFUtil.setDataValue(msgContext, SFConst.CTX_ERRCODE, retCode);
+		SFUtil.setDataValue(msgContext, SFConst.CTX_ERRMSG, retMsg);
+		if(SFConst.RESPCODE_SUCCCODE_SZTSECU.equals(retCode)){//成功
+			SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_SUCCESS);
+		}else if(!SFConst.RESPCODE_SUCCCODE_SZTSECU.equals(retCode)&&!SFConst.RESPCODE_TIMEOUT_SZTSECU.equals(retCode)){//失败
+			SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_FAILURE);//增加errorMSG参数
+		}else if(SFConst.RESPCODE_TIMEOUT_SZTSECU.equals(retCode)){//超时
+			SFUtil.setDataValue(msgContext,SFConst.PUBLIC_RET_FLAG, SFConst.RET_OVERTIME);
+		}
+		return msgContext;
+	}
+}

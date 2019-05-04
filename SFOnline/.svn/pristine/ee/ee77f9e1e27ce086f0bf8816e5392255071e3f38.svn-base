@@ -1,0 +1,1156 @@
+package core.communication.format.xml;
+
+
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPConstance;
+import com.ecc.emp.data.DataElement;
+import com.ecc.emp.data.DataField;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.format.EMPFormatException;
+import com.ecc.emp.format.FormatElement;
+
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.communication.format.string.FixedLenFormat;
+import core.log.SFLogger;
+import core.service.PBankExpressCalculate;
+
+/**
+ * 
+ * <b>功能描述：</b><br>
+ * ESB Field格式<br>
+ * 可自定义长度、精度、类型、空白填充字符和对齐方式<br>
+ * 
+ * <b>配置示例：</b><br>
+ * &lt;fmtDef id="testID"&gt;<br>
+ * &nbsp;&nbsp;&lt;record&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;XMLFieldFormat dataName="myName" len="10" padChar="*" aligment="Left"&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;delim delimChar=";"/&gt;<br>
+ * &nbsp;&nbsp;&nbsp;&nbsp;&lt;/XMLFieldFormat&gt;<br>
+ * &nbsp;&nbsp;&lt;/record&gt;<br>
+ * &lt;/fmtDef&gt;<br>
+ * 
+ * <b>参数说明：</b><br>
+ * <b>dataName</b> EMP数据域名称<br>
+ * <b>len</b> 字符串长度<br>
+ * <b>padChar</b> 空白填充字符，默认为空格<br>
+ * <b>aligment</b> 对其方式，取值为none（默认），left，right，center：
+ * 格式化时none相当于left；反格式化时取值为none代表不去掉任何空白填充字符。
+ * 
+ * @author ZhongMingChang
+ * @modifier LiJia 2006-12-11
+ */
+public class XMLFieldFormat extends FixedLenFormat{
+
+	//ESB报文规范中的长度
+	private int esbLen = 0;
+
+	//ESB报文规范中的刻度
+	private int scale = 0;
+
+	//ESB报文规范中的报文类型,默认是字符串
+	private String type = "string";
+	
+	//该字段是否直接从context中取值或直接赋值到context中的变量,ESBCDFormat中使用到了该参数
+	private boolean opCtx = false;
+	
+	//如果改该字段的值为空是否需要增加到报文中的标志
+	private boolean nullAppear = true;
+	
+	//如果改该字段的值为空是否改属性需要增加到报文中的标志
+	private boolean nullAttrAppear = false;
+
+	//如果改该字段的值为空是否需要显示FULL TAG
+	private boolean isFullTag = true;
+
+	//为了实现常量，本类没有从ConstantFormat继承，而是实现了ConstanctFormat的功能，所以新增了如下几个属性
+	private boolean fixed = false;	
+
+	private String format = "yyyy-MM-dd hh:mm:ss";
+	
+	private String value;
+
+	public void setFixed(boolean fixed) {
+		this.fixed = fixed;
+	}
+	   
+	public boolean isFixed() {
+		return fixed;
+	}
+
+	public void setFormat(String format) {
+		this.format = format;
+	}
+	
+	public String getFormat() {
+		return format;
+	}
+
+	public String getValue() {
+		return value;
+	}
+
+	public void setValue(String value) {
+		this.value = value;
+	}
+
+	private String textIndent = "\t";
+	
+	public String getTextIndent() {
+		return textIndent;
+	}
+
+	public void setTextIndent(String textIndent) {
+		this.textIndent = textIndent;
+	}
+	public void updateTextIndent(String aTextIndent) {
+		this.textIndent = aTextIndent+this.textIndent;
+	}
+
+	/**
+	 * @roseuid 44FD3F20031C
+	 */
+	public XMLFieldFormat() {
+		super();
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setEsbLen(int esbLen) {
+		this.esbLen = esbLen;
+	}
+
+	public int getEsbLen() {
+		return this.esbLen;
+	}
+
+	public void setScale(int scale) {
+		this.scale = scale;
+	}
+
+	public int getScale() {
+		return this.scale;
+	}
+	
+	public void setOpCtx(boolean opCtx)
+	{
+		this.opCtx = opCtx;
+	}
+	
+	public Boolean getOpCtx()
+	{
+		return this.opCtx;
+	}
+
+	public void setNullAppear(boolean nullAppear)
+	{
+		this.nullAppear = nullAppear;
+	}
+	
+	public Boolean isNullAppear()
+	{
+		return this.nullAppear;
+	}
+	
+	public void setNullAttrAppear(boolean nullAttrAppear)
+	{
+		this.nullAttrAppear = nullAttrAppear;
+	}
+	
+	public Boolean isNullAttrAppear()
+	{
+		return this.nullAttrAppear;
+	}
+
+	private String[] propName;
+	
+	public String[] getPropName() {
+		return propName;
+	}
+
+	public void setPropName(String propName) {
+		this.propName = propName.split("|");
+	}
+
+	private String[] propDataName;
+	
+	public String[] getPropDataName() {
+		return propDataName;
+	}
+
+	public void setPropDataName(String propDataName) {
+		this.propDataName = propDataName.split("|");;
+	}
+	
+	private String kCollName;
+	
+	public String getKCollName() {
+		return kCollName;
+	}
+
+	public void setKCollName(String kCollName) {
+		this.kCollName = kCollName;
+	}
+
+	private boolean isICMember = true;
+
+	public boolean getIsICMember() {
+		return isICMember;
+	}
+
+	public void setIsICMember(boolean isICMember) {
+		this.isICMember = isICMember;
+	}
+
+	public boolean isFullTag() {
+		return isFullTag;
+	}
+
+	public void setFullTag(boolean isFullTag) {
+		this.isFullTag = isFullTag;
+	}
+
+	/**
+	 * 打包报文的调用入口。
+	 * <p>
+	 * 应用系统调用它进行数据报文组包，
+	 * EMP将根据报文的设定返回AtomData数据对象。
+	 * 
+	 * @param context 交易上下文
+	 * @return AtomData 打包后的报文
+	 * @throws EMPFormatException
+	 */
+	public String format(Context context) throws EMPFormatException {
+		return format(context, null);
+	}
+	/**
+	 * 打包报文的调用入口。
+	 * <p>
+	 * 应用系统调用它进行数据报文组包，
+	 * EMP将根据报文的设定返回AtomData数据对象。
+	 * 
+	 * @param context 交易上下文
+	 * @return AtomData 打包后的报文
+	 * @throws EMPFormatException
+	 */
+	public String format(Context context, String tagSuffix) throws EMPFormatException {
+		StringBuffer retStr = new StringBuffer();
+		boolean isNodeValueNull = true;
+		String newTagName = this.getName();
+		
+		if (tagSuffix != null)
+			newTagName = newTagName + tagSuffix;
+
+		//SFLogger.debug(context, "prepare to format <" + this.getName() + ">");
+		
+		if (this.getName() == null || this.getName().length() < 1)
+			return "";
+		
+		retStr.append(this.getTextIndent()+"<").append(newTagName);
+
+		//打包XML中本节点的属性
+		if (null != this.getPropName() && this.getPropName().length > 0 && (this.getPropName().length == this.getPropDataName().length)) {
+			for (int i = 0; i < this.getPropName().length; i++) {
+				String proName = this.getPropName()[i];
+				String proDataName = this.getPropDataName()[i];
+			
+				try {
+					String tmpProName = SFUtil.getContextValueInAction(context, proName);
+					String tmpProDataName = SFUtil.getContextValueInAction(context, proDataName);
+					String tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+
+					StringBuffer strBufDataValue = new StringBuffer();
+
+					if (tmpKCollName != null && tmpProDataName != null)
+						tmpProDataName = tmpKCollName + "." + tmpProDataName;
+					
+					try {
+						this.format(strBufDataValue, tmpProDataName, context);
+					}
+					catch (Exception e)  {
+						SFLogger.error(context, "XMLField[" + this + "] format failed!"+ e);
+						throw new EMPFormatException(e);
+					}
+
+					if (strBufDataValue.length() > 0) {
+						isNodeValueNull = false;
+						retStr.append(" " + tmpProName + "=\"").append(strBufDataValue + "\"");
+					}
+					else {
+						if (this.nullAttrAppear) {
+							retStr.append(" " + tmpProName + "=\"\"");
+						}
+					}
+				}
+				catch (Exception e) {
+					SFLogger.error(context, "format <XMLField id=\"" + this.getName() + "\"> occur error!");
+					throw new EMPFormatException(e);
+				}
+			}
+		}
+		//打包XML中本节点的值
+		try {
+			StringBuffer strBufDataValue = new StringBuffer();
+			String tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+			String tmpDataName = SFUtil.getContextValueInAction(context, this.getDataName());
+			if (tmpKCollName != null && tmpDataName != null)
+				tmpDataName = tmpKCollName + "." + tmpDataName;
+			
+			if (tmpDataName != null && tmpDataName.length() > 1)
+				this.format(strBufDataValue, tmpDataName, context);
+
+			if (strBufDataValue.length() > 0) {
+				isNodeValueNull = false;
+				retStr.append(">" + strBufDataValue + "</" + newTagName + ">");
+			}
+			else {
+				if (isNodeValueNull) {
+					if (this.isNullAppear()) {
+						if (this.isFullTag()) {
+							retStr.append("></" + newTagName + ">");
+						}
+						else {
+							retStr.append("/>");
+						}
+					}
+					else {
+						//值为空不展现
+						retStr.setLength(0);
+					}
+				}
+				else {
+					if (this.isFullTag()) {
+						retStr.append("></" + newTagName + ">");
+					}
+					else {
+						retStr.append("/>");
+					}
+				}
+			}
+		}
+		catch (Exception e)  {
+			SFLogger.error(context, "XMLField[" + this + "] format failed!"+ e);
+			throw new EMPFormatException(e);
+		}
+
+		return retStr.toString();
+	}
+
+	/**
+	 * 打包报文的调用入口。
+	 * <p>
+	 * 应用系统调用它进行数据报文组包，
+	 * EMP将根据报文的设定返回AtomData数据对象。
+	 * 
+	 * @param context 交易上下文
+	 * @param dataElement 数据源
+	 * @return AtomData 打包后的报文
+	 * @throws EMPFormatException
+	 */
+	public String format(DataElement dataElement, Context context) throws EMPFormatException {
+		return format(dataElement, context, null);
+	}
+	/**
+	 * 打包报文的调用入口。
+	 * <p>
+	 * 应用系统调用它进行数据报文组包，
+	 * EMP将根据报文的设定返回AtomData数据对象。
+	 * 
+	 * @param context 交易上下文
+	 * @param dataElement 数据源
+	 * @return AtomData 打包后的报文
+	 * @throws EMPFormatException
+	 */
+	public String format(DataElement dataElement, Context context, String tagSuffix) throws EMPFormatException {
+		StringBuffer retStr = new StringBuffer();
+		boolean isNodeValueNull = true;
+		String newTagName = this.getName();
+		
+		if (tagSuffix != null)
+			newTagName = newTagName + tagSuffix;
+
+		//SFLogger.debug(context, "prepare to format <" + this.getName() + ">");
+		
+		if (this.getName() == null || this.getName().length() < 1)
+			return "";
+
+		retStr.append(this.getTextIndent()+"<").append(newTagName);
+
+		//打包XML中本节点的属性
+		if (null != this.getPropName() && this.getPropName().length > 0 && (this.getPropName().length == this.getPropDataName().length)) {
+			for (int i = 0; i < this.getPropName().length; i++) {
+				String proName = this.getPropName()[i];
+				String proDataName = this.getPropDataName()[i];
+			
+				try {
+					String tmpProName = SFUtil.getContextValueInAction(context, proName);
+					String tmpProDataName = SFUtil.getContextValueInAction(context, proDataName);
+					String tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+
+					StringBuffer strBufDataValue = new StringBuffer();
+
+					if (tmpKCollName != null && tmpProDataName != null)
+						tmpProDataName = tmpKCollName + "." + tmpProDataName;
+					
+					try {
+						this.format(strBufDataValue, tmpProDataName, dataElement);
+					}
+					catch (Exception e)  {
+						SFLogger.error(context, "XMLField[" + this + "] format failed!"+ e);
+						throw new EMPFormatException(e);
+					}
+
+					if (strBufDataValue.length() > 0) {
+						isNodeValueNull = false;
+						retStr.append(" " + tmpProName + "=\"").append(strBufDataValue + "\"");
+					}
+					else {
+						if (this.nullAttrAppear) {
+							retStr.append(" " + tmpProName + "=\"\"");
+						}
+					}
+				}
+				catch (Exception e) {
+					SFLogger.error(context, "format <XMLField id=\"" + this.getName() + "\"> occur error!");
+					throw new EMPFormatException(e);
+				}
+			}
+		}
+		
+		//打包XML中本节点的值
+		try {
+			StringBuffer strBufDataValue = new StringBuffer();
+			String tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+			String tmpDataName = SFUtil.getContextValueInAction(context, this.getDataName());
+			if (tmpKCollName != null && tmpDataName != null)
+				tmpDataName = tmpKCollName + "." + tmpDataName;
+
+			if (tmpDataName != null && tmpDataName.length() > 1)
+				this.format(strBufDataValue, tmpDataName, dataElement);
+
+			if (strBufDataValue.length() > 0) {
+				isNodeValueNull = false;
+				retStr.append(">" + strBufDataValue + "</" + newTagName + ">");
+			}
+			else {
+				if (isNodeValueNull) {
+					if (this.isNullAppear()) {
+						if (this.isFullTag()) {
+							retStr.append("></" + newTagName + ">");
+						}
+						else {
+							retStr.append("/>");
+						}
+					}
+					else {
+						//值为空不展现
+						retStr.setLength(0);
+					}
+				}
+				else {
+					if (this.isFullTag()) {
+						retStr.append("></" + newTagName + ">");
+					}
+					else {
+						retStr.append("/>");
+					}
+				}
+			}
+		}
+		catch (Exception e)  {
+			SFLogger.error(context, "XMLField[" + this + "] format failed!"+ e);
+			throw new EMPFormatException(e);
+		}
+
+		return retStr.toString();
+	}
+		
+	/**
+	 * 字符串格式报文的打包入口。
+	 * 
+	 * @param output 字符串缓存
+	 * @param context 交易上下文
+	 * @throws Exception
+	 */
+	public void format(StringBuffer output, Context context) throws Exception {
+		output.append(format(context));
+		return;
+	}
+
+	/**
+	 * 字符串格式报文的打包入口。
+	 * 
+	 * @param output 字符串缓存
+	 * @param context 交易上下文
+	 * @throws Exception
+	 */
+	public void format(StringBuffer output, String dataName, Context context) throws Exception {
+		DataField element = null;
+
+		if (!isConstant()) {
+			if (!this.isExpression()){
+				element = (DataField) context.getDataElement(dataName);
+			}
+			else {
+				PBankExpressCalculate aPBankExpCal = new PBankExpressCalculate();
+				element = new DataField("EXP_RESULT", aPBankExpCal.execute(dataName, context));
+			}
+		}
+	
+		element = fbsTransfer(element);
+		
+		Object value = this.format(element);
+		value = this.addDecoration(value);
+
+		if (value.getClass().isArray()) {
+			output.append(new String((byte[])value, this.getEncoding()));
+		}
+		else {
+			output.append((String) value);
+		}
+
+		return;
+	}
+
+	/**
+	 * 字符串格式报文的打包入口。
+	 * 
+	 * @param output 字符串缓存
+	 * @param context 交易上下文
+	 * @throws Exception
+	 */
+	public void format(StringBuffer output, String dataName, DataElement dataElement) throws Exception {
+		DataField element = null;
+
+		if (!isConstant()) {
+			if (!this.isExpression()){
+				element = (DataField)((KeyedCollection)dataElement).getDataElement(dataName);
+			}
+			else {
+				PBankExpressCalculate aPBankExpCal = new PBankExpressCalculate();
+				element = new DataField("EXP_RESULT", aPBankExpCal.execute(dataName, dataElement));
+			}
+		}
+	
+		element = fbsTransfer(element);
+		
+		Object value = this.format(element);
+		value = this.addDecoration(value);
+
+		if (value.getClass().isArray()) {
+			output.append(new String((byte[])value, this.getEncoding()));
+		}
+		else {
+			output.append((String) value);
+		}
+
+		return;
+	}
+	
+	/**
+	 * 数据解包的调用入口。
+	 * <p>
+	 * 根据设定格式解包。
+	 * 
+	 * @param context 交易上下文
+	 * @param atomData 待解报文
+	 * @throws EMPFormatException
+	 */
+	public void unFormat(Object src, Context context) throws Exception {
+		DataElement aDataElement = null;
+		if (src == null){
+			addFormatToContext(context);
+			return;
+		}
+		
+		//SFLogger.debug(context, "prepare to unformat <" + this.getName() + "\">");
+		
+		//如果本节点的tag那么和格式中的不匹配，返回
+		if (!this.getName().equals(((Node)src).getNodeName())) {
+			SFLogger.debug(context, "can't find tag <" + this.getName() + "> in XML");
+			return;
+		}
+
+		//解析XML中本节点的text值，存放到DataName配置中
+		if (this.getDataName() != null) {
+			String tmpDataName = SFUtil.getContextValueInAction(context, this.getDataName());
+			String tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+			
+			if (tmpKCollName != null && tmpDataName != null)
+				tmpDataName = tmpKCollName + "." + tmpDataName;
+			
+			try {
+				if (this.isAppend()) {
+					context.getDataElement().setAppend(this.isAppend());
+				}
+				if (tmpDataName != null && tmpDataName.length() > 0) {
+					try {
+						aDataElement = context.getDataElement(tmpDataName, this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass()));
+					}
+					catch (Exception e)
+					{
+						aDataElement = null;
+					}
+				}
+				if (aDataElement != null) {
+					//SFLogger.debug(context, "unformat XMLFieldFormat find DataField [" + tmpDataName + "] in context");
+					//获取文本内容赋值给DataName字段
+					NodeList nodeList = ((Node)src).getChildNodes();
+					for (int i = 0; i < nodeList.getLength(); i++)
+					{
+						Node node = nodeList.item( i );
+						if (node.getNodeType() == Node.TEXT_NODE && "#text".equals(node.getNodeName()))
+						{
+							((DataField)aDataElement).setValue(node.getTextContent().trim());
+							break;
+						}
+					}
+				}
+				else {
+					//SFLogger.debug(context, "unformat XMLFieldFormat can't find DataField [" + tmpDataName + "] in context, , Continue with NULL");					
+				}
+			}
+			catch (Exception e) {
+				SFLogger.error(context, "unformat <XMLField id=\"" + this.getName() + "\"> occur error!");
+				throw new EMPFormatException(e);
+			}
+		}
+		
+		
+		//解析XML中本节点的属性，存放到propDataName配置的列表中
+		NamedNodeMap attrs = ((Node)src).getAttributes();
+		if (null != this.getPropName() && this.getPropName().length > 0 && (this.getPropName().length == this.getPropDataName().length) && attrs != null) {
+			for (int i = 0; i < this.getPropName().length; i++) {
+				String proName = this.getPropName()[i];
+				String proDataName = this.getPropDataName()[i];
+			
+				String tmpProName = SFUtil.getContextValueInAction(context, proName);
+				String tmpProDataName = SFUtil.getContextValueInAction(context, proDataName);
+				String tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+				
+				if (tmpKCollName != null && tmpProDataName != null)
+					tmpProDataName = tmpKCollName + "." + tmpProDataName;
+				
+				try {
+					if (this.isAppend()) {
+						context.getDataElement().setAppend(this.isAppend());
+					}
+					if (tmpProDataName != null && tmpProDataName.length() > 0) {
+						try {
+							aDataElement = context.getDataElement(tmpProDataName, this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass()));
+						}
+						catch (Exception e)
+						{
+							aDataElement = null;
+						}
+					}
+					if (aDataElement != null) {
+						//SFLogger.debug(context, "unformat XMLFieldFormat find DataField [" + tmpProDataName + "] in context");
+						//获取文本内容赋值给DataName字段
+						Node attrNode = attrs.getNamedItem(tmpProName);
+						if (attrNode != null){
+							String valueStr = attrNode.getNodeValue();
+							((DataField)aDataElement).setValue(valueStr.trim());
+						}
+					}
+					else {
+						//SFLogger.debug(context, "unformat XMLFieldFormat can't find DataField [" + tmpProDataName + "] in context, , Continue with NULL");					
+					}
+				}
+				catch (Exception e) {
+					SFLogger.error(context, "unformat <XMLField id=\"" + this.getName() + "\"> occur error!");
+					throw new EMPFormatException(e);
+				}
+			}
+		}
+	}
+	
+	/**
+	 * 数据解包的调用入口。
+	 * <p>
+	 * 根据设定格式解包。
+	 * 
+	 * @param context 交易上下文
+	 * @param dataElement 解包后存放对象
+	 * @param atomData 待解报文
+	 * @throws EMPFormatException
+	 */
+	public void unFormat(DataElement dataElement, Object src, Context context) throws Exception {
+		DataElement aDataElement = null;
+		
+		String tmpDataName = null;
+		String tmpKCollName = null;
+		
+		if (src == null){
+				addFormatToContext(dataElement,context);
+				return;
+		}
+		
+		//SFLogger.debug(context, "prepare to unformat <" + this.getName() + "\">");
+		
+		//如果本节点的tag那么和格式中的不匹配，返回
+		if (!this.getName().equals(((Node)src).getNodeName())) {
+			SFLogger.debug(context, "can't find tag <" + this.getName() + "> in XML");
+			return;
+		}
+
+		//解析XML中本节点的text值，存放到DataName配置中
+		if (this.getDataName() != null) {
+			 tmpDataName = SFUtil.getContextValueInAction(context, this.getDataName());
+			 tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+			
+			if (tmpKCollName != null && tmpDataName != null)
+				tmpDataName = tmpKCollName + "." + tmpDataName;
+			
+			try {
+				if (this.isAppend()) {
+					((KeyedCollection)dataElement).setAppend(this.isAppend());
+				}
+				if (tmpDataName != null && tmpDataName.length() > 0) {
+					try {
+						aDataElement = ((KeyedCollection)dataElement).getDataElement(tmpDataName, this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass()));
+					}
+					catch (Exception e)
+					{
+						aDataElement = null;
+					}
+				}
+				if (aDataElement != null) {
+					//SFLogger.debug(context, "unformat XMLFieldFormat find DataField [" + tmpDataName + "] in dataElement " + dataElement.getName());
+					//获取文本内容赋值给DataName字段
+					NodeList nodeList = ((Node)src).getChildNodes();
+					for (int i = 0; i < nodeList.getLength(); i++)
+					{
+						Node node = nodeList.item( i );
+						if (node.getNodeType() == Node.TEXT_NODE && "#text".equals(node.getNodeName()))
+						{
+							((DataField)aDataElement).setValue(node.getTextContent().trim());
+							break;
+						}
+					}
+				}
+				else {
+					//SFLogger.debug(context, "unformat XMLFieldFormat can't find DataField [" + tmpDataName + "] in dataElement " + dataElement.getName() +", Continue with NULL");					
+				}
+			}
+			catch (Exception e) {
+				SFLogger.error(context, "unformat <XMLField id=\"" + this.getName() + "\"> occur error!");
+				throw new EMPFormatException(e);
+			}
+		}
+		
+		
+		//解析XML中本节点的属性，存放到propDataName配置的列表中
+		NamedNodeMap attrs = ((Node)src).getAttributes();
+		if (null != this.getPropName() && this.getPropName().length > 0 && (this.getPropName().length == this.getPropDataName().length) && attrs != null) {
+			for (int i = 0; i < this.getPropName().length; i++) {
+				String proName = this.getPropName()[i];
+				String proDataName = this.getPropDataName()[i];
+			
+				String tmpProName = SFUtil.getContextValueInAction(context, proName);
+				String tmpProDataName = SFUtil.getContextValueInAction(context, proDataName);
+				tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+				
+				if (tmpKCollName != null && tmpProDataName != null)
+					tmpProDataName = tmpKCollName + "." + tmpProDataName;
+				
+				try {
+					if (this.isAppend()) {
+						context.getDataElement().setAppend(this.isAppend());
+					}
+					if (tmpProDataName != null && tmpProDataName.length() > 0) {
+						try {
+							aDataElement = ((KeyedCollection)dataElement).getDataElement(tmpProDataName, this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass()));
+						}
+						catch (Exception e)
+						{
+							aDataElement = null;
+						}
+					}
+					if (aDataElement != null) {
+						//SFLogger.debug(context, "unformat XMLFieldFormat find DataField [" + tmpProDataName + "] in dataElement " + dataElement.getName());
+						//获取文本内容赋值给DataName字段
+						Node attrNode = attrs.getNamedItem(tmpProName);
+						if (attrNode != null){
+							String valueStr = attrNode.getNodeValue();
+							((DataField)aDataElement).setValue(valueStr.trim());
+						}
+					}
+					else {
+						//SFLogger.debug(context, "unformat XMLFieldFormat can't find DataField [" + tmpProDataName + "] in dataElement " + dataElement.getName() +", Continue with NULL");					
+					}
+				}
+				catch (Exception e) {
+					SFLogger.error(context, "unformat <XMLField id=\"" + this.getName() + "\"> occur error!");
+					throw new EMPFormatException(e);
+				}
+			}
+		}
+	}
+
+	public String toString(int tabCount) {
+		StringBuffer buf = new StringBuffer();
+		for (int i = 0; i < tabCount; i++)
+			buf.append("\t");
+
+		buf.append("<XMLField id=\"").append(this.getName());
+		buf.append("\" dataName=\"").append(this.getDataName());
+		buf.append("\" opCtx=\"").append(this.getOpCtx());
+		buf.append("\" KCollName=\"").append(this.getKCollName());
+		buf.append("\" textIndent=\"").append(this.getTextIndent());
+		buf.append("\"></XMLField>\n");
+
+		for (int i = 0; i < this.getDecorators().size(); i++) {
+			FormatElement fmt = (FormatElement) getDecorators().get(i);
+			buf.append(fmt.toString(tabCount));
+			buf.append("\n");
+		}
+
+		return buf.toString();
+	}
+	/**
+	 * 根据format的设置返回格式化的日期或时间
+	 * 
+	 * @return String //格式化的日期或时间
+	 */
+	public String getDateTime() {
+		java.util.Calendar calendar = java.util.Calendar.getInstance();
+		java.util.Date date = calendar.getTime();
+
+		if (format.equals("TimeMillis")) {
+			return String.valueOf(System.currentTimeMillis());
+		} 
+		else {
+			java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat(format);
+			return formatter.format(date);
+		}
+	}
+	/**
+	 * 将数据域转为常量（时间）字符串
+	 * 
+	 * @param DataField
+	 *            dataField //数据域
+	 * @returns Object //格式化后的字符串
+	 */
+	public Object format(DataField dataField) throws EMPFormatException {
+		if (fixed) {
+			if (this.isConstant()) {
+				String value = this.value;
+				if (value == null)
+					value = getDateTime();
+	
+				DataField newField = new DataField();
+				newField.setValue(value);
+				Object fixedLenValue;
+				try {
+					fixedLenValue = super.format(newField);
+				} catch (EMPFormatException e) {
+					 SFLogger.error(SFConst.DEFAULT_TRXCODE, null,
+								"ConstantFormat format failed! Fixed length format error!", e);
+					 throw new EMPFormatException(
+						"ConstantFormat format failed! Fixed length format error!", e);
+				}
+				return fixedLenValue;			
+				
+			} else {
+				return super.format(dataField);
+			}
+		}
+		else {
+			if (this.isConstant()) {
+				String tmpValue = this.value;
+				if (tmpValue == null)
+					tmpValue = getDateTime();
+				
+				return tmpValue;
+			}
+			else {
+				if (dataField == null)
+					return "";
+				Object tmpValue = dataField.getValue();
+				if (tmpValue == null)
+					return "";
+				else
+					return tmpValue;
+			}
+		}
+	}
+	/**
+	 * 对输入字符串中要处理的字串进行反格式化并将数据填回EMP数据域。
+	 * 
+	 * @param Object src //输入串
+	 * @param DataField dataField //数据域
+	 */
+	public void unformat(Object src, DataField dataField) throws EMPFormatException {
+		if (dataField != null) {
+			if (fixed) {
+				super.unformat(src, dataField);
+			} 
+			else {
+				try {
+					if (src.getClass().isArray()) {
+						if (this.isBin()) {
+							dataField.setValue(src);
+						}
+						else {
+							dataField.setValue(new String((byte[])src, this.getEncoding()));
+						}
+					}
+					else {
+						if (this.isBin()) {
+							dataField.setValue(((String)src).getBytes(this.getEncoding()));
+						}
+						else {
+							dataField.setValue(src);
+						}
+					}
+				}
+				catch (Exception e) {
+					throw new EMPFormatException("ConstantFormat unformat failed: invalid charset code!", e);
+				}
+			}
+		}
+	}
+
+	/**
+	 * 字符串格式报文解包入口。
+	 * 
+	 * @param src 待解报文(字符串)
+	 * @param offset 起始位置
+	 * @param element 数据模型(kColl)
+	 * @return 解包长度
+	 * @throws Exception
+	 */
+	public int unformat(String src, int offset, DataElement element) throws Exception {
+		String dataName = getDataName(src);
+		DataField field = null;
+		if (!isConstant()){
+			field = (DataField) ((KeyedCollection) element).getDataElement(dataName, DataField.class);
+			if (field == null) { 
+				SFLogger.error(SFConst.DEFAULT_TRXCODE, null, "FormatField unformat failed! Can't find DataField [" + dataName + "]",null);
+				throw new EMPFormatException("FormatField unformat failed! Can't find DataField [" + dataName + "]");
+			}
+		}
+			
+		this.unformat(src, field);
+		
+		return src.length();
+	}
+	
+	
+	
+	
+public void addFormatToContext(Context context)throws Exception{
+	DataElement aDataElement = null;
+	
+ 	//SFLogger.debug(context, "prepare to unformat <" + this.getName() + "\">");
+	
+
+	//解析XML中本节点的text值，存放到DataName配置中
+	if (this.getDataName() != null) {
+		String tmpDataName = SFUtil.getContextValueInAction(context, this.getDataName());
+		String tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+		
+		if (tmpKCollName != null && tmpDataName != null)
+			tmpDataName = tmpKCollName + "." + tmpDataName;
+		
+		try {
+			if (this.isAppend()) {
+				context.getDataElement().setAppend(this.isAppend());
+			}
+			if (tmpDataName != null && tmpDataName.length() > 0) {
+				try {
+					aDataElement = context.getDataElement(tmpDataName, this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass()));
+				}
+				catch (Exception e)
+				{
+					aDataElement = null;
+				}
+			}
+			if (aDataElement != null) {
+				//SFLogger.debug(context, "unformat XMLFieldFormat find DataField [" + tmpDataName + "] in context");
+				//获取文本内容赋值给DataName字段
+//				NodeList nodeList = ((Node)src).getChildNodes();
+//				for (int i = 0; i < nodeList.getLength(); i++)
+//				{
+//					Node node = nodeList.item( i );
+//					if (node.getNodeType() == Node.TEXT_NODE && "#text".equals(node.getNodeName()))
+//					{
+//						((DataField)aDataElement).setValue(node.getTextContent().trim());
+//						break;
+//					}
+//				}
+			}
+			else {
+				//SFLogger.debug(context, "unformat XMLFieldFormat can't find DataField [" + tmpDataName + "] in context, , Continue with NULL");					
+			}
+		}
+		catch (Exception e) {
+			SFLogger.error(context, "unformat <XMLField id=\"" + this.getName() + "\"> occur error!");
+			throw new EMPFormatException(e);
+		}
+	}
+	
+	
+	//解析XML中本节点的属性，存放到propDataName配置的列表中
+	if (null != this.getPropName() && this.getPropName().length > 0 && (this.getPropName().length == this.getPropDataName().length) ) {
+		for (int i = 0; i < this.getPropName().length; i++) {
+			String proName = this.getPropName()[i];
+			String proDataName = this.getPropDataName()[i];
+		
+			String tmpProName = SFUtil.getContextValueInAction(context, proName);
+			String tmpProDataName = SFUtil.getContextValueInAction(context, proDataName);
+			String tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+			
+			if (tmpKCollName != null && tmpProDataName != null)
+				tmpProDataName = tmpKCollName + "." + tmpProDataName;
+			
+			try {
+				if (this.isAppend()) {
+					context.getDataElement().setAppend(this.isAppend());
+				}
+				if (tmpProDataName != null && tmpProDataName.length() > 0) {
+					try {
+						aDataElement = context.getDataElement(tmpProDataName, this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass()));
+					}
+					catch (Exception e)
+					{
+						aDataElement = null;
+					}
+				}
+				if (aDataElement != null) {
+					//SFLogger.debug(context, "unformat XMLFieldFormat find DataField [" + tmpProDataName + "] in context");
+					//获取文本内容赋值给DataName字段
+//					Node attrNode = attrs.getNamedItem(tmpProName);
+//					if (attrNode != null){
+//						String valueStr = attrNode.getNodeValue();
+//						((DataField)aDataElement).setValue(valueStr.trim());
+//					}
+				}
+				else {
+					//SFLogger.debug(context, "unformat XMLFieldFormat can't find DataField [" + tmpProDataName + "] in context, , Continue with NULL");					
+				}
+			}
+			catch (Exception e) {
+				SFLogger.error(context, "unformat <XMLField id=\"" + this.getName() + "\"> occur error!");
+				throw new EMPFormatException(e);
+			}
+		}
+	}
+}
+
+public void addFormatToContext(DataElement dataElement ,Context context)throws Exception{
+	DataElement aDataElement = null;
+	
+	//SFLogger.debug(context, "prepare to unformat <" + this.getName() + "\">");
+	
+
+	//解析XML中本节点的text值，存放到DataName配置中
+	if (this.getDataName() != null) {
+		String tmpDataName = SFUtil.getContextValueInAction(context, this.getDataName());
+		String tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+		
+		if (tmpKCollName != null && tmpDataName != null)
+			tmpDataName = tmpKCollName + "." + tmpDataName;
+		
+		try {
+			if (this.isAppend()) {
+				((KeyedCollection)dataElement).setAppend(this.isAppend());
+			}
+			if (tmpDataName != null && tmpDataName.length() > 0) {
+				try {
+					aDataElement = ((KeyedCollection)dataElement).getDataElement(tmpDataName, this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass()));
+				}
+				catch (Exception e)
+				{
+					aDataElement = null;
+				}
+			}
+			if (aDataElement != null) {
+				//SFLogger.debug(context, "unformat XMLFieldFormat find DataField [" + tmpDataName + "] in dataElement " + dataElement.getName());
+				//获取文本内容赋值给DataName字段
+//				NodeList nodeList = ((Node)src).getChildNodes();
+//				for (int i = 0; i < nodeList.getLength(); i++)
+//				{
+//					Node node = nodeList.item( i );
+//					if (node.getNodeType() == Node.TEXT_NODE && "#text".equals(node.getNodeName()))
+//					{
+//						((DataField)aDataElement).setValue(node.getTextContent().trim());
+//						break;
+//					}
+//				}
+			}
+			else {
+				//SFLogger.debug(context, "unformat XMLFieldFormat can't find DataField [" + tmpDataName + "] in dataElement " + dataElement.getName() +", Continue with NULL");					
+			}
+		}
+		catch (Exception e) {
+			SFLogger.error(context, "unformat <XMLField id=\"" + this.getName() + "\"> occur error!");
+			throw new EMPFormatException(e);
+		}
+	}
+	
+	
+	//解析XML中本节点的属性，存放到propDataName配置的列表中
+	if (null != this.getPropName() && this.getPropName().length > 0 && (this.getPropName().length == this.getPropDataName().length) ) {
+		for (int i = 0; i < this.getPropName().length; i++) {
+			String proName = this.getPropName()[i];
+			String proDataName = this.getPropDataName()[i];
+		
+			String tmpProName = SFUtil.getContextValueInAction(context, proName);
+			String tmpProDataName = SFUtil.getContextValueInAction(context, proDataName);
+			String tmpKCollName = SFUtil.getContextValueInAction(context, this.getKCollName());
+			
+			if (tmpKCollName != null && tmpProDataName != null)
+				tmpProDataName = tmpKCollName + "." + tmpProDataName;
+			
+			try {
+				if (this.isAppend()) {
+					context.getDataElement().setAppend(this.isAppend());
+				}
+				if (tmpProDataName != null && tmpProDataName.length() > 0) {
+					try {
+						aDataElement = ((KeyedCollection)dataElement).getDataElement(tmpProDataName, this.getAppendClass() == null? DataField.class :Class.forName(this.getAppendClass()));
+					}
+					catch (Exception e)
+					{
+						aDataElement = null;
+					}
+				}
+				if (aDataElement != null) {
+					//SFLogger.debug(context, "unformat XMLFieldFormat find DataField [" + tmpProDataName + "] in dataElement " + dataElement.getName());
+					//获取文本内容赋值给DataName字段
+//					Node attrNode = attrs.getNamedItem(tmpProName);
+//					if (attrNode != null){
+//						String valueStr = attrNode.getNodeValue();
+//						((DataField)aDataElement).setValue(valueStr.trim());
+//					}
+				}
+				else {
+					//SFLogger.debug(context, "unformat XMLFieldFormat can't find DataField [" + tmpProDataName + "] in dataElement " + dataElement.getName() +", Continue with NULL");					
+				}
+			}
+			catch (Exception e) {
+				SFLogger.error(context, "unformat <XMLField id=\"" + this.getName() + "\"> occur error!");
+				throw new EMPFormatException(e);
+			}
+		}
+	}
+}
+	
+	
+	
+	
+	
+}

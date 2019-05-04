@@ -1,0 +1,521 @@
+package core.communication.access.tcpip;
+
+
+import java.net.Socket;
+import java.util.Map;
+
+import module.bean.ErrorMap;
+import module.cache.ErrorMapCache;
+
+import com.ecc.emp.access.tcpip.EMPTCPIPRequest;
+import com.ecc.emp.component.factory.ComponentFactory;
+import com.ecc.emp.component.factory.EMPFlowComponentFactory;
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPConstance;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.format.FormatElement;
+
+import common.exception.SFException;
+import common.util.BizUtil;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.communication.format.KeyedFormat;
+import core.communication.tcpip.TCPIPService;
+import core.communication.util.AccessConstance;
+import core.log.SFLogger;
+
+/**
+ * EMP平台实现的TCP/IP请求处理器。
+ * <p>
+ * 用于处理TCP/IP请求的报文头，以及从报文头获取必要的信息，
+ * 这些信息包括sessionId、serviceId(所请求的TCP/IP服务ID或交易码)等。
+ * <p>
+ * 参数如下：
+ * <p>
+ * serviceIdField：报文头解开后的ServiceId数据域<br>
+ * sessionIdField：报文头解开后的SessionId数据域<br>
+ * appendReqHead：是否需要截去请求报文头，可选项true(默认)、false<br>
+ * appendRepHead：是否需要在返回报文中附带报文头，可选项true(默认)、false<br>
+ * errorCodeField：保存错误码的数据域名<br>
+ * encoding：报文头编码
+ * <p>
+ * 子元素：
+ * <p>
+ * requestHeadFormat：请求报文头格式处理器<br>
+ * responseHeadFormat：响应报文头格式处理器<br>
+ * serviceIdMap：ServiceId映射，允许将多个请求ServiceId映射到其他定义ServiceId中，用于交易分发<br>
+ * 
+ * @author zhongmc
+ * @version 2.1
+ * @since 1.0 2006-11-29
+ * @lastmodified 2008-6-11
+ * 
+ */
+public class PBankTCPIPRequestHandler implements TCPIPRequestHandler {
+
+	/**
+	 * 报文头编码
+	 */
+	private String encoding = null;
+	
+	/**
+	 * 保存错误码的数据域
+	 */
+	private String errorCodeField = "errorCode";
+
+	/**
+	 * 请求报文头格式处理器
+	 */
+	private FormatElement requestHeadFormat = null;
+
+	/**
+	 * 响应报文头格式处理器
+	 */
+	private FormatElement responseHeadFormat = null;
+
+	/**
+	 * 是否需要截去请求报文头
+	 */
+	private boolean appendReqHead = true;
+
+	/**
+	 * 是否需要在返回报文中附带报文头
+	 */
+	private boolean appendRepHead = true;
+
+	/**
+	 * 报文头解开后的ServiceId数据域
+	 */
+	private String serviceIdField;
+
+	/**
+	 * 报文头解开后的SessionId数据域
+	 */
+	private String sessionIdField;
+
+	/**
+	 * ServiceId映射，允许将多个请求ServiceId映射到其他定义ServiceId中，用于交易分发
+	 */
+	private Map serviceIdMap = null;
+
+	public PBankTCPIPRequestHandler() {
+		super();
+	}
+	
+	/**
+	 * 从请求报文中判断该请求是否为业务处理请求。
+	 * 
+	 * @param msg 请求报文
+	 * @return 是否业务处理请求
+	 */
+	public boolean isRequestPackage(byte[] msg) {
+		return true;
+	}
+
+	
+//	public void setDataTypeDef(Map dataTypeDefs )
+//	{
+//		this.dataTypeDefs = dataTypeDefs;
+//	}
+	
+//	public byte[] handleRequest(byte[] requestMsg, Context sessionContext, TCPIPServiceInfo serviceInfo )
+//	{
+//			return null;
+//	}
+	
+	/**
+	 * 获得请求的EMPTCPIPRequest封装对象。
+	 * <p>
+	 * 从请求报文中解出报文头，从中取得Session id和Service id，
+	 * 连同报文体一起封装为EMPTCPIPRequest以进行进一步处理。
+	 * 
+	 * @param requestMsg 请求报文
+	 * @return EMPTCPIPRequest
+	 */
+	public EMPTCPIPRequest getTCPIPRequest(byte[] requestMsg, TCPIPService service, Socket socket) {
+		EMPTCPIPRequest request = new EMPTCPIPRequest();
+
+		try{
+			EMPFlowComponentFactory factory = (EMPFlowComponentFactory) ComponentFactory.getComponentFactory("SFOnline");
+			Context rootContext = factory.getContextNamed(factory.getRootContextName());
+			
+			KeyedCollection kColl = new KeyedCollection("head");
+			kColl.setAppend( true );
+			FormatElement requestHeadFormat = rootContext.getFormat(AccessConstance.A_REQUEST_HEAD);
+			if( requestHeadFormat.isBin() )
+				requestHeadFormat.unFormat(requestMsg, kColl );
+			else
+				requestHeadFormat.unFormat(new String(requestMsg), kColl );
+			
+			request.setAttribute("headData", kColl);
+			
+			KeyedFormat headFormat = (KeyedFormat)requestHeadFormat.getFormatElement();
+			
+			int headLen = headFormat.getHeadLen();
+			
+			
+			if( headLen > 0 )
+			{
+				int length = requestMsg.length - headLen;
+				byte[] buf = new byte[length ];
+				System.arraycopy(requestMsg, headLen, buf, 0, length);
+				request.setAttribute("reqData", buf);
+			}
+			else
+				request.setAttribute("reqData", requestMsg );
+			
+			request.setAttribute("requestMsg", requestMsg );
+			String serviceId = (String)kColl.getDataValue( this.serviceIdField );
+			request.setAttribute("serviceId", serviceId);
+		
+			return request;
+		}catch(Exception e){
+			SFLogger.error(SFConst.DEFAULT_TRXCODE, null,"Failed to parse the requestMsg in EMPTCPIPRequestHandler to get sessionId",e);
+			return null;
+		}
+	}
+	
+	/**
+	 * 处理正常的响应报文。
+	 * <p>
+	 * 将数据打包成返回报文头，并和返回报文体一起放入response。
+	 * 
+	 * @param request TCPIP请求
+	 * @param retMsg 返回报文体
+	 * @return 响应报文
+	 */
+	public byte[] getResponsePackage(EMPTCPIPRequest request, byte[] retMsg ) {
+		Context context = null;
+		try{
+			 context = (Context)request.getAttribute(EMPConstance.ATTR_CONTEXT );
+			if( this.appendRepHead && this.responseHeadFormat != null )
+			{
+				byte[] headBytes;
+				Object retHead = responseHeadFormat.format( context );
+				if( responseHeadFormat.isBin() )
+					headBytes = (byte[])retHead;
+				else
+					headBytes = ((String)retHead).getBytes();
+				
+				if( retMsg != null )
+				{
+					int len = headBytes.length;
+					byte[] buf = new byte[len + retMsg.length];
+			
+					System.arraycopy(headBytes, 0, buf, 0, len);
+					System.arraycopy(retMsg, 0, buf, len, retMsg.length);
+					return buf;
+				}
+				else
+					return headBytes;
+			}
+			return retMsg;
+			
+		}catch(Exception e)
+		{
+			
+			SFLogger.error(context, "Failed to process response package! "+ e);
+			return null;
+		}
+	}	
+	
+	/**
+	 * 处理异常时的响应报文。
+	 * <p>
+	 * 将数据和异常信息打包成返回报文头。
+	 * 
+	 * @param request TCPIP请求
+	 * @param e 异常
+	 * @return 异常响应报文
+	 */
+	public byte[] getExceptionResponse(EMPTCPIPRequest request, Exception e) {
+		Context context = null;
+		try{
+			context = (Context)request.getAttribute(EMPConstance.ATTR_CONTEXT );
+			if( context == null ){
+				context = (Context)request.getAttribute(EMPConstance.ATTR_SESSION_CONTEXT );
+			}			
+			String serviceId = (String)request.getAttribute("serviceId");
+			//
+			initHeadKcoll(context);
+			if(e instanceof SFException){
+				SFException sfe = (SFException)e;
+				String errCode = sfe.getErrorCode();
+				String errMsg =  sfe.getMessage();
+				//转换错误 码
+				ErrorMap errorMap = ErrorMapCache.getSdbValue(errCode);
+				
+				if(errorMap!=null){
+					if(SFUtil.isEmpty(errMsg)){
+						errMsg = errorMap.getErrExplain();
+					}
+					SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPCODE",errorMap.getSdbCode());					
+					if("810005".equals( serviceId )){
+						SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPMSG","");
+					}else{
+						SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPMSG",errMsg);
+					}					
+				}else{
+					if(SFUtil.isEmpty(errMsg)){
+						errMsg = "交易失败";
+					}
+					SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPCODE",errCode);
+					if("810005".equals( serviceId )){
+						SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPMSG","");
+					}else{
+						SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPMSG",errMsg);
+					}
+					
+				}				
+			}else{
+				SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPCODE",SFConst.RESPCODE_FAILCODE_COBANK);
+				SFUtil.setDataValue(context,"A_RESPONSE_HEAD.RESPMSG","交易失败");
+			}
+			KeyedCollection headColl = SFUtil.getDataElement(context, AccessConstance.A_RESPONSE_HEAD);// (KeyedCollection)context.getDataElement(AccessConstance.A_RESPONSE_HEAD);
+			FormatElement headFormat = context.getFormat(AccessConstance.A_RESPONSE_HEAD);
+			
+			String headData = (String)headFormat.format(headColl);
+			//根据报文头的返回码来判断是否需要加入报文体内容，只有返回"000000"成功时才返回报文体，这里涉及到MAC校验上送的消息块
+	        if(!SFConst.RESPCODE_SUCCCODE.equals(SFUtil.getDataValue(context,"A_REQUEST_HEAD.RESPCODE"))){
+	        	if(!"810003".equals( serviceId )){
+	    			/*
+	    			 * Mac 加密
+	    			 */
+	        		headData=headData+BizUtil.genCoBankMac(context,headData);
+	        		return headData.getBytes();	
+	        	}
+	        }
+//	        String serviceId = (String)request.getAttribute("serviceId");
+	        
+			FormatElement msgFormat = context.getFormat(serviceId + "_O");
+			String responseData = (String)msgFormat.format(context);
+			/*
+			 * Mac 加密
+			 */
+			responseData=responseData+BizUtil.genCoBankMac(context,responseData);
+			
+			int len = headData.length()+responseData.length();			
+			String resData = headData+responseData;//String.valueOf(len)+			
+			if (encoding != null)
+				return resData.getBytes(encoding);
+			else
+				return resData.getBytes();
+		} catch (Exception ee) {
+			SFLogger.error(context,"Failed to handle exception!"+ ee);
+		}
+		return null;
+	}
+	public void initHeadKcoll(Context context) throws EMPException {
+		KeyedCollection headColl = null;
+		if(context.containsKey(AccessConstance.A_RESPONSE_HEAD)){
+			headColl = (KeyedCollection)context.getDataElement(AccessConstance.A_RESPONSE_HEAD);
+			
+			headColl.setDataValue("serviceId",SFUtil.getDataValue(context,"A_REQUEST_HEAD.serviceId"));
+			headColl.setDataValue("TRANSDATE", DateUtil.getMacDateShort());
+			headColl.setDataValue("TRANSTIME", DateUtil.getMacTime());
+			headColl.setDataValue("CHANNELSERIALNO", BizUtil.genSeqId(context,"TRCNO"));
+			headColl.setDataValue("BUSINESSDATE", DateUtil.getMacDateShort());
+			headColl.setDataValue("BANKNO", SFUtil.getDataValue(context,"A_REQUEST_HEAD.BANKNO"));
+			headColl.setDataValue("RESERVE", "");
+		}else{
+			
+			headColl = new KeyedCollection();
+			
+			headColl.addDataField("serviceId",SFUtil.getDataValue(context,"A_REQUEST_HEAD.serviceId"));
+			headColl.addDataField("TRANSDATE", DateUtil.getMacDateShort());
+			headColl.addDataField("TRANSTIME", DateUtil.getMacTime());
+			headColl.addDataField("CHANNELSERIALNO", BizUtil.genSeqId(context,"TRCNO"));
+			headColl.addDataField("BUSINESSDATE", DateUtil.getMacDateShort());
+			headColl.addDataField("BANKNO",SFUtil.getDataValue(context,"A_REQUEST_HEAD.BANKNO"));
+			headColl.addDataField("RESERVE", "");
+			context.addDataElement(headColl);
+		}
+	}
+	/**
+	 * 获得保存错误码的数据域。
+	 * 
+	 * @return 保存错误码的数据域
+	 */
+	public String getErrorCodeField() {
+		return errorCodeField;
+	}
+	
+	/**
+	 * 设置保存错误码的数据域。
+	 * 
+	 * @param errorCodeField 保存错误码的数据域
+	 * @emp:isAttribute true
+	 * @emp:name 保存错误码的数据域
+	 * @emp:desc 若执行中发生异常，则将错误码保存在该数据域中
+	 * @emp:defaultValue errorCode
+	 */
+	public void setErrorCodeField(String errorCodeField) {
+		this.errorCodeField = errorCodeField;
+	}
+
+	/**
+	 * 获得请求报文头格式处理器。
+	 * 
+	 * @return 请求报文头格式处理器
+	 */
+	public FormatElement getRequestHeadFormat() {
+		return requestHeadFormat;
+	}
+
+	/**
+	 * 注入请求报文头格式处理器。
+	 * 
+	 * @param headFormat 请求报文头格式处理器
+	 * @emp:isChild com.ecc.emp.format.FormatElement
+	 */
+	public void setRequestHeadFormat(FormatElement headFormat) {
+		this.requestHeadFormat = headFormat;
+	}
+
+	/**
+	 * 获得响应报文头格式处理器。
+	 * 
+	 * @return 响应报文头格式处理器
+	 */
+	public FormatElement getResponseHeadFormat() {
+		return responseHeadFormat;
+	}
+
+	/**
+	 * 注入响应报文头格式处理器。
+	 * 
+	 * @param responseHeadFormat 响应报文头格式处理器
+	 * @emp:isChild com.ecc.emp.format.FormatElement
+	 */
+	public void setResponseHeadFormat(FormatElement responseHeadFormat) {
+		this.responseHeadFormat = responseHeadFormat;
+	}
+
+	/**
+	 * 获得保存serviceId的数据域。
+	 * 
+	 * @return 保存serviceId的数据域
+	 */
+	public String getServiceIdField() {
+		return serviceIdField;
+	}
+
+	/**
+	 * 设置保存serviceId的数据域。
+	 * 
+	 * @param serviceIdField 保存serviceId的数据域名
+	 * @emp:isAttribute true
+	 * @emp:name 保存serviceId的数据域
+	 * @emp:desc 解开报文头后，从请求数据中的该数据域中取得service id
+	 * @emp:mustSet true
+	 */
+	public void setServiceIdField(String serviceIdField) {
+		this.serviceIdField = serviceIdField;
+	}
+
+	/**
+	 * 获得保存sessionId的数据域。
+	 * 
+	 * @return 保存sessionId的数据域
+	 */
+	public String getSessionIdField() {
+		return sessionIdField;
+	}
+
+	/**
+	 * 设置保存sessionId的数据域。
+	 * 
+	 * @param sessionIdField 保存sessionId的数据域名
+	 * @emp:isAttribute true
+	 * @emp:name 保存sessionId的数据域
+	 * @emp:desc 解开报文头后，从请求数据中的该数据域中取得session id
+	 * @emp:mustSet true
+	 */
+	public void setSessionIdField(String sessionIdField) {
+		this.sessionIdField = sessionIdField;
+	}
+
+	/**
+	 * 获得是否需要截去请求报文头。
+	 * 
+	 * @return 是否需要截去请求报文头
+	 */
+	public boolean isAppendReqHead() {
+		return appendReqHead;
+	}
+
+	/**
+	 * 设置是否需要截去请求报文头。
+	 * 
+	 * @param appendHead 是否需要截去请求报文头，可选项true(默认)、false
+	 * @emp:isAttribute true
+	 * @emp:name 是否需要截去请求报文头
+	 * @emp:desc 若为true，则将请求报文头解开后丢弃，只将请求报文体放入request做进一步处理
+	 * @emp:defaultValue true
+	 */
+	public void setAppendReqHead(boolean appendHead) {
+		this.appendReqHead = appendHead;
+	}
+
+	/**
+	 * 获得是否需要在返回报文中附带报文头。
+	 * 
+	 * @return 是否需要在返回报文中附带报文头
+	 */
+	public boolean isAppendRepHead() {
+		return appendRepHead;
+	}
+
+	/**
+	 * 设置是否需要在返回报文中附带报文头。
+	 * 
+	 * @param appendHead 是否需要在返回报文中附带报文头，可选项true(默认)、false
+	 * @emp:isAttribute true
+	 * @emp:name 是否需要在返回报文中附带报文头
+	 * @emp:desc 若为true，则将响应数据按照响应报文头格式打包，并追加在响应报文体之前
+	 * @emp:defaultValue true
+	 */
+	public void setAppendRepHead(boolean appendHead) {
+		this.appendRepHead = appendHead;
+	}
+
+	/**
+	 * 获得ServiceId映射。
+	 * 
+	 * @return ServiceId映射
+	 */
+	public Map getServiceIdMap() {
+		return serviceIdMap;
+	}
+
+	/**
+	 * 注入ServiceId映射。
+	 * 
+	 * @param serviceIdMap ServiceId映射
+	 * @emp:isChild java.util.Map
+	 */
+	public void setServiceIdMap(Map serviceIdMap) {
+		this.serviceIdMap = serviceIdMap;
+	}	
+
+	/**
+	 * 获得报文头编码。
+	 * 
+	 * @return 报文头编码
+	 */
+	public String getEncoding() {
+		return encoding;
+	}
+
+	/**
+	 * 设置报文头编码。
+	 * 
+	 * @param encoding 报文头编码
+	 */
+	public void setEncoding(String encoding) {
+		this.encoding = encoding;
+	}
+}

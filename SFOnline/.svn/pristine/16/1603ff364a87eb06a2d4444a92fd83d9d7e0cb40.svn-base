@@ -1,0 +1,31 @@
+package module.batch;
+
+import java.util.Map;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+
+import core.log.SFLogger;
+import core.schedule.ScheduleActionInterface;
+/**
+ * 日志备份
+ * @author 汪华
+ *
+ */
+public class T800050 implements ScheduleActionInterface{
+	
+	@Override
+	public boolean init(Context context) throws SFException {
+		return true;
+	}
+
+	@Override
+	public void execute(Context context) throws SFException {
+		Map<String,SFLogger> loggers=SFLogger.getInstanceMap();
+		if(loggers!=null){
+			for(SFLogger log:loggers.values()){
+				log.info("新日志开始......");
+			}
+		}
+	}
+}

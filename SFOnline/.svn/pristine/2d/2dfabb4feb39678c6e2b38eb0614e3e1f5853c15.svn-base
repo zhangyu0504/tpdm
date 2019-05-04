@@ -1,0 +1,5 @@
+WEB-INF/classes/common/util/SFConst.class
+WEB-INF/classes/common/util/SFConst.class
+WEB-INF/classes/core/communication/tcpip/ListenCobankPort.class
+WEB-INF/classes/module/batch/T800040.class
+WEB-INF/classes/module/dao/AgtAgentInfoDao.class

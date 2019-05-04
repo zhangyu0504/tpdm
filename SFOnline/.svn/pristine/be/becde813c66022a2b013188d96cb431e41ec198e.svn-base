@@ -1,0 +1,265 @@
+package module.trans.bankchl2sf;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import module.bean.BankSignData;
+import module.bean.InvestData;
+import module.bean.SignAccountData;
+import module.dao.BankSignDataDao;
+import module.trans.TranBase;
+import module.trans.sf2bankchl.QryKeyInvestinfoClient;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.util.BizUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * (银行渠道发起) 查询签约关系 交易码 : 200300
+ * 
+ * @author ex_kjkfb_zhumingtao
+ * 
+ */
+public class T200300 extends TranBase {
+
+	private String secAcct = null;
+
+	private String cardId = null;
+
+	private String invType = null;
+
+	private String capAcct = null;
+
+	private String invIdCode = null;
+
+	private String signFlag = null;
+
+	private String initSide = null;
+
+	private String sfIdType = null;
+
+	private String tpdmFlag = null;
+
+	@Override
+	protected void initialize( Context context ) throws SFException {
+
+	}
+
+	@Override
+	public void doHandle( Context context ) throws SFException {
+
+		// 对公上主机
+		if( SFConst.INV_TYPE_CORP.equals( invType ) && SFConst.INIT_SIDE_ABBANK.equals( initSide ) && SFConst.SIGN_FLAG_SECU_PRE.equals( signFlag )) {
+			if( SFConst.ID_TYPE_COMPANY_JRJGXKZ.equals( sfIdType )){
+				// 开始上主机
+				doHost( context );				
+			}
+		} else {
+			cardId = SFUtil.getReqDataValue( context, "ACCT_ID" );
+		}
+
+		// 查询签约关系
+		qrySignAccountData( context );
+
+	}
+
+	@Override
+	public void doHost( Context context ) throws SFException {
+		SFLogger.info( context, "doHost()开始" );
+		String acctId = SFUtil.getReqDataValue( context, "ACCT_ID" );// 银行帐号
+		try {
+			Context msgContext = null;
+			String retFlag = null;
+
+			SFUtil.chkCond( context, SFUtil.isEmpty( acctId ), "ST4069", "同业账号不能为空" );
+
+			SFLogger.info( context, "上主机查询证件信息开始" );
+
+			/* D+ M8010 接口查询同业账号证件类型证件号 */
+			Map<String, Object> msg = new HashMap<String, Object>();
+			msg.put( "ACCT_ID", acctId );
+			QryKeyInvestinfoClient qkClient = new QryKeyInvestinfoClient();
+			// 发送报文
+			msgContext = qkClient.send( context, msg );
+
+			retFlag = SFUtil.getDataValue( msgContext, SFConst.PUBLIC_RET_FLAG );
+
+			// 主机返回失败或异常,交易退出
+			SFUtil.chkCond( context, !SFConst.RET_SUCCESS.equals( retFlag ), "ST5601", "上主机[查询证件信息]失败" );
+
+			String retMsg = SFUtil.getDataValue( msgContext, "MSG_O.RET_MSG" );// 响应信息
+			// 判断查询是否成功
+			if( !SFConst.RET_SUCCESS.equals( retFlag ) ) {
+				SFUtil.chkCond( context, "ST5800", String.format( retMsg ) );
+			}
+
+			// 主机返回同业账号证件类型证件号
+			IndexedCollection iColl1 = SFUtil.getDataElement( msgContext, "MSG_O_ICOLL" );
+			KeyedCollection kColl = ( KeyedCollection )iColl1.getElementAt( 0 ); // 获取响应数组
+
+			String otherProveFileType = SFUtil.getDataValue( msgContext, kColl, "OTHER_PROVE_FILE_TYPE" ); // 其他证明文件种类
+			SFLogger.info( context, String.format( "取卡下证件类型[其他证明文件种类]:[%s]", otherProveFileType ) );
+
+			String otherProveFileNo = SFUtil.getDataValue( msgContext, kColl, "OTHER_PROVE_FILE_NO" ); // 其他证明文件号码
+			SFLogger.info( context, String.format( "取卡下证件号码[其他证明文件种类]:[%s]", otherProveFileNo ) );
+
+			SFUtil.chkCond( context, SFUtil.isEmpty( otherProveFileType ) || SFUtil.isEmpty( otherProveFileNo ), "ST5602", "上主机获取证件信息失败" );
+
+			// 主机证件类型转三方证件类型
+			sfIdType = BizUtil.convHost2SF4IdType( context, otherProveFileType );
+			invIdCode = otherProveFileNo;
+
+			SFLogger.info( context, "上主机查询证件信息结束" );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", String.format( "doHost处理失败%s", e.getMessage() ) );
+		}
+		SFLogger.info( context, "doHost()结束" );
+	}
+
+	@Override
+	public void doSecu( Context context ) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void chkStart( Context context ) throws SFException {
+
+	}
+
+	@Override
+	protected void chkEnd( Context context ) throws SFException {
+		invType = SFUtil.getReqDataValue( context, "INV_TYPE" );// 客户类型
+		capAcct = SFUtil.getReqDataValue( context, "CAP_ACCT" );// 资金帐号
+		invIdCode = SFUtil.getReqDataValue( context, "INV_ID_CODE" ); // 证件号码
+		signFlag = SFUtil.getReqDataValue( context, "SIGN_FLAG" ); // 签约标志
+		initSide = SFUtil.getReqDataValue( context, "INIT_SIDE" ); // 渠道
+		tpdmFlag = SFUtil.getReqDataValue( context, "TPDM_FLAG" ); // 券商类型
+		sfIdType = SFUtil.getDataValue( context, SFConst.PUBLIC_ID_TYPE );// 转换后的证件类型
+	}
+
+	private void qrySignAccountData( Context context ) throws SFException {
+		SFLogger.info( context, String.format( "qrySignAccountData()开始" ) );
+
+		InvestData investData = null;
+		SignAccountData signAccountData = null;
+		BankSignData bankSignData = new BankSignData();
+		String invIdCode18Card19 = null; // 15位转18位证件号码
+		String invIdCode18Card20 = null; // 15位转18位证件号码
+
+		try {
+
+			// 按卡号查询签约关系
+			if( SFUtil.isNotEmpty( cardId ) ) {
+
+				signAccountData = signAccountDataDao.qrySignAccountDataByAcctId( context, tranConnection, cardId );
+				SFUtil.chkCond( context, signAccountData == null, "ST4069", "客户签约信息不存在" );
+				secAcct = signAccountData.getSecAcct();
+
+				// 对公按资金帐号查询签约关系
+			} else if( SFConst.INV_TYPE_CORP.equals( invType ) && SFUtil.isNotEmpty( capAcct ) ) {
+
+				signAccountData = signAccountDataDao.qrySignAccountDataByCapAcct( context, tranConnection, capAcct );
+				SFUtil.chkCond( context, signAccountData == null, "ST4069", "客户签约信息不存在" );
+				secAcct = signAccountData.getSecAcct();
+
+			} else {
+
+				SFUtil.chkCond( context, SFUtil.isEmpty( sfIdType ) || SFUtil.isEmpty( invIdCode ), "ST4069", "证件信息不能为空" );
+
+				// 零售按证件类型和证件号码查询签约关系
+				if( SFConst.INV_TYPE_RETAIL.equals( invType ) ) {
+
+					// 证件类型1&9兼容15位18位证件
+					if( ( SFConst.ID_TYPE_PERSON_SFZ.equals( sfIdType ) || SFConst.ID_TYPE_PERSON_LSSFZ.equals( sfIdType ) ) ) {
+						if( SFUtil.isNotEmpty( invIdCode ) && invIdCode.length() == 15 ) {
+							invIdCode18Card19 = BizUtil.converTo18Card19( invIdCode ); // 15位身份证号码转换为18位
+							invIdCode18Card20 = BizUtil.converTo18Card20( invIdCode ); // 15位身份证号码转换为18位
+						}
+					}
+					investData = investDataDao.qryInvestDataByInvIdCode( context, tranConnection, sfIdType, invIdCode, invIdCode18Card19, invIdCode18Card20 );
+
+				} else {// 对公按证件类型和证件号码查询签约关系
+					investData = investDataDao.qryInvestData( context, tranConnection, sfIdType, invIdCode );
+				}
+				SFUtil.chkCond( context, investData == null, "ST4069", "客户签约信息不存在" );
+				secAcct = investData.getSecAcct();
+			}
+
+			if( secAcct == null ) {
+				SFUtil.chkCond( context, "ST4392", String.format( "无此客户信息" ) );
+			}
+
+			investData = investDataDao.qryInvestDataBySecAcct( context, tranConnection, secAcct );
+			
+			List<Map<String,Object>> listAccountData = signAccountDataDao.qrySignAccountDataList( context, tranConnection, cardId, signFlag, tpdmFlag, capAcct, sfIdType, invIdCode, invIdCode18Card19, invIdCode18Card20 );
+			if( listAccountData == null || listAccountData.size() == 0 ) {
+				SFUtil.chkCond( context, "ST4069", String.format( "无符合条件的记录" ) );
+			}
+			// 组装返回数据
+			IndexedCollection indexColl = SFUtil.getDataElement( context, "200300_O_ICOLL" );
+			
+			for(Map<String,Object> mapAccData:listAccountData){
+				KeyedCollection keyColl = new KeyedCollection();
+				if( SFConst.INV_TYPE_RETAIL.equals( invType ) && SFConst.SIGN_FLAG_BANK_PRE.equals(SFUtil.objectToString(mapAccData.get("SIGNMODE"))) ) {
+					// 模式为2-银行预约、券商激活模式，则需要查询银行预约关系表TRDBankSignData的银行预制定日期(TxDate)+激活日期(opendate)
+					BankSignDataDao bankSignDataDao = new BankSignDataDao();
+					bankSignData = bankSignDataDao.qryBankSignDataByAcctId( context, tranConnection, cardId, sfIdType, invIdCode );
+					SFUtil.chkCond( context, null == bankSignData, "ST4895", String.format( "交易失败" ) );
+
+					SFUtil.addDataField( context, keyColl, "TX_DATE", bankSignData.getTxDate() );
+					SFUtil.addDataField( context, keyColl, "OPEN_DATE", bankSignData.getOpenDate() );
+				}
+				SFUtil.addDataField( context, keyColl, "ACCT_ID", SFUtil.objectToString(mapAccData.get("ACCTID")));
+				SFUtil.addDataField( context, keyColl, "INV_NAME", SFUtil.objectToString(mapAccData.get("INVNAME")));
+				SFUtil.addDataField( context, keyColl, "CUR_CODE", SFUtil.objectToString(mapAccData.get("CURCODE")));
+				SFUtil.addDataField( context, keyColl, "ID_TYPE", BizUtil.convSF2Host4IdType( context, SFUtil.objectToString(mapAccData.get("IDTYPE"))) );
+				SFUtil.addDataField( context, keyColl, "INV_ID_CODE", SFUtil.objectToString(mapAccData.get("INVIDCODE")));
+				SFUtil.addDataField( context, keyColl, "CAP_ACCT", SFUtil.objectToString(mapAccData.get("CAPACCT")));
+				SFUtil.addDataField( context, keyColl, "INV_TYPE", SFUtil.objectToString(mapAccData.get("INVTYPE")));
+				SFUtil.addDataField( context, keyColl, "SEC_COMP_CODE", SFUtil.objectToString(mapAccData.get("SECCOMPCODE")));
+				SFUtil.addDataField( context, keyColl, "SEC_COMP_NAME", SFUtil.objectToString(mapAccData.get("SECCOMPNAME")));
+				SFUtil.addDataField( context, keyColl, "SIGN_FLAG", SFUtil.objectToString(mapAccData.get("SIGNFLAG")));
+				SFUtil.addDataField( context, keyColl, "CHANNEL", SFUtil.objectToString(mapAccData.get("CHANNEL")));
+				SFUtil.addDataField( context, keyColl, "CUS_MAG_NO", SFUtil.objectToString(mapAccData.get("CUSMAGNO")));
+				SFUtil.addDataField( context, keyColl, "DEP_ID", SFUtil.objectToString(mapAccData.get("DEPID")));
+				if( keyColl.containsKey( "OPEN_DATE" ) ) {
+					SFUtil.setDataValue( context, keyColl, "OPEN_DATE", SFUtil.objectToString( mapAccData.get( "OPENDATE" ) ) );
+				} else {
+					SFUtil.addDataField( context, keyColl, "OPEN_DATE", SFUtil.objectToString( mapAccData.get( "OPENDATE" ) ) );
+				}
+				SFUtil.addDataField( context, keyColl, "SIGN_DATE", SFUtil.objectToString(mapAccData.get("SIGNDATE")));
+				SFUtil.addDataField( context, keyColl, "SIGN_MODE", SFUtil.objectToString(mapAccData.get("SIGNDATE")));
+				SFUtil.addDataField( context, keyColl, "TPDM_FLAG", "5".equals(SFUtil.objectToString(mapAccData.get("TPDMFLAG"))) ? "1" : "0" );
+				if( investData != null ) {
+					SFUtil.addDataField( context, keyColl, "TRN_NAME", investData.getTrnName() );
+					SFUtil.addDataField( context, keyColl, "MOBILE", investData.getMobile() );
+					SFUtil.addDataField( context, keyColl, "PHONE", investData.getPhone() );
+					SFUtil.addDataField( context, keyColl, "ADDR", investData.getAddr() );
+					SFUtil.addDataField( context, keyColl, "ZIP", investData.getZip() );
+					SFUtil.addDataField( context, keyColl, "FAX", investData.getFax() );
+					SFUtil.addDataField( context, keyColl, "EMAIL_ADDR", investData.getEmailAddr() );
+					SFUtil.addDataField( context, keyColl, "LEGAL_NAME", investData.getLegalName() );
+				}
+				indexColl.add( keyColl );
+			}
+			
+			SFUtil.setDataValue( context, "APP_HEAD.TOTAL_NUM", listAccountData.size() );
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", String.format( "交易失败%s", e.getMessage() ) );
+		}
+		SFLogger.info( context, String.format( "qrySignAccountData()结束" ) );
+	}
+}

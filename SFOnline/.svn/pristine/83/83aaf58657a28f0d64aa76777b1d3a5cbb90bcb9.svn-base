@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="GB18030" ?>
+<dataDictionary.xml>
+	<DataTypes />
+	<CommonData />
+	<dataGroup name="commonData" desc="公共数据域">
+		<dataElement id="errorCode" access="session" label="错误代码" />
+		<dataElement id="errorMsg" access="session" label="错误信息" />
+		<dataElement id="serviceId" label="服务代码"/>
+		<dataElement id="sessionId" label="Session id"/>
+		<dataElement id="factory"  label="业务组件工厂类名称"/>
+		<dataElement id="dataSource"  label="数据源名称"/>
+		<dataElement id="sqlExecService"  label="SQL执行服务名"/>
+		<dataElement id="genContextBySql"  label="由SQL生成上下文服务名"/>
+		<dataElement id="expressCalculateService"  label="表达式计算服务名"/>
+		<dataElement id="cacheManager"  label="公共缓存对象"/>
+		<dataElement id="procedureAccessService" />
+		<dataElement id="ftpFileService"  label="FTP公共服务"/>
+		<dataElement id="publicservice"  label="公共服务"/>
+		<dataElement id="TRXCODE" label="交易码 "/>
+		<dataElement id="VALUE" label="值"/>
+		<dataElement id="NAME" label="名称 "/>
+		<dataElement id="TYPE" label="ID"/>
+		<dataElement id="CLASS_NAME" label="交易类名"/>
+	</dataGroup>
+	
+	<dataGroup name="SCHEDULE_LOG" desc="SCHEDULE_LOG">
+			<dataElement id="ID" desc="ID"/>
+			<dataElement id="SCHEDULE_NAME" desc="SCHEDULE_NAME"/>
+			<dataElement id="START_TIME" desc="START_TIME"/>
+			<dataElement id="END_TIME" desc="END_TIME"/>
+			<dataElement id="MEMO" desc="MEMO"/>
+			<dataElement id="LEVLE" desc="LEVLE"/>
+			<dataElement id="STATUS" desc="STATUS"/>
+			<dataElement id="REGISTER_DATE" desc="REGISTER_DATE"/>
+			<dataElement id="SETS" desc="SETS"/>
+			<dataElement id="REGISTER_DT" desc="REGISTER_DT"/>
+			
+	  </dataGroup> 
+	
+	<!-- 业务常用字段 -->
+	<dataGroup name="buzzData" desc="公共数据域">
+		<dataElement id="CURCODE"  label="币种代码" />
+		<dataElement id="CURNAME"  label="币种名称" />
+		<dataElement id="SERIALNO" label="序号"/>
+	</dataGroup>
+	
+	<dataGroup name="pageInfo" desc="分页查询信息数据">
+		<dataElement id="currentPage" label="currentPage" />
+		<dataElement id="targetPage" label="targetPage" />
+		<dataElement id="firstKey" label="firstKey" />
+		<dataElement id="lastKey" label="lastKey" />
+		<dataElement id="pageMode" label="pageMode" />
+		<dataElement id="curIdx" label="curIdx" />
+		<dataElement id="recordSize" label="recordSize" />
+		<dataElement id="selectKey" label="selectKey" />
+		<dataElement id="maxLine" label="当前页大小" />
+		<dataElement id="QUERY_COUNT" label="通用查询使用的记录数" />
+		<dataElement id="QUERY_DEF_ID" label="通用查询sql的id" />
+		<dataElement id="QUERY_ORDERBY" label="通用查询sql的ORDERBY字段序列" />
+	</dataGroup>
+
+	<dataGroup name="LOGIN" desc="用户和新终端交互数据">
+		<dataElement id="md5str" label="FBS柜员级别" />
+		<dataElement id="staff" label="工牌号" />
+		<dataElement id="umid" label="柜员UM号" />
+		<dataElement id="SYSID" label="业务系统标识" />
+		<dataElement id="TRCODE" label="交易码" />
+		<dataElement id="STAFFNO" label="工牌号" />
+		<dataElement id="TRDATE" label="交易日期" />
+		<dataElement id="TRTIME" label="交易时间" />
+		<dataElement id="RETCODE" label="返回代码" />
+		<dataElement id="RETMSG" label="返回信息" />
+		<dataElement id="RETCONFLAG" label="后续标志" />
+		<dataElement id="RETTMP" label="保留信息" />
+		<dataElement id="LOGINENCDATA" label="签到加密串参数" />
+		<dataElement id="COMMFLAG" label="交易标志" />
+		<dataElement id="PSWD" label="密码" />
+		<dataElement id="KYBDPSWD" label="密码" />
+		<dataElement id="FINGERMAP" label="指纹特征码" />
+	</dataGroup>
+	<dataGroup name="HOSTMESSAGEDATA" desc="主机报文数据定义">
+		<dataElement id="CICS-CODE" label="CICS交易码" />
+		<dataElement id="COMP-IND" label="数据压缩标志" />
+		<dataElement id="ENCR-IND" label="数据加密标志" />
+		<dataElement id="FORM-IND" label="数据格式" />
+		<dataElement id="CHNC-IND" label="是否包含汉字标志" />
+		<dataElement id="AP-CODE" label="应用码" />
+		<dataElement id="TR-CODE" label="交易码" />
+		<dataElement id="TERM-TYPE" label="终端类型" />
+		<dataElement id="TR-TERM" label="交易终端号" />
+		<dataElement id="BRANCH" label="网点号" />
+		<dataElement id="TELLER" label="柜员号" />
+		<dataElement id="REQ-TYPE" label="请求类型（T/P）" />
+		<dataElement id="AUTH-LVL" label="授权级别" />
+		<dataElement id="SUP1-ID" label="主管1" />
+		<dataElement id="SUP2-ID" label="主管2" />
+		<dataElement id="SUP1-PSW" label="主管1密码" />
+		<dataElement id="SUP2-PSW" label="主管2密码" />
+		<dataElement id="SUP1-DEV" label="主管1" />
+		<dataElement id="SUP2-DEV" label="主管2" />
+		<dataElement id="AUTH-RESN" label="授权原因" />
+		<dataElement id="JRN-NO" label="交易前置机日志号" />
+		<dataElement id="TR-DATE" label="交易日期" />
+		<dataElement id="TR-TIME" label="交易时间" />
+		<dataElement id="TL-LVL" label="交易柜员级别" />
+		<dataElement id="TR-TYPE" label="交易类型" />
+		<dataElement id="LAST-JRLNO" label="上一笔主机交易日志号" />
+		<dataElement id="MSG-LEN" label="交易输入数据区长度" />
+		<dataElement id="TR-INPUT" label="交易输入数据" />
+		<dataElement id="MSG-TYPE" label="信息类型" />
+		<dataElement id="ERR-FLD" label="出错位置" />
+		<dataElement id="ORG-AP" label="原交易所属应用" />
+		<dataElement id="ORG-TXN" label="原交易码" />
+		<dataElement id="SUCC-AP" label="下一交易所属应用" />
+		<dataElement id="SUCC-TXN" label="下一交易码" />
+		<dataElement id="PAGE-IND" label="多页输出标志" />
+		<dataElement id="VOUCHER" label="传票号" />
+		<dataElement id="AC-DATE" label="主机会计日期" />
+		<dataElement id="TR-BR" label="交易行号" />
+		<dataElement id="TR-OUTPUT" label="交易输出数据" />
+	</dataGroup>
+	<dataGroup name="TMP_VARIABLE" desc="临时变量">
+		<dataElement id="TMP_STRING0" label="临时字符串变量0" />
+		<dataElement id="TMP_STRING1" label="临时字符串变量1" />
+		<dataElement id="TMP_STRING2" label="临时字符串变量2" />
+		<dataElement id="TMP_STRING3" label="临时字符串变量3" />
+		<dataElement id="TMP_STRING4" label="临时字符串变量4" />
+		<dataElement id="TMP_STRING5" label="临时字符串变量5" />
+		<dataElement id="TMP_STRING6" label="临时字符串变量6" />
+		<dataElement id="TMP_STRING7" label="临时字符串变量7" />
+		<dataElement id="TMP_STRING8" label="临时字符串变量8" />
+		<dataElement id="TMP_STRING9" label="临时字符串变量9" />
+		<dataElement id="TMP_STRING10" label="临时字符串变量10" />
+		<dataElement id="TMP_STRING11" label="临时字符串变量11" />
+		<dataElement id="TMP_STRING12" label="临时字符串变量12" />
+		<dataElement id="TMP_STRING13" label="临时字符串变量13" />
+		<dataElement id="TMP_STRING14" label="临时字符串变量14" />
+		<dataElement id="TMP_STRING15" label="临时字符串变量15" />
+		<dataElement id="TMP_STRING16" label="临时字符串变量16" />
+		<dataElement id="TMP_STRING17" label="临时字符串变量17" />
+		<dataElement id="TMP_STRING18" label="临时字符串变量18" />
+		<dataElement id="TMP_STRING19" label="临时字符串变量19" />
+		<dataElement id="TMP_STRING20" label="临时字符串变量20" />
+		<dataElement id="TMP_STRING21" label="临时字符串变量21" />
+		<dataElement id="TMP_STRING22" label="临时字符串变量22" />
+		<dataElement id="TMP_STRING23" label="临时字符串变量23" />
+		<dataElement id="TMP_STRING24" label="临时字符串变量24" />
+	</dataGroup>
+	<dataGroup name="ESB_VARIABLE" desc="ESB使用变量(不能引用)">
+		<dataElement id="_ESB_PARAM_0" label="ESB使用的存放输入输出的变量0" />
+		<dataElement id="_ESB_PARAM_1" label="ESB使用的存放输入输出的变量1" />
+		<dataElement id="_ESB_PARAM_2" label="ESB使用的存放输入输出的变量2" />
+		<dataElement id="_ESB_PARAM_3" label="ESB使用的存放输入输出的变量3" />
+		<dataElement id="_ESB_PARAM_4" label="ESB使用的存放输入输出的变量4" />
+		<dataElement id="_ESB_PARAM_5" label="ESB使用的存放输入输出的变量5" />
+		<dataElement id="_ESB_PARAM_6" label="ESB使用的存放输入输出的变量6" />
+		<dataElement id="_ESB_PARAM_7" label="ESB使用的存放输入输出的变量7" />
+		<dataElement id="_ESB_PARAM_8" label="ESB使用的存放输入输出的变量8" />
+		<dataElement id="_ESB_PARAM_9" label="ESB使用的存放输入输出的变量9" />
+	</dataGroup>
+
+	<dataGroup name="ESBMSGGROUP" desc="ESB报文数据定义组">
+		<dataGroup name="SYS_HEAD_UP" desc="系统报文头(上行)">
+			<dataGroup name="SYS_HEAD" desc="系统报文头">
+				<dataElement id="SERVICE_CODE" label="服务代码" />
+				<dataElement id="CONSUMER_ID" label="请求系统编号" />
+				<dataElement id="SERVICE_SCENE" label="服务应用场景" />
+				<dataElement id="MODULE_ID" label="请求系统模块标识" />
+				<dataElement id="PROGRAM_ID" label="请求系统应用程序模块" />
+				<dataElement id="CONSUMER_SEQ_NO" label="服务请求发送方流水号" />
+				<dataElement id="CONSUMER_SVR_ID" label="发起方服务器标识" />
+				<dataElement id="WS_ID" label="终端标识" />
+				<dataElement id="TRAN_DATE" label="发送方交易日期" />
+				<dataElement id="TRAN_TIMESTAMP" label="发送方交易时间" />
+				<dataElement id="USER_LANG" label="用户语言" />
+				<dataElement id="FILE_PATH" label="文件路径" />
+			</dataGroup>
+		</dataGroup>
+		<dataGroup name="SYS_HEAD_DOWN" desc="系统报文头(下行)">
+			<dataGroup name="SYS_HEAD" desc="系统报文头">
+				<dataElement id="SERVICE_CODE" label="服务代码" />
+				<dataElement id="CONSUMER_ID" label="请求系统编号" />
+				<dataElement id="SERVICE_SCENE" label="服务应用场景" />
+				<dataElement id="ESB_SEQ_NO" label="ESB产生的流水号" />
+				<dataElement id="MODULE_ID" label="请求系统模块标识" />
+				<dataElement id="PROGRAM_ID" label="请求系统应用程序模块" />
+				<dataElement id="CONSUMER_SEQ_NO" label="服务请求发送方流水号" />
+				<dataElement id="CONSUMER_SVR_ID" label="发起方服务器标识" />
+				<dataElement id="WS_ID" label="终端标识" />
+				<dataElement id="TRAN_DATE" label="发送方交?兹掌?" />
+				<dataElement id="TRAN_TIMESTAMP" label="发送方交易时间" />
+				<dataElement id="USER_LANG" label="用户语言" />
+				<dataElement id="FILE_PATH" label="文件路径" />
+				<dataElement id="RET_STATUS" label="交易状态" />
+				<dataElement id="FILE_NO" label="文件号" />
+			</dataGroup>
+			<dataGroup name="RET" desc="系统报文头-返回代码数组">
+				<dataElement id="RET_CODE" label="交易返回代码" />
+				<dataElement id="RET_MSG" label="交易返回信息" />
+			</dataGroup>
+			<dataGroup name="APP_HEAD_UP" desc="应用报文头(上行)">
+				<dataGroup name="APP_HEAD" desc="应用报文头">
+					<dataElement id="BRANCH_ID" label="发送方机构ID" />
+					<dataElement id="USER_ID" label="服务请求者身份" />
+					<dataElement id="USER_PASSWORD" label="服务请求者密码" />
+					<dataElement id="USER_LEVEL" label="服务请求者级别" />
+					<dataElement id="USER_TYPE" label="服务请求者类别" />
+					<dataElement id="APPR_FLAG" label="复核标志" />
+					<dataElement id="AUTH_FLAG" label="授权标志" />
+					<dataElement id="BIZ_SEQ_NO" label="发起方业务流水号" />
+					<dataElement id="REVERSAL_DATE" label="需冲正的原流水交易日期" />
+					<dataElement id="REVERSAL_SEQ_NO" label="需冲正的原流水号" />
+					<dataElement id="REVERSAL_BIZ_SEQ_NO" label="需冲正的原业务流水号" />
+					<dataElement id="QUERY_KEY" label="查询结果定位串" />
+					<dataElement id="PGUP_OR_PGDN" label="上翻/下翻标志" />
+					<dataElement id="PER_PAGE_NUM" label="要求每页返回记录总数" />
+					<dataElement id="TRANT_FLAG" label="交易标志" />					
+				</dataGroup>
+				<dataGroup name="APPR_USER_ID_ARRAY" desc="应用报文头-录入柜员数组">
+					<dataElement id="APPR_USER_ID" label="交易录入柜员标识" />
+					<dataElement id="APPR_USER_LEVEL" label="交易录入柜员级别" />
+					<dataElement id="APPR_USER_TYPE" label="交易录入柜员类别" />
+				</dataGroup>
+				<dataGroup name="AUTH_USER_ID_ARRAY" desc="应用报文头-授权柜员数组">
+					<dataElement id="AUTH_USER_ID" label="授权柜员标识" />
+					<dataElement id="AUTH_PASSWORD" label="授权柜员密码" />
+					<dataElement id="AUTH_LEVEL" label="授权柜员级别" />
+					<dataElement id="AUTH_TYPE" label="授权柜员类别" />
+				</dataGroup>
+			</dataGroup>
+			<dataGroup name="APP_HEAD_DOWN" desc="应用报文头(下行)">
+				<dataGroup name="APP_HEAD" desc="应用报文头">
+					<dataElement id="BRANCH_ID" label="发送方机构ID" />
+					<dataElement id="USER_ID" label="服务请求者身份" />
+					<dataElement id="USER_PASSWORD" label="服务请求者密码" />
+					<dataElement id="USER_LEVEL" label="服务请求者级别" />
+					<dataElement id="USER_TYPE" label="服务请求者类别" />
+					<dataElement id="APPR_FLAG" label="复核标志" />
+					<dataElement id="AUTH_FLAG" label="授权标志" />
+					<dataElement id="BIZ_SEQ_NO" label="发起方业务流水号" />
+					<dataElement id="REVERSAL_DATE" label="需冲正的原流水交易日期" />
+					<dataElement id="REVERSAL_SEQ_NO" label="需冲正的原流水号" />
+					<dataElement id="SERV_SEQ_NO" label="服务处理返回流水号" />
+					<dataElement id="PGUP_OR_PGDN" label="上翻/下翻标志" />
+					<dataElement id="RESULT_NUM" label="本次返回查询结果记录总数" />
+					<dataElement id="TOTAL_NUM" label="符合查询条件的记录总数" />
+					<dataElement id="END_FLAG" label="是否结束" />
+					<dataElement id="TOTAL_PAGE" label="总页数" />
+					<dataElement id="ACCOUNT_DATE" label="会计日期" />
+				</dataGroup>
+				<dataGroup name="APPR_USER_ID_ARRAY" desc="应用报文头-录入柜员数组">
+					<dataElement id="APPR_USER_ID" label="交易录入柜员标识" />
+					<dataElement id="APPR_USER_LEVEL" label="交易录入柜员级别" />
+					<dataElement id="APPR_USER_TYPE" label="交易录入柜员类别" />
+				</dataGroup>
+				<dataGroup name="AUTH_USER_ID_ARRAY" desc="应用报文头-授权柜员数组">
+					<dataElement id="AUTH_USER_ID" label="授权柜员标识" />
+					<dataElement id="AUTH_PASSWORD" label="授权柜员密码" />
+					<dataElement id="AUTH_LEVEL" label="授权柜员级别" />
+					<dataElement id="AUTH_TYPE" label="授权柜员类别" />
+				</dataGroup>
+				<dataGroup name="QUERY_KEY_ARRAY" desc="应用报文头-KEY数组">
+					<dataElement id="QUERY_KEY" label="查询结果定位串" />
+				</dataGroup>
+				<dataGroup name="BBCP_COMMON" desc="公用字段">
+					<dataElement id="BUSINESSSERIALNO" label="业务流水" />
+					<dataElement id="PSERIALNO" label="平台流水" />
+					<dataElement id="BUSISYSSERIALNO" label="业务系统流水" />
+					<dataElement id="BUSINESSDATE" label="业务日期" />
+					<dataElement id="PDATE" label="平台日期" />
+					<dataElement id="CI" label="客户编号" />
+					<dataElement id="SVRCODE" label="服务代码" />
+					<dataElement id="TRANSCODE" label="交易代码" />
+					<dataElement id="CHANNELNO" label="交易渠道" />
+					<dataElement id="RESPCODE" label="响应码" />
+					<dataElement id="RESPMSG" label="响应信息" />
+					<dataElement id="TRANSSTATUS" label="交易状态" />
+					<dataElement id="ORESPCODE" label="业务系统返回码" />
+					
+					<dataElement id="isretresp" label="是否返回响应报文 0 返回 1 不返回" />
+					<dataElement id="retflag" label="0:成功 1：明确失败 2：超时或者其它无法分辨的异常 定义在接口中作为常量值" />
+					<dataElement id="txcode" label="三方存管交易码" />
+					<dataElement id="logid" label="日志号" />
+					<dataElement id="secutype" label="券商类型" />
+					<dataElement id="signaccountdata" label="客户" />
+					<dataElement id="secu" label="券商" />
+					<dataElement id="localinfo" label="系统工作日期表"/>
+					<dataElement id="investdata" label="客户对象"/>
+					<dataElement id="agentinfo" label="合作行对象" />
+					<dataElement id="trdsecservstatus" label="券商签到表" />
+					<dataElement id="workmode" label="工作模式" />
+					<dataElement id="invtype" label="客户类型" />
+					<dataElement id="idtype" label="存管证件类型常量" />
+					<dataElement id="initside" label="渠道常量" />
+					<dataElement id="tranconnection" label="数据库联接" />
+					<dataElement id="msgSeqNo" label="请求报文流水号" />
+					<dataElement id="serverId" label="请求接口号" />
+					<dataElement id="isTranSpond" label="是否转发" />
+				</dataGroup>
+
+
+				<dataGroup name="BBCP_COMMON_MAP" desc="用于映射">
+					<dataElement id="serviceId" label="交易代码" />
+					<dataElement id="RESPCODE" label="响应码" />
+					<dataElement id="RESPMSG" label="响应信息" />
+					<dataElement id="TRANSDATE" label="交易日期" />
+					<dataElement id="TRANSTIME" label="交易发生时间" />
+					<dataElement id="CHANNELSERIALNO" label="渠道流水号" />
+					<dataElement id="BUSINESSDATE" label="业务日期" />
+					<dataElement id="BANKNO" label="合作行编号" />
+					<dataElement id="TRANSORG" label="合作行机构号" />
+					<dataElement id="TRANSCOUNTER" label="柜员号" />
+					<dataElement id="AUTHCOUNTER1" label="授权柜员1" />
+					<dataElement id="AUTHCOUNTER2" label="授权柜员2" />
+					<dataElement id="TRANSCHANNEL" label="交易渠道" alian_label="渠道编号" />
+					<dataElement id="VERSIONID" label="版本号" />
+					<dataElement id="SVRCODE" label="服务代码" />
+					<dataElement id="BUSINESSSERIALNO" label="业务流水" />
+					<dataElement id="PDATE" label="平台日期" />
+					<dataElement id="PSERIALNO" label="平台流水" />
+					<dataElement id="BUSISYSSERIALNO" label="业务系统流水" />
+					<dataElement id="TRANSSTATUS" label="交易状态" />
+					<dataElement id="ORESPCODE" label="业务系统返回码" />
+					<dataElement id="ORESPMSG" label="业务系统响应信息" />
+					<dataElement id="PTIME" label="平台时间" />
+					<dataElement id="IP" label="联网行IP" />
+					<dataElement id="PORT" label="联网行端口号" />
+					<dataElement id="SRCTRANSCODE" label="业务系统交易代码" />
+					<dataElement id="TRANSORGBAK" label="网点自身编号" />
+					<dataElement id="AMOUNTMAX" label="最大预警金额" />
+				</dataGroup>
+				
+				<dataGroup name="A_REQUEST_HEAD" desc="用于映射">
+					<dataElement id="serviceId" label="交易代码" />
+					<dataElement id="RESPCODE" label="响应码" />
+					<dataElement id="RESPMSG" label="响应信息" />
+					<dataElement id="TRANSDATE" label="交易日期" />
+					<dataElement id="TRANSTIME" label="交易发生时间" />
+					<dataElement id="CHANNELSERIALNO" label="渠道流水号" />
+					<dataElement id="BUSINESSDATE" label="业务日期" />
+					<dataElement id="BANKNO" label="合作行编号" />
+					<dataElement id="RESERVE" label="预留" />
+				</dataGroup>
+				
+				
+				<dataGroup name="B_REQUEST_HEAD" desc="用于映射">
+					<dataElement id="VERSION" label="版本号" />
+					<dataElement id="PACKTYPE" label="无用" />
+					<dataElement id="TXCODE" label="交易代码" />
+					<dataElement id="FUNCCODE" label="功能代码" />
+					<dataElement id="COMMMODE" label="通讯模式，‘M’表示报文模式" />
+					<dataElement id="TOTALBLOCK" label="无用" />
+					<dataElement id="CURBLOCK" label="无用" />
+					<dataElement id="MSGDATALEN" label="当前报文中数据区的长度" />
+					<dataElement id="MSGEXTLEN" label="当前报文中附加数据区的长度" />
+					<dataElement id="ENCRYPTMODE" label="当前报文中数据的加密方式，N:不加密" />
+					<dataElement id="NOUSE" label="无用" />
+				</dataGroup>
+			</dataGroup>
+		</dataGroup>
+	</dataGroup>
+</dataDictionary.xml> 

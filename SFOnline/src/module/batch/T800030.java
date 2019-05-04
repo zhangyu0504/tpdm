@@ -1,0 +1,169 @@
+package module.batch;
+
+import java.sql.Connection;
+
+import module.bean.LocalInfo;
+import module.dao.LocalInfoDao;
+import module.dao.SignAccountDataDao;
+
+import com.dc.eai.data.CompositeData;
+import com.dc.eai.data.Field;
+import com.dc.eai.data.FieldAttr;
+import com.dc.eai.data.FieldType;
+import com.ecc.emp.core.Context;
+import com.isc.core.ISCMessageBroker;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+import core.schedule.ScheduleActionInterface;
+
+/**
+ * (轮询)发送当日开户数及总签约户数
+ * 
+ * 
+ * 功能描述： 发送当日开户数及总签约户数
+ * 
+ * 轮询时间段：9：00~16：00
+ * 间隔时间：5分钟
+ * 轮询完成条件：通过ISC将文件发送出去
+ *   
+ * tran code :800030
+ * @author 吕超鸿
+ *
+ */
+public class T800030 implements ScheduleActionInterface {
+
+	@Override
+	public boolean init( Context context ) throws SFException {
+		return true;
+	}
+
+	@Override
+	public void execute( Context context ) throws SFException {
+		SFLogger.info( context, "发送当日开户数及总签约户数开始" );
+		Connection tranConnection = null;
+
+		try {
+			tranConnection = DBHandler.getConnection( context );
+
+			// 取出交易日期
+			LocalInfoDao localInfoDao = new LocalInfoDao();
+			LocalInfo localInfo = localInfoDao.qryLocalInfo( context, tranConnection );
+			String tranDate = localInfo.getBankDate();
+
+			// 物理时间
+			String sysTime = DateUtil.getMacDateTimeShort();
+
+			/**
+			 * 输出当天联名卡账户变更信息 
+			 */
+			SignAccountDataDao signAccountDataDao = new SignAccountDataDao();
+			long openNum = signAccountDataDao.qrySignAccountDataByOpenData( context, tranConnection, tranDate );
+			if( openNum > 0 ) {
+				SFLogger.info( context, String.format( "查询当日的开户数操作成功，当日的开户数为【%d】", openNum ) );
+			}
+
+			/**
+			 * 输出所有的开户数
+			 */
+			long totalNum = signAccountDataDao.qrySignAccountDataByOpenData( context, tranConnection, null );
+			if( totalNum > 0 ) {
+				SFLogger.info( context, String.format( "查询所有的开户数操作成功，所有的开户数为【%d】", totalNum ) );
+			}
+
+			/**
+			 * 通过ISC消息发送当日开户数及总签约户数
+			 */
+			sendMsg( context, sysTime, openNum, totalNum );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", "发送当日开户数及总签约户数失败" );
+		} finally {
+			DBHandler.releaseConnection( context, tranConnection );
+		}
+		SFLogger.info( context, "发送当日开户数及总签约户数结束" );
+	}
+
+	/**
+	 * MQ发送消息
+	 */
+	public void sendMsg( Context context, String sysTime, long openNum, long totalNum ) throws SFException {
+
+		try {
+			// 14位前置流水号
+			String initSeqId = SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID );
+
+			// 数据结构体对象
+			CompositeData MsgData = new CompositeData();
+
+			CompositeData iscSysData = new CompositeData();
+			CompositeData iscPubData = new CompositeData();
+			CompositeData bodyData = new CompositeData();
+			CompositeData iscRepBody = new CompositeData();
+
+			MsgData.addStruct( "ISC_SYS_HEAD", iscSysData );
+			MsgData.addStruct( "ISC_PUB_HEAD", iscPubData );
+			MsgData.addStruct( "ISC_REP_BODY", iscRepBody );
+			MsgData.addStruct( "BODY", bodyData );
+
+			/**************ISC_SYS_HEAD************/
+
+			// 主题  
+			Field field = new Field( new FieldAttr( FieldType.FIELD_STRING, 10, 0 ) );
+			field.setValue( SFConst.MAIN_TOPIC_SEND_ACOOUNT_NUM );
+			iscSysData.addField( "MAIN_TOPIC", field );
+
+			// 子主题
+			field = new Field( new FieldAttr( FieldType.FIELD_STRING, 48, 0 ) );
+			field.setValue( SFConst.SUB_TOPIC_SEND_ACOOUNT_NUM );
+			iscSysData.addField( "SUB_TOPIC", field );
+
+			// 应用流水号，每一条消息要唯一
+			field = new Field( new FieldAttr( FieldType.FIELD_STRING, 42, 0 ) );
+			field.setValue( SFConst.SYS_SYSID + initSeqId );
+			iscSysData.addField( "APP_MSG_SEQ_NO", field );
+
+			/**************ISC_PUB_HEAD************/
+
+			// 系统ID
+			field = new Field( new FieldAttr( FieldType.FIELD_STRING, 42, 0 ) );
+			field.setValue( SFConst.SYS_SYSID );
+			iscPubData.addField( "MSG_PRODUCER_ID", field );
+
+			// 场景码
+			field = new Field( new FieldAttr( FieldType.FIELD_STRING, 42, 0 ) );
+			field.setValue( SFConst.SERVICE_SEND_ACOOUNT_NUM );
+			iscPubData.addField( "SERVICE_CODE", field );
+
+			/**************BODY参数****************/
+			// 交易时间
+			field = new Field( new FieldAttr( FieldType.FIELD_STRING, 50, 0 ) );
+			field.setValue( sysTime );
+			bodyData.addField( "TRAN_TIME", field );
+
+			// 当日的开户数
+			field = new Field( new FieldAttr( FieldType.FIELD_STRING, 50, 0 ) );
+			field.setValue( String.valueOf( openNum ) );
+			bodyData.addField( "Open_num", field );
+
+			// 所有的开户数
+			field = new Field( new FieldAttr( FieldType.FIELD_STRING, 50, 0 ) );
+			field.setValue( String.valueOf( totalNum ) );
+			bodyData.addField( "totle_num", field );
+
+			// 开始发送ISC消息
+			ISCMessageBroker.send( context, MsgData );
+
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+	}
+}

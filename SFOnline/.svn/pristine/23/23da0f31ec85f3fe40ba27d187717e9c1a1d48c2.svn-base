@@ -1,0 +1,342 @@
+package common.sql.dao;
+
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
+import module.trans.Page;
+
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanHandler;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+import org.apache.commons.dbutils.handlers.ColumnListHandler;
+import org.apache.commons.dbutils.handlers.MapHandler;
+import org.apache.commons.dbutils.handlers.MapListHandler;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.bean.SQLStruct;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+import edu.emory.mathcs.backport.java.util.Arrays;
+
+public class DaoBase {
+	/**
+	 * 保存
+	 * 
+	 * @param context
+	 * @param connection
+	 * @param sqlStruct
+	 * @throws SFException
+	 * @throws Exception
+	 */
+	public int save(Context context, Connection connection,
+			SQLStruct sqlStruct) throws SFException {
+		int result = 0;
+		String sql = sqlStruct.getSql();
+		Object[] param = sqlStruct.getValues();
+		QueryRunner runner = new QueryRunner();
+		try {
+			SFLogger.debug(context, String.format("执行SQL:[%s]", sql));
+			SFLogger.debug(context,String.format("SQL参数: %s", Arrays.toString(param)));
+			result = runner.update(connection, sql, param);
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return result;
+	}
+
+	/**
+	 * 保存
+	 * 
+	 * @param context
+	 * @param connection
+	 * @param sql
+	 * @param obj
+	 * @return
+	 * @throws SFException
+	 */
+	public int save(Context context, Connection connection, String sql,
+			Object... param) throws SFException {
+		int result = 0;
+		QueryRunner runner = new QueryRunner();
+		try {
+			SFLogger.debug(context, String.format("执行SQL:[%s]", sql));
+			SFLogger.debug(context,String.format("SQL参数: %s", Arrays.toString(param)));
+			result = runner.update(connection, sql, param);
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return result;
+	}
+
+	/**
+	 * 反射机制实现更新操作
+	 * 
+	 * @param <T>
+	 * @param context
+	 *            上下文
+	 * @param connection
+	 *            数据库连接
+	 * @param sql
+	 * @param param
+	 * @return
+	 * @throws SFException
+	 */
+	public int update(Context context, Connection connection, String sql,
+			Object[] param) throws SFException {
+		QueryRunner runner = new QueryRunner();
+		int result = 0;
+		try {
+			SFLogger.debug(context, String.format("执行SQL:[%s]", sql));
+			SFLogger.debug(context,String.format("SQL参数: %s", Arrays.toString(param)));
+			result = runner.update(connection, sql, param);
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return result;
+	}
+
+	/**
+	 * 反射机制-根据类名查询实体bean
+	 * 
+	 * @param context:上下文，打印日志
+	 * @param connection：连接
+	 * @param sqlStruct：bean中构造的查询结构体
+	 * @return
+	 * @throws SFException
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T qry(Context context, Connection connection,
+			SQLStruct sqlStruct, Class<T> clazz) throws SFException {
+		QueryRunner runner = new QueryRunner();
+		T t = null;
+		try {
+			String sql = sqlStruct.getSql();
+			Object[] param = sqlStruct.getValues();
+			
+			SFLogger.debug(context, String.format("执行SQL:[%s]", sql));
+			SFLogger.debug(context,String.format("SQL参数: %s", Arrays.toString(param)));
+			t = (T) runner.query(connection, sql, param, new BeanHandler(clazz));
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return t;
+	}
+
+	/**
+	 * 根据SQL和参数查询Bean
+	 * 
+	 * @param <T>
+	 * @param context
+	 * @param connection
+	 * @param sql
+	 * @param clazz
+	 * @param param
+	 * @return
+	 * @throws SFException
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T qry(Context context, Connection connection, String sql,
+			Class<T> clazz, Object... param) throws SFException {
+		QueryRunner runner = new QueryRunner();
+		T obj = null;
+		try {
+			SFLogger.debug(context, String.format("执行SQL:[%s]", sql));
+			SFLogger.debug(context,String.format("SQL参数: %s", Arrays.toString(param)));
+			obj = (T) runner.query(connection, sql, param, new BeanHandler(clazz));
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return obj;
+	}
+
+	/**
+	 * 根据SQL和参数查询Map<String,Object>
+	 * 
+	 * @param <T>
+	 * @param context
+	 * @param connection
+	 * @param sql
+	 * @param clazz
+	 * @param param
+	 * @return
+	 * @throws SFException
+	 */
+	@SuppressWarnings("unchecked")
+	public Map<String,Object> qryMap(Context context, Connection connection, String sql,Object... param) throws SFException {
+		QueryRunner runner = new QueryRunner();
+		Map<String,Object> result=null;
+		try {
+			SFLogger.debug(context, String.format("执行SQL:[%s]", sql));
+			SFLogger.debug(context,String.format("SQL参数: %s", Arrays.toString(param)));
+			result = (Map<String, Object>) runner.query(connection, sql, param, new MapHandler());
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return result;
+	}
+
+	/**
+	 * 根据SQL和参数查询List<Map<String,Object>>
+	 * 
+	 * @param <T>
+	 * @param context
+	 * @param connection
+	 * @param sql
+	 * @param clazz
+	 * @param param
+	 * @return
+	 * @throws SFException
+	 */
+	@SuppressWarnings("unchecked")
+	public List<Map<String,Object>> qryListMap(Context context, Connection connection, String sql,Object... param) throws SFException {
+		QueryRunner runner = new QueryRunner();
+		List<Map<String,Object>> result=null;
+		try {
+			SFLogger.debug(context, String.format("执行SQL:[%s]", sql));
+			SFLogger.debug(context,String.format("SQL参数: %s", Arrays.toString(param)));
+			result = (List<Map<String,Object>>) runner.query(connection, sql, param, new MapListHandler());
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return result;
+	}
+	
+	
+
+	@SuppressWarnings("unchecked")
+	public List<Object> qryList(Context context, Connection connection, String sql,String key,Object... param) throws SFException {
+		QueryRunner runner = new QueryRunner();
+		List<Object> result=null;
+		try {
+			SFLogger.debug(context, String.format("执行SQL:[%s]", sql));
+			SFLogger.debug(context,String.format("SQL参数: %s", Arrays.toString(param)));
+			result = (List<Object>) runner.query(connection, sql, param, new ColumnListHandler(key));
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return result;
+	}
+
+	/**
+	 * 查询集合
+	 * 
+	 * @param <T>
+	 * @param context
+	 * @param conn
+	 * @param sql
+	 * @param param
+	 * @param clazz
+	 * @return
+	 * @throws SFException
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> List<T> qryForOList(Context context, Connection conn,
+			String sql, Object[] param, Class<T> clazz) throws SFException {
+		QueryRunner runner = new QueryRunner();
+		List<T> obj = null;
+		try {
+			SFLogger.debug(context, String.format("执行SQL:[%s]", sql));
+			SFLogger.debug(context,String.format("SQL参数: %s", Arrays.toString(param)));
+			obj = (List<T>) runner.query(conn, sql, param, new BeanListHandler(clazz));
+		} catch (SQLException e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return obj;
+	}
+
+
+	/**
+	 * 查询条数
+	 * 
+	 * @param context
+	 * @param connection
+	 * @param sql
+	 * @param obj
+	 * @return
+	 * @throws SFException
+	 */
+	public static long qryCount(Context context, Connection connection,
+			String sql, Object... param) throws SFException {
+		QueryRunner runner = new QueryRunner();
+		BigDecimal num = null;
+		try {
+			SFLogger.debug(context, String.format("执行SQL:[%s]", sql));
+			SFLogger.debug(context,String.format("SQL参数: %s", Arrays.toString(param)));
+			num = (BigDecimal) runner.query(connection, sql, param,new ScalarHandler(1));
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return num != null ? num.longValue() : 0;
+	}
+	
+	/**
+	 * 分页查询
+	 * @param <T>
+	 * @param context
+	 * @param conn
+	 * @param sql
+	 * @param param
+	 * @param clazz
+	 * @param page
+	 * @return
+	 * @throws SFException
+	 */
+	public <T> Page<T> qryPageing(Context context, Connection conn,
+			String sql, Class<T> clazz ,Page page, Object... param)throws SFException {
+		QueryRunner runner = new QueryRunner();
+		List<T> pageData = null;
+		try {
+			
+			StringBuffer sb=new StringBuffer();
+			sb.append("SELECT * FROM (SELECT C.*, ROWNUM RN FROM(");
+			sb.append(sql);
+			sb.append(")C WHERE ROWNUM<=");
+			sb.append(page.getEndNum());
+			sb.append(") WHERE RN>");
+			sb.append(page.getStartNum());
+			
+			SFLogger.debug(context, String.format("执行SQL:[%s]", sb.toString()));
+			SFLogger.debug(context,String.format("SQL参数: %s", Arrays.toString(param)));
+			/*
+			 * 分页查询
+			 */
+			pageData = (List<T>) runner.query(conn, sb.toString(), param, new BeanListHandler(clazz));
+			
+			/*
+			 * 统计总记录数
+			 */
+			sb=new StringBuffer();
+			sb.append("SELECT COUNT(1) FROM (");
+			sb.append(sql);
+			sb.append(") C");
+			
+			SFLogger.debug(context, String.format("执行Count SQL:[%s]", sb.toString()));
+			SFLogger.debug(context,String.format("执行Count SQL参数: %s", Arrays.toString(param)));
+			long totalNum=qryCount(context,conn,sb.toString(),param);
+			
+			//组装返回结果
+			page.setPageData(pageData);
+			page.setTotalNum(totalNum);
+		} catch (SQLException e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return page;
+	}
+}

@@ -1,0 +1,775 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+<formats.xml>
+	<fmtDef id="B_REQUEST_HEAD" len="111">
+		<record>
+			<FixedLenFormat len="9" dataName="VERSION" aligment="left" ><nullCheck />
+			</FixedLenFormat>
+			<FixedLenFormat len="2" dataName="PACKTYPE" aligment="left" />
+			<FixedLenFormat len="5" dataName="TXCODE" aligment="left" />
+			<FixedLenFormat len="4" dataName="FUNCCODE" aligment="left" />
+			<FixedLenFormat len="2" dataName="COMMMODE" aligment="left" />
+			<FixedLenFormat len="9" dataName="TOTALBLOCK" aligment="left" />
+			<FixedLenFormat len="9" dataName="CURBLOCK" aligment="left" />
+			<FixedLenFormat len="9" dataName="MSGDATALEN" aligment="left"  />
+			<FixedLenFormat len="9" dataName="MSGEXTLEN" aligment="left" />
+			<FixedLenFormat len="2" dataName="ENCRYPTMODE" aligment="left" />
+			<FixedLenFormat len="51" dataName="NOUSE" aligment="left" />
+		</record>
+	</fmtDef>
+
+
+	<fmtDef id="B_RESPONSE_HEAD" maxLen="111">
+		<record>
+			<FixedLenFormat len="9" dataName="VERSION" aligment="left" padChar='+' padCharFlag='Y'><nullCheck />
+			</FixedLenFormat>
+			<FixedLenFormat len="2" dataName="PACKTYPE" aligment="left"  padChar='+' padCharFlag='Y'/>
+			<FixedLenFormat len="5" dataName="TXCODE" aligment="left"  padChar='+' padCharFlag='Y'/>
+			<FixedLenFormat len="4" dataName="FUNCCODE" aligment="left"  padChar='+' padCharFlag='Y'/>
+			<FixedLenFormat len="2" dataName="COMMMODE" aligment="left"  padChar='+' padCharFlag='Y'/>
+			<FixedLenFormat len="9" dataName="TOTALBLOCK" aligment="left"  padChar='+' padCharFlag='Y'/>
+			<FixedLenFormat len="9" dataName="CURBLOCK" aligment="left"  padChar='+' padCharFlag='Y'/>
+			<FixedLenFormat len="9" dataName="MSGDATALEN" aligment="left"  padChar='+' />
+			<FixedLenFormat len="9" dataName="MSGEXTLEN" aligment="left"  padChar='+' padCharFlag='Y'/>
+			<FixedLenFormat len="2" dataName="ENCRYPTMODE" aligment="left"  padChar='+' padCharFlag='Y'/>
+			<FixedLenFormat len="51" dataName="NOUSE" aligment="left"  padChar='+' padCharFlag='Y'/>
+		</record>
+	</fmtDef>
+	
+	<fmtDef id="ZLSECU_REQUEST_HEAD" formatType="xml">
+		<XMLKC id="Head" kCollName="ZLSECU_REQUEST_HEAD">
+			<XMLField id="Version" dataName="VERSION" />
+			<XMLField id="TxCode" dataName="TXCODE" />
+			<XMLField id="FuncCode" dataName="FUNCCODE" />
+			<XMLField id="Channel" dataName="CHANNEL" />
+			<XMLField id="SubCenterId" dataName="SUBCENTERID" />
+			<XMLField id="NodeId" dataName="NODEID" />
+			<XMLField id="TellerId" dataName="TELLERID" />
+			<XMLField id="TxSeqId" dataName="TXSEQID" />
+			<XMLField id="TxDate" dataName="TXDATE" />
+			<XMLField id="TxTime" dataName="TXTIME" />
+			<XMLField id="UserId" dataName="USERID" />
+		</XMLKC>
+	</fmtDef>
+	
+	
+    <fmtDef id="ZLSECU_RESPONSE_HEAD" formatType="xml">
+		<XMLKC id="Head" kCollName="ZLSECU_RESPONSE_HEAD" textIndent="">
+			<XMLField id="Version" dataName="VERSION" textIndent=""/>
+			<XMLField id="TxCode" dataName="TXCODE" textIndent=""/>
+			<XMLField id="FuncCode" dataName="FUNCCODE" textIndent=""/>
+			<XMLField id="Channel" dataName="CHANNEL" textIndent=""/>
+			<XMLField id="SubCenterId" dataName="SUBCENTERID" textIndent=""/>
+			<XMLField id="NodeId" dataName="NODEID" textIndent=""/>
+			<XMLField id="TellerId" dataName="TELLERID" textIndent=""/>
+			<XMLField id="TxSeqId" dataName="TXSEQID" textIndent=""/>
+			<XMLField id="TxDate" dataName="TXDATE" textIndent=""/>
+			<XMLField id="TxTime" dataName="TXTIME" textIndent=""/>
+			<XMLField id="UserId" dataName="USERID" textIndent=""/>
+		</XMLKC>
+	</fmtDef>
+	
+	
+
+	
+	<!-- ******************************************************************************************************* -->
+	<!-- *************************                  发送直联券商接口                                         ****************************** -->
+	<!-- ******************************************************************************************************* -->
+	<!-- 6022 银行确认/银行签约 -->
+	<fmtDef id="6022_I" formatType="xml">
+		<XMLKC id="Body" kCollName="6022_I">
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32"><nullCheck /></XMLField>
+			<XMLField id="DepName" dataName="DEP_NAME" esbLen="100" len="100"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22"><nullCheck /></XMLField>
+			<XMLField id="CapAcctPwd" dataName="CAP_ACCT_PWD" esbLen="32" len="32"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3"><nullCheck /></XMLField>
+			<XMLField id="SthCode" dataName="STH_CODE" esbLen="19" len="19"/>
+			<XMLField id="SignMode" dataName="SIGN_MODE" esbLen="1" len="1"><nullCheck /></XMLField>
+			<XMLField id="LegalName" dataName="LEGAL_NAME" esbLen="20" len="20"/>
+			<XMLField id="LegalIdCode" dataName="LEGAL_ID_TYPE" esbLen="18" len="18"/>
+			<XMLField id="TrnName" dataName="TRN_NAME" esbLen="20" len="20"/>
+			<XMLField id="TrnIdType" dataName="TRN_ID_TYPE" esbLen="2" len="2"/>
+			<XMLField id="TrnIdCode" dataName="TRN_ID_CODE" esbLen="18" len="18"/>
+			<XMLField id="Zip" dataName="ZIP" esbLen="6" len="6"/>
+			<XMLField id="Addr" dataName="ADDR" esbLen="128" len="128"/>
+			<XMLField id="EmailAddr" dataName="EMAIL_ADDR" esbLen="30" len="30"/>
+			<XMLField id="Phone" dataName="PHONE" esbLen="16" len="16"/>
+			<XMLField id="Fax" dataName="FAX" esbLen="16" len="16"/>
+			<XMLField id="MobilPhone" dataName="MOBILE" esbLen="16" len="16"/>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6022_O" formatType="xml">
+		<XMLKC id="Body" kCollName="6022_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21"/>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22"/>
+			<XMLField id="BeginBal" dataName="BEGIN_BAL" esbLen="18" len="18"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3"/>
+		</XMLKC>
+	</fmtDef>
+
+	<!-- 6024 变更银行结算账号 -->
+	<fmtDef id="6024_I" formatType="xml">
+		<XMLKC id="Body" kCollName="6024_I">
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="OldAcctId" dataName="OLD_ACCT_ID" esbLen="32" len="32" label="旧的发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="NEW_ACCT_ID" esbLen="32" len="32" label="新的发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="DepName" dataName="DEP_NAME" esbLen="100" len="100" label="新的开户银行名称"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CapAcctPwd" dataName="CAP_ACCT_PWD" esbLen="32" len="32" label="券商端证券资金密码"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6024_O" formatType="xml">
+		<XMLKC id="Body" kCollName="6024_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商流水号"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+		</XMLKC>
+	</fmtDef>
+
+	<!-- 6031 银行端证券转银行 -->
+	<fmtDef id="6031_I" formatType="xml">
+		<XMLKC id="Body" kCollName="6031_I">
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CapAcctPwd" dataName="CAP_ACCT_PWD" esbLen="32" len="32" label="券商端证券资金密码"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标示"><nullCheck /></XMLField>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"><nullCheck /></XMLField>
+			<XMLField id="BookingNo" dataName="BOOK_NO" esbLen="12" len="12" label="预约号"/>
+			<XMLField id="UnitTellerId" dataName="UNIT_TELLER_ID" esbLen="8" len="8" label="网点操作员编号"><nullCheck /></XMLField>
+			<XMLField id="ReptFlag" dataName="REPT_FLAG" esbLen="1" len="1" label="重发标志"><nullCheck /></XMLField>
+			<XMLField id="SubTxSeqId" dataName="NEW_SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6031_O" formatType="xml">
+		<XMLKC id="Body" kCollName="6031_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行账号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标识"/>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"/>
+		</XMLKC>
+	</fmtDef>
+
+	<!-- 6034 银行端证券转银行向券商冲正 -->
+	<fmtDef id="6034_I" formatType="xml">
+		<XMLKC id="Body" kCollName="MSG_I">
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标示"><nullCheck /></XMLField>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"><nullCheck /></XMLField>
+			<XMLField id="UnitTellerId" dataName="UNIT_TELLER_ID" esbLen="8" len="8" label="网点操作员编号"><nullCheck /></XMLField>
+			<XMLField id="ReptFlag" dataName="REPT_FLAG" esbLen="1" len="1" label="重发标志"><nullCheck /></XMLField>
+			<XMLField id="OrgSeqId" dataName="ORG_TX_SEQ_ID" esbLen="16" len="16" label="原银行端流水号"><nullCheck /></XMLField>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6034_O" formatType="xml">
+		<XMLKC id="Body" kCollName="MSG_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行账号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标识"/>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"/>
+		</XMLKC>
+	</fmtDef>
+
+	<!-- 6032 银行端银行转证券 -->
+	<fmtDef id="6032_I" formatType="xml">
+		<XMLKC id="Body" kCollName="6032_I">
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标示"><nullCheck /></XMLField>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"><nullCheck /></XMLField>
+			<XMLField id="UnitTellerId" dataName="UNIT_TELLER_ID" esbLen="8" len="8" label="网点操作员编号"><nullCheck /></XMLField>
+			<XMLField id="ReptFlag" dataName="REPT_FLAG" esbLen="1" len="1" label="重发标志"><nullCheck /></XMLField>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6032_O" formatType="xml">
+		<XMLKC id="Body" kCollName="6032_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行账号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标识"/>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"/>
+		</XMLKC>
+	</fmtDef>
+	
+
+	<!-- 6052 银行端查询券商端资金余额 -->
+	<fmtDef id="6052_I" formatType="xml">
+		<XMLKC id="Body" kCollName="6052_I">
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行账号"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CapAcctPwd" dataName="CAP_ACCT_PWD" esbLen="32" len="32" label="券商客户密码"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="UnitTellerId" dataName="UNIT_TELLER_ID" esbLen="8" len="8" label="网点操作员编号"><nullCheck /></XMLField>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6052_O" formatType="xml">
+		<XMLKC id="Body" kCollName="6052_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="AvailBal" dataName="ACCT_BAL" esbLen="18" len="18" label="可用余额"/>
+			<XMLField id="DrawBal" dataName="RMB_AVAIL_WITHDRAW_BAL" esbLen="18" len="18" label="可取余额"/>
+		</XMLKC>
+	</fmtDef>
+	
+
+	<!-- 6029 银行预约开户-->
+	<fmtDef id="6029_I" formatType="xml">
+		<XMLKC id="Body" kCollName="6029_I">
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="Mobile" dataName="MOBILE" esbLen="16" len="16" label="手机"/>
+			<XMLField id="Phone" dataName="PHONE" esbLen="16" len="16" label="座机"/>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="DepName" dataName="DEP_NAME" esbLen="100" len="100" label="开户银行名称"><nullCheck /></XMLField>
+			<XMLField id="DepId" dataName="DEP_ID" esbLen="4" len="4" label="交易网点"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"><nullCheck /></XMLField>
+			<XMLField id="BookRef" dataName="BOOK_NO" esbLen="35" len="35" label="预约号"><nullCheck /></XMLField>
+			<XMLField id="BrchId" dataName="SEC_BRCH_ID" esbLen="10" len="10" label="券商营业部编码"><nullCheck /></XMLField>
+			<XMLField id="Memo" dataName="REMARK" esbLen="70" len="70" label="备注"/>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6029_O" formatType="xml">
+		<XMLKC id="Body" kCollName="6029_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商流水号"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+		</XMLKC>
+	</fmtDef>
+	
+
+	<!-- 6030 撤销银行预约-->
+	<fmtDef id="6030_I" formatType="xml">
+		<XMLKC id="Body" kCollName="6030_I">
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"><nullCheck /></XMLField>
+			<XMLField id="BookRef" dataName="BOOK_NO" esbLen="35" len="35" label="预约号"><nullCheck /></XMLField>
+			<XMLField id="BrchId" dataName="SEC_BRCH_ID" esbLen="10" len="10" label="券商营业部编码"><nullCheck /></XMLField>
+			<XMLField id="Memo" dataName="REMARK" esbLen="70" len="70" label="备注"/>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6030_O" formatType="xml">
+		<XMLKC id="Body" kCollName="6030_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商流水号"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"/>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+		</XMLKC>
+	</fmtDef>
+	
+
+	
+	<!-- ******************************************************************************************************* -->
+	<!-- *************************                  接收直联券商接口                                         ****************************** -->
+	<!-- ******************************************************************************************************* -->
+	<!-- 6021 券商预指定-->
+	<fmtDef id="6021_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100100_I">
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="BeginBal" dataName="BEGIN_BAL" esbLen="18" len="18" label="日初余额"><nullCheck /></XMLField>
+			<XMLField id="LegalName" dataName="LEGAL_NAME" esbLen="20" len="20" label="法人姓名"/>
+			<XMLField id="LegalIdCode" dataName="LEGAL_ID_TYPE" esbLen="18" len="18" label="法人身份证"/>
+			<XMLField id="TrnName" dataName="TRN_NAME" esbLen="20" len="20" label="经办人姓名"/>
+			<XMLField id="TrnIdType" dataName="TRN_ID_TYPE" esbLen="2" len="2" label="经办人证件类型"/>
+			<XMLField id="TrnIdCode" dataName="TRN_ID_CODE" esbLen="18" len="18" label="经办人证件号码"/>
+			<XMLField id="Zip" dataName="ZIP" esbLen="6" len="6" label="邮政编码"/>
+			<XMLField id="Addr" dataName="ADDR" esbLen="128" len="128" label="联系地址"/>
+			<XMLField id="EmailAddr" dataName="EMAIL_ADDR" esbLen="30" len="30" label="电子邮件地址"/>
+			<XMLField id="Phone" dataName="PHONE" esbLen="16" len="16" label="联系电话"/>
+			<XMLField id="Fax" dataName="FAX" esbLen="16" len="16" label="传真"/>
+			<XMLField id="MobilPhone" dataName="MOBILE" esbLen="16" len="16" label="移动电话"/>
+			<XMLField id="InterFlag" dataName="INTER_FLAG" esbLen="1" len="1" label="境内外标志"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6021_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100100_O" textIndent="">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码" textIndent=""><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息" textIndent=""><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商流水号" textIndent=""/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号" textIndent=""/>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码" textIndent=""/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="证券资金帐号" textIndent=""/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种" textIndent=""/>
+			<XMLField id="BeginBal" dataName="BEGIN_BAL" esbLen="18" len="18" label="日初余额" textIndent=""/>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号" textIndent=""/>
+		</XMLKC>
+	</fmtDef>
+	
+	<!-- 6023 券商撤消签约-->
+	<fmtDef id="6023_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100101_I">
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行卡号/账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="LegalName" dataName="LEGAL_NAME" esbLen="20" len="20" label="法人姓名"/>
+			<XMLField id="LegalIdCode" dataName="LEGAL_ID_TYPE" esbLen="18" len="18" label="法人身份证"/>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="撤销时余额"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6023_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100101_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"/>
+		</XMLKC>
+	</fmtDef>
+	
+	<!-- 6026 券商端变更客户身份信息-->
+	<fmtDef id="6026_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100104_I">
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行卡号/账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="LegalName" dataName="LEGAL_NAME" esbLen="20" len="20" label="法人姓名"/>
+			<XMLField id="LegalIdCode" dataName="LEGAL_ID_TYPE" esbLen="18" len="18" label="法人身份证"/>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="撤销时余额"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6026_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100104_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"/>
+		</XMLKC>
+	</fmtDef>
+	
+	<!-- 6041 券商端证券转银行-->
+	<fmtDef id="6041_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100201_I">
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标示"><nullCheck /></XMLField>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6041_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100201_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"/>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行账号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标识"/>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"/>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"/>
+		</XMLKC>
+	</fmtDef>
+	
+	<!-- 6044 券商端证券转银行冲正-->
+	<fmtDef id="6044_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100203_I">
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="OrgTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="8" len="8" label="原交易流水号"><nullCheck /></XMLField>
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标示"><nullCheck /></XMLField>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6044_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100203_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"/>
+			<XMLField id="OrgTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="8" len="8" label="原交易流水号"/>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行账号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标识"/>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"/>
+			<XMLField id="SubTxSeqId" dataName="NEW_SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"/>
+		</XMLKC>
+	</fmtDef>
+	
+	<!-- 6042 券商端银行转证券-->
+	<fmtDef id="6042_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100200_I">
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标示"><nullCheck /></XMLField>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6042_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100200_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"/>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行账号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标识"/>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"/>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"/>
+		</XMLKC>
+	</fmtDef>
+	
+	<!-- 6043 券商端银行转证券冲正-->
+	<fmtDef id="6043_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100202_I">
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="OrgTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="8" len="8" label="原交易流水号"><nullCheck /></XMLField>
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标示"><nullCheck /></XMLField>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6043_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100202_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"/>
+			<XMLField id="OrgTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="8" len="8" label="原交易流水号"/>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行账号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标识"/>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="转账金额"/>
+			<XMLField id="SubTxSeqId" dataName="NEW_SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"/>
+		</XMLKC>
+	</fmtDef>
+	
+	<!-- 6045 券商端销户结息-->
+	<fmtDef id="6045_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100105_I">
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标示"><nullCheck /></XMLField>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="结息金额"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6045_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100105_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"/>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="银行账号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="CashRemitFlag" dataName="CASH_REMIT_FLAG" esbLen="1" len="1" label="钞汇标识"/>
+			<XMLField id="TxAmount" dataName="TX_AMOUNT" esbLen="18" len="18" label="结息金额"/>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"/>
+		</XMLKC>
+	</fmtDef>
+	
+	<!-- 6065 券商启动三方存管券商服务状态-->
+	<fmtDef id="6065_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100120_I">
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商流水号"><nullCheck /></XMLField>
+			<XMLField id="TxDate" dataName="TX_DATE" esbLen="8" len="8" label="日期"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商编号"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6065_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100120_O" textIndent="">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码" textIndent=""><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息" textIndent=""><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商流水号" textIndent=""/>
+		</XMLKC>
+	</fmtDef>
+	
+	<!-- 6027 券商端发起查询银行端余额-->
+	<fmtDef id="6027_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100301_I">
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="资金台账号"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="关联银行账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="8" len="8" label="券商流水号"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6027_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100301_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="资金台账号"/>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商编号"/>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="8" len="8" label="券商流水号"/>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="关联银行账号"/>
+			<XMLField id="RMBCurBal" dataName="ACCT_BAL" esbLen="18" len="18" label="人民币余额"/>
+			<XMLField id="HKDCurBal" dataName="HKD_ACCT_BAL" esbLen="18" len="18" label="港币余额"/>
+			<XMLField id="USDCurBal" dataName="USD_ACCT_BAL" esbLen="18" len="18" label="美元余额"/>
+		</XMLKC>
+	</fmtDef>
+	
+	<!-- 6028 券商激活银行预约开户-->
+	<fmtDef id="6028_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100100_I">
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+			<XMLField id="BookRef" dataName="BOOK_NO" esbLen="35" len="35" label="预约号"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6028_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100100_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商流水号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="证券资金帐号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"/>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	
+	<!-- 6025 券商一步式签约-->
+	<fmtDef id="6025_I" formatType="xml">
+		<XMLKC id="Body" kCollName="100100_I">
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商端流水号"><nullCheck /></XMLField>
+			<XMLField id="InvType" dataName="INV_TYPE" esbLen="1" len="1" label="客户类型"><nullCheck /></XMLField>
+			<XMLField id="InvName" dataName="INV_NAME" esbLen="80" len="80" label="客户名称"><nullCheck /></XMLField>
+			<XMLField id="IdType" dataName="ID_TYPE_ZL" esbLen="2" len="2" label="证件类型"><nullCheck /></XMLField>
+			<XMLField id="InvIdCode" dataName="INV_ID_CODE" esbLen="32" len="32" label="证件号码"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="券商端资金台账号"><nullCheck /></XMLField>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6025_O" formatType="xml">
+		<XMLKC id="Body" kCollName="100100_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+			<XMLField id="SecSeqId" dataName="SEC_SEQ_ID" esbLen="20" len="20" label="券商流水号"/>
+			<XMLField id="SecAcct" dataName="SEC_ACCT" esbLen="21" len="21" label="保证金管理账号"/>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"/>
+			<XMLField id="CapAcct" dataName="CAP_ACCT" esbLen="22" len="22" label="证券资金帐号"/>
+			<XMLField id="CurCode" dataName="CUR_CODE" esbLen="3" len="3" label="币种"/>
+			<XMLField id="SubTxSeqId" dataName="SUB_TX_SEQ_ID" esbLen="16" len="16" label="银行端流水号"/>
+			<XMLField id="BeginBal" dataName="BEGIN_BAL" esbLen="18" len="18" label="日初余额"/>
+			<XMLField id="AcctId" dataName="ACCT_ID" esbLen="32" len="32" label="发展卡卡号/对公账号"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	
+	
+	<!-- 6166券商发送单户结息文件-->
+	<fmtDef id="6166_I" formatType="xml">
+		<XMLKC id="Body" kCollName="6166_I">
+			<XMLField id="ChkDate" dataName="CHK_DATE" esbLen="8" len="8" label="对帐日期"><nullCheck /></XMLField>
+			<XMLField id="FileName" dataName="FILE_NAME" esbLen="255" len="255" label="文件名"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6166_O" formatType="xml">
+		<XMLKC id="Body" kCollName="6166_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	
+	
+	<!-- 券商发送带资金销户文件-->
+	<fmtDef id="6167_I" formatType="xml">
+		<XMLKC id="Body" kCollName="6167_I">
+			<XMLField id="ChkDate" dataName="CHK_DATE" esbLen="8" len="8" label="对帐日期"><nullCheck /></XMLField>
+			<XMLField id="FileName" dataName="FILE_NAME" esbLen="255" len="255" label="文件名"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6167_O" formatType="xml">
+		<XMLKC id="Body" kCollName="6167_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	
+	
+	<!-- 券商发送日终清算文件-->
+	<fmtDef id="6168_I" formatType="xml">
+		<XMLKC id="Body" kCollName="6168_I">
+			<XMLField id="ChkDate" dataName="CHK_DATE" esbLen="8" len="8" label="对帐日期"><nullCheck /></XMLField>
+			<XMLField id="FileName" dataName="FILE_NAME" esbLen="255" len="255" label="文件名"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6168_O" formatType="xml">
+		<XMLKC id="Body" kCollName="6168_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	
+	
+	<!-- 券商发送开户异常文件-->
+	<fmtDef id="6169_I" formatType="xml">
+		<XMLKC id="Body" kCollName="6169_I">
+			<XMLField id="ChkDate" dataName="CHK_DATE" esbLen="8" len="8" label="对帐日期"><nullCheck /></XMLField>
+			<XMLField id="FileName" dataName="FILE_NAME" esbLen="255" len="255" label="文件名"><nullCheck /></XMLField>
+			<XMLField id="SecCompCode" dataName="SEC_COMP_CODE" esbLen="8" len="8" label="券商代码"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+	<fmtDef id="6169_O" formatType="xml">
+		<XMLKC id="Body" kCollName="6169_O">
+			<XMLField id="RespCode" dataName="RESP_CODE" esbLen="5" len="5" label="响应代码"><nullCheck /></XMLField>
+			<XMLField id="RespMsg" dataName="RESP_MSG" esbLen="256" len="256" label="响应信息"><nullCheck /></XMLField>
+		</XMLKC>
+	</fmtDef>
+
+</formats.xml>

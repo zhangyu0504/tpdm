@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="GB18030" ?>
+<MVC>
+	<servlet>
+		<servlet-name>SFOnlineServlet</servlet-name>
+		<servlet-class>com.ecc.emp.web.servlet.EMPRequestServlet</servlet-class>
+	    <init-param>
+	    	<param-name>iniFile</param-name>
+	    	<param-value>WEB-INF/bizs/SFOnline/settings.xml</param-value>
+	    </init-param>
+	    
+	    <init-param>
+	    	<param-name>enableInitialize</param-name>
+	    	<param-value>true</param-value>
+	    </init-param>
+	    
+	    <init-param>
+	    	<param-name>password</param-name>
+	    	<param-value>eccemp</param-value>
+	    </init-param>
+	    <init-param>
+	    	<param-name>factoryName</param-name>
+	    	<param-value>SFOnline</param-value>
+	    </init-param>
+	    <init-param>
+	    	<param-name>rootContextName</param-name>
+	    	<param-value>rootCtx</param-value>
+	    </init-param>
+	    <init-param>
+	    	<param-name>servletContextFile</param-name>
+	    	<param-value>WEB-INF/mvcs/SFOnline/empServletContext.xml</param-value>
+	    </init-param>
+	    <init-param>
+	    	<param-name>jspRootPath</param-name>
+	    	<param-value>WEB-INF/mvcs/SFOnline/</param-value>
+	    </init-param>
+	    
+	    <init-param>
+	    	<param-name>resourceFileName</param-name>
+	    	<param-value>/WEB-INF/commons/resource.xml</param-value>
+	    </init-param>
+	    <init-param>
+	    	<param-name>contentDivId</param-name>
+	    	<param-value>area_content</param-value>
+	    </init-param>
+	    
+	    <init-param>
+	    	<param-name>logType</param-name>
+	    	<param-value>log4j</param-value>
+	    </init-param>
+	    
+	    <init-param>
+	    	<param-name>logSettingFile</param-name>
+	    	<param-value>WEB-INF/commons/logging.xml</param-value>
+	    </init-param>
+	    
+	    <init-param>
+	    	<param-name>logFileName</param-name>
+	    	<param-value>WEB-INF/empLog.log</param-value>
+	    
+	    </init-param>
+		<load-on-startup>1</load-on-startup>
+	    
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>SFOnlineServlet</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+	
+	<filter>
+		<filter-name>SFOnlineEncoding</filter-name>
+		<filter-class>com.ecc.emp.web.jsptags.SetCharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>SFOnlineEncoding</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+</MVC>

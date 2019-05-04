@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+
+<data.xml>
+	<kColl id="rootKColl">
+		<kColl id="SERVICE">
+			<field id="factory"/>
+			<field id="dataSource"/>
+			<field id="sqlExecService"/>
+			<field id="genContextBySql"/>
+			<field id="expressCalculateService"/>
+			<field id="cacheManager"/>
+			<field id="procedureAccessService"/>
+			<field id="ftpFileService"/>
+			<field id="publicservice"/>
+		</kColl>
+	</kColl>
+	<kColl id="PUBLIC">
+		<field id="txcode"/>
+		<field id="retflag"/>
+		<field id="isretresp"/>
+		<field id="secutype"/>
+		<field id="secu"/>
+		<field id="signaccountdata"/>
+		<field id="logid"/>
+		<field id="localinfo"/>
+		<field id="investdata"/>
+		<field id="agentinfo"/>
+		<field id="trdsecservstatus"/>
+		<field id="workmode"/>
+		<field id="invtype"/>
+		<field id="idtype"/>
+		<field id="initside"/>
+		<field id="tranconnection"/>
+		<field id="msgSeqNo"/>
+		<field id="serverId"/>
+		<field id="isTranSpond"/>
+		<field id="keyInputName"/>
+	</kColl>
+	<kColl id="SCHEDULE_LOG">
+		<field id="ID"/>
+		<field id="SCHEDULE_NAME"/>
+		<field id="START_TIME"/>
+		<field id="END_TIME"/>
+		<field id="MEMO"/>
+		<field id="LEVLE"/>
+		<field id="STATUS"/>
+		<field id="REGISTER_DATE"/>
+	</kColl>
+	<kColl id="_ESB_HEAD">
+		<field id="BRANCH_ID"/>
+		<field id="USER_ID"/>
+		<field id="USER_PASSWORD"/>
+		<field id="USER_LEVEL"/>
+		<field id="USER_TYPE"/>
+		<field id="APPR_FLAG"/>
+		<field id="AUTH_FLAG"/>
+		<field id="BIZ_SEQ_NO"/>
+		<field id="REVERSAL_DATE"/>
+		<field id="REVERSAL_SEQ_NO"/>
+		<field id="REVERSAL_BIZ_SEQ_NO"/>
+		<field id="QUERY_KEY"/>
+		<field id="PGUP_OR_PGDN"/>
+		<field id="PER_PAGE_NUM"/>
+		<field id="TRANT_FLAG"/>
+	</kColl>
+	<kColl id="SYS_HEAD">
+		<field id="SERVICE_CODE"/>
+		<field id="CONSUMER_ID"/>
+		<field id="SERVICE_SCENE"/>
+		<field id="MODULE_ID"/>
+		<field id="PROGRAM_ID"/>
+		<field id="CONSUMER_SEQ_NO"/>
+		<field id="CONSUMER_SVR_ID"/>
+		<field id="WS_ID"/>
+		<field id="TRAN_DATE"/>
+		<field id="TRAN_TIMESTAMP"/>
+		<field id="USER_LANG"/>
+		<field id="FILE_PATH"/>
+		<field id="RET_STATUS"/>
+		<field id="ESB_SEQ_NO"/>
+	</kColl>
+	<kColl id="APP_HEAD">
+		<field id="BRANCH_ID"/>
+		<field id="USER_ID"/>
+		<field id="USER_PASSWORD"/>
+		<field id="USER_LEVEL"/>
+		<field id="USER_TYPE"/>
+		<field id="APPR_FLAG"/>
+		<field id="AUTH_FLAG"/>
+		<field id="BIZ_SEQ_NO"/>
+		<field id="REVERSAL_DATE"/>
+		<field id="REVERSAL_SEQ_NO"/>
+		<field id="REVERSAL_BIZ_SEQ_NO"/>
+		<field id="QUERY_KEY"/>
+		<field id="PGUP_OR_PGDN"/>
+		<field id="PER_PAGE_NUM"/>
+		<field id="TOTAL_NUM"/>
+		<field id="TRANT_FLAG"/>
+		<field id="END_FLAG"/>
+		<field id="ACCOUNT_DATE"/>
+	</kColl>
+	<kColl id="RET">
+		<field id="RET_CODE"/>
+		<field id="RET_MSG"/>
+	</kColl>
+	<kColl id="A_REQUEST_HEAD">
+		<field id="serviceId"/>
+		<field id="RESPCODE"/>
+		<field id="RESPMSG"/>
+		<field id="TRANSDATE"/>
+		<field id="TRANSTIME"/>
+		<field id="CHANNELSERIALNO"/>
+		<field id="BUSINESSDATE"/>
+		<field id="BANKNO"/>
+		<field id="RESERVE"/>
+	</kColl>
+	<kColl id="A_RESPONSE_HEAD">
+		<field id="serviceId"/>
+		<field id="RESPCODE"/>
+		<field id="RESPMSG"/>
+		<field id="TRANSDATE"/>
+		<field id="TRANSTIME"/>
+		<field id="CHANNELSERIALNO"/>
+		<field id="BUSINESSDATE"/>
+		<field id="BANKNO"/>
+		<field id="RESERVE"/>
+	</kColl>
+	<kColl id="AA_REQUEST_HEAD">
+		<field id="serviceId"/>
+		<field id="CHCICSCODE"/>
+		<field id="CHAPCODE"/>
+		<field id="CHFUNCCODE"/>
+		<field id="CHTERMTYPE"/>
+		<field id="CHBRANCH"/>
+		<field id="CHTELLERID"/>
+		<field id="CHTIATYPE"/>
+		<field id="CHSUP1IDE"/>
+		<field id="CHSUP2IDE"/>
+		<field id="CHSUP1PASSWORD"/>
+		<field id="CHSUP2PASSWORD"/>
+		<field id="CHSUP1DEV"/>
+		<field id="CHAUTHTBL"/>
+		<field id="CHPRETRACE"/>
+		<field id="CHTRDATE"/>
+		<field id="CHTRTIME"/>
+		<field id="CHOPLEVEL"/>
+		<field id="CHBUSINESSTYPE"/>
+		<field id="CHJOURNAL"/>
+		<field id="CHMSGLEN"/>
+	</kColl>
+	<kColl id="AA_RESPONSE_HEAD">
+		<field id="serviceId"/>
+		<field id="CHCICSCODE"/>
+		<field id="CHMSGTYPE"/>
+		<field id="CHMSGCODE"/>
+		<field id="CHMSGLEN"/>
+	</kColl>
+	<kColl id="B_REQUEST_HEAD">
+		<field id="VERSION"/>
+		<field id="PACKTYPE"/>
+		<field id="TXCODE"/>
+		<field id="FUNCCODE"/>
+		<field id="COMMMODE"/>
+		<field id="TOTALBLOCK"/>
+		<field id="CURBLOCK"/>
+		<field id="MSGDATALEN"/>
+		<field id="MSGEXTLEN"/>
+		<field id="ENCRYPTMODE"/>
+		<field id="NOUSE"/>
+	</kColl>
+	<kColl id="B_RESPONSE_HEAD">
+		<field id="VERSION"/>
+		<field id="PACKTYPE"/>
+		<field id="TXCODE"/>
+		<field id="FUNCCODE"/>
+		<field id="COMMMODE"/>
+		<field id="TOTALBLOCK"/>
+		<field id="CURBLOCK"/>
+		<field id="MSGDATALEN"/>
+		<field id="MSGEXTLEN"/>
+		<field id="ENCRYPTMODE"/>
+		<field id="NOUSE"/>
+	</kColl>
+	<kColl id="APPChannelKColl"/>
+	<kColl id="APPSessionKColl"/>
+</data.xml>

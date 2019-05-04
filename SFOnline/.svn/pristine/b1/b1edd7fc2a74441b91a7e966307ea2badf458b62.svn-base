@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="GB18030" ?>
+<nodedefine>
+	<root>
+		<datas>
+			<dataGroup id="SERVICE" name="公共服务名KCOLL" access="common">
+				<refData refId="factory" />
+				<refData refId="dataSource" />
+				<refData refId="sqlExecService" />
+				<refData refId="genContextBySql" />
+				<refData refId="expressCalculateService" />
+				<refData refId="cacheManager" />
+				<refData refId="procedureAccessService" />
+				<refData refId="ftpFileService" />
+				<refData refId="publicservice"/>
+			</dataGroup>
+		</datas>
+		<refServices>
+			<refService id="transactionManager" access="root" />
+			<refService id="tableService" access="root" />
+			<refService id="tbpmdatasource0" access="root" />
+			<refService id="sfsqlexecservice0" access="root" />
+			<refService id="sfgencontextbysql0" access="root" />
+			<refService id="sfprocedureaccessservice0" access="root" />
+			<refService id="sfexpresscalculate0" access="root" />
+			<refService id="cacheManagerService" access="root" />
+			<refService id="ftpFileService" access="root" />
+			<refService id="publicservice0" access="root"/>
+		</refServices>
+	</root>
+	<channelSettings>
+		<channel id="APP">
+			<document>默认应用</document>
+			<sessionDatas/>
+			<refServices />
+		</channel>
+	</channelSettings>
+	<CommonData>
+		<dataGroup id="PUBLIC" name="公共字段">
+			<refData label="交易代码" refId="txcode" />
+			<refData label="通信标识： 定义在接口中作为常量值" refId="retflag" />
+			<refData label="是否发送响应报文" refId="isretresp" />
+			<refData label="券商类型" refId="secutype" />
+			<refData label="券商" refId="secu" />
+			<refData label="客户" refId="signaccountdata" />
+			<refData label="流水号" refId="logid" />
+			<refData label="系统工作日期表" refId="localinfo" />
+			<refData label="客户对象" refId="investdata" />
+			<refData label="合作行对象" refId="agentinfo" />
+			<refData label="券商签到表" refId="trdsecservstatus" />
+			<refData label="工作模式" refId="workmode" />
+			<refData label="客户类型" refId="invtype" />
+			<refData label="存管证件类型常量" refId="idtype" />
+			<refData label="渠道常量" refId="initside" />
+			<refData label="数据库联接" refId="tranconnection" />
+			<refData label="请求报文流水号" refId="msgSeqNo" />
+			<refData label="请求接口号" refId="serverId" />
+			<refData label="是否转发" refId="isTranSpond" />
+			<refData label="深证通请求Key名称" refId="keyInputName" />
+		</dataGroup>
+		
+		<dataGroup id="SCHEDULE_LOG" name="SCHEDULE_LOG">
+				<refData refId="ID" label="ID"/>
+				<refData refId="SCHEDULE_NAME" label="SCHEDULE_NAME"/>
+				<refData refId="START_TIME" label="START_TIME"/>
+				<refData refId="END_TIME" label="END_TIME"/>
+				<refData refId="MEMO" label="MEMO"/>
+				<refData refId="LEVLE" label="LEVLE"/>
+				<refData refId="STATUS" label="STATUS"/>
+				<refData refId="REGISTER_DATE" label="REGISTER_DATE"/>
+		</dataGroup>
+		
+		<dataGroup id="_ESB_HEAD" name="ESB公共报头">
+			<refData label="发送方机构ID" refId="BRANCH_ID" />
+			<refData label="服务请求者身份" refId="USER_ID" />
+			<refData lable="服务请求者密码" refId="USER_PASSWORD" />
+			<refData lable="服务请求者级别" refId="USER_LEVEL" />
+			<refData lable="服务请求者类别" refId="USER_TYPE" />
+			<refData lable="复核标志" refId="APPR_FLAG" />
+			<refData lable="授权标志" refId="AUTH_FLAG" />
+			<refData lable="发起方业务流水号" refId="BIZ_SEQ_NO" />
+			<refData lable="需冲正的原流水交易日期" refId="REVERSAL_DATE" />
+			<refData lable="需冲正的原流水号" refId="REVERSAL_SEQ_NO" />
+			<refData lable="需冲正的原交易流水号" refId="REVERSAL_BIZ_SEQ_NO" />
+			<refData lable="查询结果定位串" refId="QUERY_KEY" />
+			<refData lable="上翻/下翻标志" refId="PGUP_OR_PGDN" />
+			<refData lable="要求每页返回记录总数" refId="PER_PAGE_NUM" />
+			<refData lable="交易标志" refId="TRANT_FLAG" />
+		</dataGroup>
+		
+		<dataGroup id="SYS_HEAD" name="ESB报文系统头">
+			<refData label="服务代码" refId="SERVICE_CODE" />
+			<refData label="请求系统编号" refId="CONSUMER_ID" />
+			<refData label="服务应用场景" refId="SERVICE_SCENE" />
+			<refData label="请求系统模块标识" refId="MODULE_ID" />
+			<refData label="请求系统应用程序模块" refId="PROGRAM_ID" />
+			<refData label="服务请求发送方流水号" refId="CONSUMER_SEQ_NO" />
+			<refData label="发起方服务器标识" refId="CONSUMER_SVR_ID" />
+			<refData label="请求系统柜员终端的名称或地址" refId="WS_ID" />
+			<refData label="发送方交易日期" refId="TRAN_DATE" />
+			<refData label="发送方交易时间" refId="TRAN_TIMESTAMP" />
+			<refData label="用户语言需要服务系统支持" refId="USER_LANG" />
+			<refData label="文件路径" refId="FILE_PATH" />
+			<refData label="交易状态" refId="RET_STATUS" />
+			<refData label="ESB产生的流水号"  refId="ESB_SEQ_NO" />
+		</dataGroup>
+
+		<dataGroup id="APP_HEAD" name="ESB报文应用头" >
+			<refData label="发送方机构ID" refId="BRANCH_ID" />
+			<refData label="服务请求者身份" refId="USER_ID" />
+			<refData lable="服务请求者密码" refId="USER_PASSWORD" />
+			<refData lable="服务请求者级别" refId="USER_LEVEL" />
+			<refData lable="服务请求者类别" refId="USER_TYPE" />
+			<refData lable="复核标志" refId="APPR_FLAG" />
+			<refData lable="授权标志" refId="AUTH_FLAG" />
+			<refData lable="发起方业务流水号" refId="BIZ_SEQ_NO" />
+			<refData lable="需冲正的原流水交易日期" refId="REVERSAL_DATE" />
+			<refData lable="需冲正的原流水号" refId="REVERSAL_SEQ_NO" />
+			<refData lable="需冲正的原交易流水号" refId="REVERSAL_BIZ_SEQ_NO" />
+			<refData lable="查询结果定位串" refId="QUERY_KEY" />
+			<refData lable="上翻/下翻标志" refId="PGUP_OR_PGDN" />
+			<refData lable="要求每页返回记录总数" refId="PER_PAGE_NUM" />
+			<refData lable="记录总数" refId="TOTAL_NUM" />
+			<refData lable="交易标志" refId="TRANT_FLAG" />
+			<refData lable="结束标志" refId="END_FLAG" />
+			<refData lable="会计标志" refId="ACCOUNT_DATE" />
+		</dataGroup>
+		
+		<dataGroup id="RET" name="ESB报文返回信息" access="private">
+			<refData refId="RET_CODE"/>
+			<refData refId="RET_MSG"/>
+		</dataGroup>
+		
+		<dataGroup id="A_REQUEST_HEAD" name="A_REQUEST_HEAD" >
+			<refData refId="serviceId"/>
+			<refData refId="RESPCODE"/>
+			<refData refId="RESPMSG"/>
+			<refData refId="TRANSDATE"/>
+			<refData refId="TRANSTIME"/>
+			<refData refId="CHANNELSERIALNO"/>
+			<refData refId="BUSINESSDATE"/>
+			<refData refId="BANKNO"/>
+			<refData refId="RESERVE"/>
+		</dataGroup>
+		<dataGroup id="A_RESPONSE_HEAD" name="A_RESPONSE_HEAD" >
+			<refData refId="serviceId"/>
+			<refData refId="RESPCODE"/>
+			<refData refId="RESPMSG"/>
+			<refData refId="TRANSDATE"/>
+			<refData refId="TRANSTIME"/>
+			<refData refId="CHANNELSERIALNO"/>
+			<refData refId="BUSINESSDATE"/>
+			<refData refId="BANKNO"/>
+			<refData refId="RESERVE"/>
+		</dataGroup>
+		
+		
+		<dataGroup id="AA_REQUEST_HEAD" name="AA_REQUEST_HEAD" >
+			<refData refId="serviceId"/>
+			<refData refId="CHCICSCODE"/>         
+			<refData refId="CHAPCODE" />          
+			<refData refId="CHFUNCCODE" />        
+			<refData refId="CHTERMTYPE" />        
+			<refData refId="CHBRANCH"/>           
+			<refData refId="CHTELLERID" />        
+			<refData refId="CHTIATYPE" />         
+			<refData refId="CHSUP1IDE" />         
+			<refData refId="CHSUP2IDE" />         
+			<refData refId="CHSUP1PASSWORD" />    
+			<refData refId="CHSUP2PASSWORD" />    
+			<refData refId="CHSUP1DEV"/>          
+			<refData refId="CHAUTHTBL" />         
+			<refData refId="CHPRETRACE" />        
+			<refData refId="CHTRDATE" />          
+			<refData refId="CHTRTIME"/>           
+			<refData refId="CHOPLEVEL" />         
+			<refData refId="CHBUSINESSTYPE"/>     
+			<refData refId="CHJOURNAL" />         
+			<refData refId="CHMSGLEN" />
+		</dataGroup>
+		
+		<dataGroup id="AA_RESPONSE_HEAD" name="AA_RESPONSE_HEAD" >
+			<refData refId="serviceId"/>
+			<refData refId="CHCICSCODE"/>         
+			<refData refId="CHMSGTYPE" />          
+			<refData refId="CHMSGCODE" />        
+			<refData refId="CHMSGLEN" />        
+		</dataGroup>
+		
+		
+		<dataGroup id="B_REQUEST_HEAD" name="B_REQUEST_HEAD" >
+			<refData refId="VERSION"/>
+			<refData refId="PACKTYPE"/>
+			<refData refId="TXCODE"/>
+			<refData refId="FUNCCODE"/>
+			<refData refId="COMMMODE"/>
+			<refData refId="TOTALBLOCK"/>
+			<refData refId="CURBLOCK"/>
+			<refData refId="MSGDATALEN"/>
+			<refData refId="MSGEXTLEN"/>
+			<refData refId="ENCRYPTMODE"/>
+			<refData refId="NOUSE"/>
+		</dataGroup>
+		<dataGroup id="B_RESPONSE_HEAD" name="B_RESPONSE_HEAD" >
+			<refData refId="VERSION"/>
+			<refData refId="PACKTYPE"/>
+			<refData refId="TXCODE"/>
+			<refData refId="FUNCCODE"/>
+			<refData refId="COMMMODE"/>
+			<refData refId="TOTALBLOCK"/>
+			<refData refId="CURBLOCK"/>
+			<refData refId="MSGDATALEN"/>
+			<refData refId="MSGEXTLEN"/>
+			<refData refId="ENCRYPTMODE"/>
+			<refData refId="NOUSE"/>
+		</dataGroup>
+		
+		
+	</CommonData>
+</nodedefine>	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    

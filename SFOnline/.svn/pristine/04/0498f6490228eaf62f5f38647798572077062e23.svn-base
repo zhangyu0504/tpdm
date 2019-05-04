@@ -1,0 +1,66 @@
+package module.dao;
+
+import java.sql.Connection;
+
+import module.bean.LocalInfo;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DaoBase;
+import common.util.SFUtil;
+
+/**
+ * 营业时间
+ * @author 吕超鸿
+ *
+ */
+public class LocalInfoDao extends DaoBase {
+
+	/**
+	 * 查询营业时间
+	 * @param context
+	 * @param connection
+	 * @param bean
+	 * @return
+	 * @throws SFException
+	 */
+	public LocalInfo qryLocalInfo(Context context,Connection connection) throws SFException{
+		LocalInfo localInfo = null;
+		try{
+		    StringBuffer buffer = new StringBuffer();
+			
+		    buffer.append("SELECT SUBCENTERID AS subCenterId,BANKDATE AS bankDate,LASTBANKDATE AS lastBankDate,NEXTBANKDATE AS nextBankDate,");
+		    buffer.append("SUBCENTERNAME AS subCenterName,SUBCENTERSTATUS AS subCenterStatus,RELNAME AS relName,ADDR AS addr,ZIP AS zip,PHONE AS phone,FAX AS fax,EMAILADDR AS emailAddr,");
+		    buffer.append("MEMO AS memo,LLASTBANKDATE AS lLastBankDate,WORKDATE AS workdate FROM LOCALINFO WHERE 1=1");
+			
+		    localInfo = super.qry(context, connection, buffer.toString(), LocalInfo.class);
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		}finally{
+			if(localInfo != null){
+				localInfo.resetChangedFlag();
+			}
+		}
+	 return localInfo;
+  }
+	
+	public int saveLocalInfo(Context context,Connection connection,LocalInfo bean) throws SFException{
+		int result = 0;
+		try{
+			SFUtil.chkCond(context, SFUtil.isEmpty(bean.getSubCenterId()), "ST4895", "必要参数[SUBCENTERID]没有提供");
+		   
+		    result = super.save(context, connection, bean.getSaveLocalInfoSQLStruct());
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+		} finally{
+			if(bean != null){
+				bean.resetChangedFlag();
+			}
+		}
+	 return result;
+  }
+}

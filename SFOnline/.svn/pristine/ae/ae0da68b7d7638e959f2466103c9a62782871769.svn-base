@@ -1,0 +1,140 @@
+package module.trans.cobank2sf;
+
+import module.bean.AcctDetail;
+import module.bean.AgtCustomerInfo;
+import module.bean.LocalInfo;
+import module.bean.SignAccountData;
+import module.trans.Page;
+import module.trans.TranBase;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.util.BizUtil;
+import common.util.DateUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * （合作行发起) 查询交易明细
+ * tran code :300302
+ * @author ex_kjkfb_zhumingtao
+ *
+ */
+public class T300302 extends TranBase {
+	
+	SignAccountData signAccountData = null;
+	@Override
+	protected void initialize(Context context) throws SFException {
+		BizUtil.setZhongXinSecuCompCode(context);
+	}
+	
+	@Override
+	public void doHandle(Context context) throws SFException {
+		SFLogger.info( context, String.format("qryAcctDetail()开始") );
+		qryAcctDetail(context);	//查询交易明细
+		SFLogger.info( context, String.format("qryAcctDetail()结束") );	
+	}
+
+	@Override
+	public void doHost(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void doSecu(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void chkStart(Context context) throws SFException {
+		SFLogger.info(context,String.format("chkStart()开始"));	
+		String capAcct = SFUtil.getReqDataValue(context, "CAP_ACCT");//证券资金台账号
+		String secCompCode = SFUtil.getReqDataValue(context, "SEC_COMP_CODE");//券商代码
+		String startDate = SFUtil.getReqDataValue(context, "START_DATE");	//开始日期
+		String endDate = SFUtil.getReqDataValue(context, "END_DATE");		//结束日期
+		int days = DateUtil.getBetweenDays(DateUtil.formatToHyphenDate(startDate), DateUtil.formatToHyphenDate(endDate));	
+		
+		try{
+			int result = startDate.compareTo(endDate);	//比较日期大小
+			if(result>0){
+				SFUtil.chkCond(context, "ST4043", "开始日期不能大于结束日期");
+			}
+			if (startDate.length()!=8 || endDate.length()!=8) {
+				SFUtil.chkCond(context, "ST4043", "查询日期长度只能为8位");
+			}
+			if(days>90){
+				SFUtil.chkCond(context, "ST4043", "查询日期跨度不能超过90天");			
+			}		
+			signAccountData = SFUtil.getDataValue( context, SFConst.PUBLIC_SIGN_ACCOUNT_DATA );
+			SFUtil.chkCond(context, signAccountData==null, "ST4785", "签约关系不存在");	
+			
+			AgtCustomerInfo agtCustomerInfo = agtCustomerInfoDao.qryAgtCustomerInfoByCapAcct(context, tranConnection, capAcct,secCompCode);
+			SFUtil.chkCond(context, agtCustomerInfo==null, "ST4377", "该客户不属于该合作行");
+			
+			SFLogger.info(context,String.format("chkStart()结束"));
+		} catch (SFException e){ 
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context,"ST4895",String.format("交易失败",e.getMessage()));
+		}	
+	}
+
+	@Override
+	protected void chkEnd(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void qryAcctDetail(Context context) throws SFException{
+		String capAcct = SFUtil.getReqDataValue(context, "CAP_ACCT");	
+		String curCode = SFUtil.getReqDataValue(context, "CUR_CODE");//币种
+		curCode = SFUtil.isNotEmpty(curCode)?curCode:SFConst.CUR_CODE_RMB;
+		String secCompCode = SFUtil.getReqDataValue(context, "SEC_COMP_CODE");			
+		String startDate = SFUtil.getReqDataValue(context, "START_DATE");
+		String acctId = SFUtil.getReqDataValue(context, "ACCT_ID");//卡号
+		String endDate = SFUtil.getReqDataValue(context, "END_DATE");		//结束日期
+		String strPageNum = SFUtil.getReqDataValue(context, "PAGE_NUM");		//查询页数
+		LocalInfo localInfo = localInfoDao.qryLocalInfo(context, tranConnection);
+		String workDate = localInfo.getBankDate();	//获取营业时间
+		int pageNum=0;
+		try {
+			if(SFUtil.isNotEmpty(strPageNum)){
+				pageNum=Integer.parseInt(strPageNum);
+			}
+			Page<AcctDetail> page=new Page<AcctDetail>(SFConst.SF_PERPAGE_NUM_COBANK,pageNum);
+			page = acctDetailDao.qryAcctDetailInfo(context, tranConnection,startDate,endDate,acctId,capAcct,secCompCode,curCode,workDate,page);	
+			if(page.getPageData()==null||page.getPageData().size()==0){
+				SFUtil.chkCond(context,"ST4069",String.format("查询无记录"));
+			}
+			IndexedCollection indexColl = SFUtil.getDataElement(context, "300302_O_ICOLL");
+			indexColl.clear();
+			SFUtil.setResDataValue(context, "CAP_ACCT", capAcct);
+			SFUtil.setResDataValue(context, "SEC_COMP_CODE", secCompCode);
+			SFUtil.setResDataValue(context, "INV_NAME", signAccountData.getInvName());		
+			SFUtil.setResDataValue( context, "END_FLAG", "Y" );
+			for (AcctDetail acctdetail : page.getPageData()) {
+				//组装返回数据
+				KeyedCollection keyColl = new KeyedCollection();
+				SFUtil.addDataField(context, keyColl, "CUR_CODE", acctdetail.getCurCode());
+				SFUtil.addDataField(context, keyColl, "TX_AMOUNT", String.valueOf(acctdetail.getTxAmount()));
+				SFUtil.addDataField(context, keyColl, "TRADE_TYPE", acctdetail.getBusiTypeCN());
+				SFUtil.addDataField(context, keyColl, "TX_DATE", acctdetail.getTxDate());
+				SFUtil.addDataField(context, keyColl, "INIT_SIDE", acctdetail.getInitSideCN());
+				SFUtil.addDataField(context, keyColl, "ACCT_ID", acctdetail.getAcctId());
+				indexColl.add(keyColl);
+			}
+			SFUtil.setResDataValue( context, "MAC", "520D3647" );
+		} catch (SFException e){
+			throw e;
+		} catch (Exception e ){
+			SFUtil.chkCond(context,"ST4895",String.format("交易失败",e.getMessage()));
+		}	
+	}	
+	
+}

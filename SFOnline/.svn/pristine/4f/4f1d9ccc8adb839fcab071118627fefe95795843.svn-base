@@ -1,0 +1,613 @@
+package core.communication.access.esb;
+
+import java.sql.Connection;
+import java.util.Iterator;
+
+import module.trans.TranHandler;
+
+import com.dc.eai.data.CompositeData;
+import com.dcfs.esb.client.converter.PackUtil;
+import com.ecc.emp.access.tcpip.EMPTCPIPRequest;
+import com.ecc.emp.access.tcpip.EMPTCPIPRequestService;
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPConstance;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.format.FormatElement;
+import com.ecc.emp.transaction.EMPTransactionManager;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.BizUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.communication.format.PBankFormatElement;
+import core.communication.format.paesb.ESBCDFormat;
+import core.log.SFLogger;
+
+/**
+ * EMP提供的TCP/IP渠道接入访问服务的另一种实现。
+ * <p>
+ * 可将EMP业务逻辑构件开放为供TCP/IP渠道接入访问的服务，
+ * 使得通过TCP/IP渠道接入的系统可以通过定义输出输出报文的方式访问EMP的业务处理逻辑。
+ * 与<tt>EMPTCPIPRequestService</tt>不同的是，它不使用报文格式解析器，
+ * 而是固定采用EMP数据模型永久化处理器<tt>DataElementSerializer</tt>对数据进行XML格式打包解包，
+ * 该格式与EMP数据定义一致。
+ * <p>
+ * 可以有一个或多个定义包含在TcpipAccessServletContext配置文件中，参数如下：
+ * <p>
+ * id：HTTP Service的id，通过指定此id对Service进行访问<br>
+ * serviceName：id的等价参数<br>
+ * serviceType：Service访问类型，可选项有session(创建会话)、endSession(结束会话)以及其它(默认，普通请求)<br>
+ * sessionContextName：当serviceType为session时有效，指定要创建会话的业务逻辑Context名称<br>
+ * checkSession：该请求是否检查会话，可选项true(默认)、false<br>
+ * EMPFlowId：该Service对应的EMP业务逻辑构件名<br>
+ * opId：该Service对应的EMP业务逻辑构件中的Operation ID<br>
+ * description：描述信息<br>
+ * encoding：报文体编码<br>
+ * enabled：该Service是否启用，可选项true(默认)、false<br>
+ * 
+ * @author zhongmc
+ * @version 2.1
+ * @since 1.0 2006-12-26
+ * @lastmodified 2008-6-11
+ * @emp:name TCP/IP渠道接入访问服务(DS)
+ * @emp:document EMP提供的TCP/IP渠道接入访问服务，可访问EMP业务逻辑构件
+ */
+public class PBankTCPIPDataSerializerService extends EMPTCPIPRequestService {
+
+	/**
+	 * 该Service对应的TranCode
+	 */
+	protected String tranCode = null;
+	
+	
+	protected String className = null;
+
+	public String getClassName() {
+		return className;
+	}
+
+	public void setClassName(String className) {
+		this.className = className;
+	}
+
+	public String getTranCode() {
+		return tranCode;
+	}
+
+	public void setTranCode(String tranCode) {
+		this.tranCode = tranCode;
+	}
+
+	/**
+	 * 该请求是否先返回应答，然后执行业务逻辑
+	 */
+	protected boolean responseFirst = false;
+
+	/**
+	 * 获得该请求是否先返回应答
+	 * 
+	 * @return 该请求是否先返回应答
+	 */
+	public boolean isResponseFirst() {
+		return responseFirst;
+	}
+
+	/**
+	 * 设置该请求是否先返回应答
+	 * 
+	 * @param responseFirst 该请求是否先返回应答，可选项true(默认)、false
+	 * @emp:isAttribute true
+	 * @emp:name 是否先返回应答
+	 * @emp:desc 该请求是否先返回应答
+	 * @emp:defaultValue false
+	 */
+	public void setResponseFirst(boolean responseFirst) {
+		this.responseFirst = responseFirst;
+	}
+
+	/**
+	 * 该ESB是否写ESB_INFO信息表
+	 */
+	protected boolean isLog = false;
+
+	public boolean getIsLog() {
+		return isLog;
+	}
+
+	public void setIsLog(boolean isLog) {
+		this.isLog = isLog;
+	}
+
+	/**
+	 * 该接口所处理的输入输出KeyedCollection。
+	 */
+	protected String inOutDataArea = null;
+
+	/**
+	 * 注入该接口输入输出的数据区域(KeyedCollection)的名称。
+	 * 
+	 * @param inOutDataArea输入输出的数据区域(KeyedCollection)的名称
+	 */
+	public void setInOutDataArea(String inOutDataArea)
+	{
+		this.inOutDataArea = inOutDataArea;
+	}
+
+	/**
+	 * 获取该接口输入输出的数据区域(KeyedCollection)的名称。
+	 * 
+	 */
+	public String getInOutDataArea()
+	{
+		return this.inOutDataArea;
+	}
+
+	/**
+	 * 该Service对应的EMP业务逻辑构件名
+	 */
+	protected String errBizId = null;
+
+	/**
+	 * 该Service对应的EMP业务逻辑构件中的Operation ID
+	 */
+	protected String errOpId = null;
+
+	/**
+	 * 获得该Service对应的异常处理的业务逻辑构件名。
+	 * 
+	 * @return 异常处理的业务逻辑构件名
+	 */
+	public String getErrBizId() {
+		return errBizId;
+	}
+	
+	/**
+	 * 获得该Service对应的EMP业务逻辑op id。
+	 * 
+	 * @return 业务逻辑op id
+	 */
+	public String getErrOpId() {
+		return errOpId;
+	}
+
+	/**
+	 * 在ESB接入配置文件httpchannel.xml增加连个属性：
+	 * 1：主要是用于判重，属性名可以为：mutexKey：判重关键字，mutexFlag:0交易，1：查询
+	 * 2：根据这个配置公共自动写入ESB_MUTEX_CONTROL表：
+	 *	A：mutexFlag=0处理逻辑：
+	 *	交易时直接插入互斥表，由于该表用于互斥，交易数据插入和查询插入在同一个主键下会产生等待，为了交易超时之后，查询能够尽快返回，避免查询又产生等待超时，交易的插入尽量放到程序快结束的尾部，保证插入之后就将很快提交业务了，该数据与业务数据一起提交。
+	 *	B：mutexFlag=1处理逻辑：
+	 *	B1：插入一条查询记录到互斥表，如果主键重复，返回存在记录，如果插入成功，返回无数据
+	 */
+	protected String mutexKey = null;
+
+	/**
+	 * 判重关键字。
+	 * 
+	 * @return 判重关键字
+	 */
+	public String getMutexKey() {
+		return mutexKey;
+	}
+	
+	/**
+	 * 判重关键字。
+	 * 
+	 * @return 
+	 */
+	public void setMutexKey(String mutexKey) {
+		this.mutexKey = mutexKey;
+	}
+	/**
+	 * mutexFlag:0交易，1：查询
+	 */
+	protected String mutexFlag = null;
+
+	/**
+	 * mutexFlag:0交易，1：查询
+	 * 
+	 * @return mutexFlag:0交易，1：查询
+	 */
+	public String geMutexFlag() {
+		return mutexFlag;
+	}
+	
+	/**
+	 * mutexFlag:0交易，1：查询。
+	 * 
+	 * @return 
+	 */
+	public void setMutexFlag(String mutexFlag) {
+		this.mutexFlag = mutexFlag;
+	}
+
+	/**
+	 * 设置该Service对应的EMP业务逻辑op id。
+	 * 
+	 * @param opId 业务逻辑op id
+	 * @emp:isAttribute true
+	 * @emp:name 业务逻辑op id
+	 * @emp:desc 要开放为HTTP Service的业务逻辑构件中的Operation id
+	 * @emp:mustSet true
+	 */
+	public void setErrOpId(String errOpId) {
+		this.errOpId = errOpId;
+	}
+
+	/**
+	 * 设置该Service对应的异常处理的EMP业务逻辑构件名。
+	 * 
+	 * @param bizId 异常处理业务逻辑构件名
+	 * @emp:isAttribute true
+	 * @emp:name 异常处理业务逻辑构件名
+	 * @emp:desc 要开放为HTTP Service的业务逻辑构件id
+	 * @emp:mustSet true
+	 */
+	public void setErrBizId(String errBizId) {
+		this.errBizId = errBizId;
+	}
+
+
+	/**
+	 * 该Service对应的先返回应答EMP业务逻辑构件名
+	 */
+	protected String finalBizId = null;
+
+	/**
+	 * 该Service对应的先返回应答EMP业务逻辑构件中的Operation ID
+	 */
+	protected String finalOpId = null;
+
+	/**
+	 * 获得该Service对应的先返回应答处理的业务逻辑构件名。
+	 * 
+	 * @return 先返回应答的业务逻辑构件名
+	 */
+	public String getFinalBizId() {
+		return finalBizId;
+	}
+	
+	/**
+	 * 获得该Service对应的先返回应答EMP业务逻辑op id。
+	 * 
+	 * @return 先返回应答业务逻辑op id
+	 */
+	public String getFinalOpId() {
+		return finalOpId;
+	}
+
+	/**
+	 * 设置该Service对应的先返回应答之后的EMP业务逻辑op id。
+	 * 
+	 * @param finalOpId 先返回应答业务逻辑之后的op id
+	 * @emp:isAttribute true
+	 * @emp:name 先返回应答业务逻辑op id
+	 * @emp:desc 要开放为HTTP Service的先返回应答业务逻辑构件中的Operation id
+	 * @emp:mustSet true
+	 */
+	public void setFinalOpId(String finalOpId) {
+		this.finalOpId = finalOpId;
+	}
+
+	/**
+	 * 设置该Service对应的先返回应答处理的EMP业务逻辑构件名。
+	 * 
+	 * @param finalBizId 先返回应答处理业务逻辑构件名
+	 * @emp:isAttribute true
+	 * @emp:name 先返回应答处理业务逻辑构件名
+	 * @emp:desc 要开放为HTTP Service的业务逻辑构件id
+	 * @emp:mustSet true
+	 */
+	public void setFinalBizId(String finalBizId) {
+		this.finalBizId = finalBizId;
+	}
+	
+	public PBankTCPIPDataSerializerService() {
+		super();
+		this.setCheckSession(false);//不检查session
+	}
+
+	
+	
+	
+	/**
+	 * 具体的请求处理实现方法。
+	 * 
+	 * @param request HTTP请求
+	 * @param response HTTP响应
+	 * @param sessionContext Session Context
+	 * @param sessionId SessionId
+	 * @return 返回内容，即打包好的报文体
+	 * @throws EMPException
+	 */
+	
+	@Override
+	public byte[] handleRequest(EMPTCPIPRequest request, Context sessionContext)
+			throws EMPException {
+		Connection connection =null;
+		Context flowContext = null;
+		try {
+			
+			flowContext = SFUtil.getRootContext();
+			
+			if (flowContext.getParent() == null && sessionContext != null)
+				flowContext.chainedTo(sessionContext);
+			
+			/**
+			 * 设置公共上下文值
+			 */
+			connection = DBHandler.getConnection(flowContext);
+			SFUtil.setDataValue(flowContext, SFConst.PUBLIC_TRAN_CONNECTION, connection);
+			
+			//生成定长ID（系统初始流水号16位）
+			String logId=BizUtil.getInitSeqId(flowContext);
+			SFUtil.setDataValue(flowContext, SFConst.PUBLIC_LOG_ID, logId);
+			//交易号
+			SFUtil.setDataValue(flowContext, SFConst.PUBLIC_TX_CODE, tranCode);
+			
+			//发送响应报文标识
+			SFUtil.setDataValue(flowContext, SFConst.PUBLIC_IS_RET_RESP, SFConst.RET_RESP_YES);
+			SFUtil.setDataValue(flowContext, SFConst.PUBLIC_SERVER_ID, this.serviceName);
+			SFLogger.info(flowContext, "ESB请求报文: [" + serviceName + "][" + PackUtil.packXmlStr((CompositeData)request.getAttribute("reqData")) + "]");
+			
+			request.setAttribute(EMPConstance.ATTR_CONTEXT, flowContext);
+			//EMPTransactionManager transactionManager = null;
+			try {
+				//transactionManager = (EMPTransactionManager) flowContext.getService(EMPConstance.TRX_SVC_NAME);
+				DBHandler.beginTransaction(flowContext, connection);
+				//设置调整class
+				flowContext.addDataField("CLASS_NAME", className);
+				SFUtil.setDataValue(flowContext, SFConst.PUBLIC_TX_CODE, tranCode);
+				updateModel(request,flowContext);
+				//私有处理逻辑
+				TranHandler.doHandle(flowContext);
+				
+				/**
+				 * 在ESB接入配置文件httpchannel.xml增加连个属性：
+				 * 1：主要是用于判重，属性名可以为：mutexKey：判重关键字，mutexFlag:0交易，1：查询
+				 * 2：根据这个配置公共自动写入ESB_MUTEX_CONTROL表：
+				 *	A：mutexFlag=0处理逻辑：
+				 *	交易时直接插入互斥表，由于该表用于互斥，交易数据插入和查询插入在同一个主键下会产生等待，为了交易超时之后，查询能够尽快返回，避免查询又产生等待超时，交易的插入尽量放到程序快结束的尾部，保证插入之后就将很快提交业务了，该数据与业务数据一起提交。
+				 *	B：mutexFlag=1处理逻辑：
+				 *	B1：插入一条查询记录到互斥表，如果主键重复，返回存在记录，如果插入成功，返回无数据
+				 */
+				// commit the
+				// transaction if exist
+//				if (transactionManager != null)
+//					transactionManager.commit();
+				DBHandler.commitTransaction(flowContext, connection);
+				String retMsg = this.getResponseMessage(request, flowContext);
+//				SFLogger.info(flowContext,"EMPHTTPService [" + serviceName + "] received, return :" + retMsg);
+
+				return retMsg.getBytes();
+
+			} catch (Exception e) {
+//				if (transactionManager != null)
+//					transactionManager.rollback();
+				DBHandler.rollBackTransaction(flowContext, connection);
+				
+				/* 
+				 * 失败调用异常返回方法
+				 */
+				SFLogger.error(flowContext,"ESB异常: [" + serviceName + "] cause exception, call error class:[" + className + "]",e);
+				String retMsg = this.getExceptionResponseMessage(request,flowContext,e);
+				
+//				if (transactionManager != null)
+//					transactionManager.commit();
+				DBHandler.commitTransaction(flowContext, connection);
+//				SFLogger.info(flowContext,"ESB异常返回报文： [" + serviceName + "] received, return :" + retMsg);
+				return retMsg.getBytes();
+			
+			}
+		} catch (EMPException ee) {
+			throw ee;
+		} catch (Exception e) {
+			throw new EMPException("Failed to process http service " + this.toString(), e);
+		} finally {
+			//Context context = (Context)request.getAttribute(EMPConstance.ATTR_CONTEXT);//关闭连接
+			DBHandler.releaseConnection(flowContext, connection);			
+		}
+	}
+
+	
+	
+	/**
+	 * 使用请求数据更新数据模型。
+	 * <p>
+	 * 使用EMP数据模型永久化处理器<tt>DataElementSerializer</tt>将请求报文转换成数据。
+	 * 
+	 * @param request HTTP请求
+	 * @param response HTTP响应
+	 * @param context 交易上下文
+	 * @param dataElementDef input定义
+	 * @throws EMPException
+	 */
+	public void updateModel(EMPTCPIPRequest request,
+			Context context) throws EMPException{
+		
+		CompositeData reqCD = (CompositeData) request.getAttribute("reqData");
+		if (reqCD == null)
+			return;
+		
+		try {
+			initPubMsgHead(0,context);
+			FormatElement esbHeadFormat = context.getFormat("PAESBHEAD_I");
+			esbHeadFormat.unFormat(reqCD, context);
+			
+			// 处理请求数据
+			String svcId = (String) request.getAttribute("serviceId");
+			FormatElement msgFormat = context.getFormat(svcId + "_I");
+			
+			msgFormat.unFormat(reqCD, context);	
+			
+			updatePBankPublicData(context);
+			
+			//输出增加到context
+			FormatElement outMsgFormat = context.getFormat(svcId + "_O");
+			ESBCDFormat outMsg = (ESBCDFormat) outMsgFormat.getFormatElement();
+			
+			outMsg.addFormatToContext(context);			
+			
+//			SFLogger.info(context,"EMPHTTPService [" + serviceName + "] received, return :" );
+		}
+		catch (EMPException e) {
+			throw e;
+//			throw new EMPException("反格式化报文失败!", e);
+		}
+		catch (Exception e) {
+//			throw new SFException("PHTTPO001", "反格式化报文失败!", e);
+			throw new SFException(e);
+		}
+	}
+	
+	/**
+	 * 获得返回报文体。
+	 * <p>
+	 * 
+	 * @param request HTTP请求
+	 * @param response HTTP响应
+	 * @param context 交易上下文
+	 * @param dataElement output定义
+	 * @return 返回报文体
+	 * @throws Exception
+	 */
+	protected String getResponseMessage(EMPTCPIPRequest request,
+			Context context) throws Exception {
+		
+		initPubMsgHead(1,context);
+		context.setDataValue("SYS_HEAD.RET_STATUS", "S");	
+		
+		//String retCode = (String)context.getDataValue("RET.RET_CODE");
+		//String retMsg = (String)context.getDataValue("RET.RET_MSG");
+		String retCode = SFUtil.getDataValue(context,SFConst.CTX_ERRCODE);
+		String retMsg =  SFUtil.getDataValue(context,SFConst.CTX_ERRMSG);
+		if(SFConst.RESPCODE_SUCCCODE.equals(retCode)||SFUtil.isEmpty(retCode)){
+			context.setDataValue("RET.RET_CODE", SFConst.RESPCODE_SUCCCODE_ESB);
+			context.setDataValue("RET.RET_MSG", SFUtil.isEmpty(retMsg)?"交易成功":retMsg);
+		}else{
+			context.setDataValue("RET.RET_CODE", retCode);
+			context.setDataValue("RET.RET_MSG", retMsg);
+			
+		}
+		
+		
+		
+		FormatElement respHeadFormat = context.getFormat("PAESBHEAD_O");
+		PBankFormatElement headFormat = (ESBCDFormat)respHeadFormat.getFormatElement();
+		CompositeData responseHeadCD = (CompositeData)headFormat.format(context);
+		
+//		if(!SFConst.RESPCODE_SUCCCODE_ESB.equals(SFUtil.getDataValue(context, "RET.RET_CODE"))){
+//			return PackUtil.packXmlStr(responseHeadCD);
+//		}
+		
+		
+		String svcId = (String) request.getAttribute("serviceId");
+		FormatElement msgFormat = context.getFormat(svcId + "_O");
+		PBankFormatElement cdFormat = (ESBCDFormat)msgFormat.getFormatElement();
+		CompositeData responseCD = (CompositeData)cdFormat.format(context);
+		
+		if(responseCD!=null){
+			Iterator ir = responseCD.iterator();
+			while(ir.hasNext()){
+				String key = (String)ir.next();
+				CompositeData cd = responseCD.getStruct(key);
+				responseHeadCD.addStruct(key, cd);
+				
+			}
+		}
+		return PackUtil.packXmlStr(responseHeadCD);
+	}
+	
+	
+	
+	/**
+	 * 获得异常返回报文体。
+	 * <p>
+	 * 
+	 * @param request HTTP请求
+	 * @param response HTTP响应
+	 * @param context 交易上下文
+	 * @param dataElement output定义
+	 * @return 返回报文体
+	 * @throws Exception
+	 */
+	protected String getExceptionResponseMessage(EMPTCPIPRequest request,
+			Context context,Exception e) throws Exception {
+		initPubMsgHead(1,context);		
+		context.setDataValue("SYS_HEAD.RET_STATUS", "F");
+		
+		if(e instanceof SFException){
+			SFException sfe = (SFException)e;
+			String errorCode = sfe.getErrorCode();
+			
+			context.setDataValue("RET.RET_CODE", errorCode);
+			if(SFUtil.isEmpty(sfe.getMessage())){
+				context.setDataValue("RET.RET_MSG", "交易失败");
+			}else{
+				context.setDataValue("RET.RET_MSG",sfe.getMessage());
+			}
+		}else{
+			context.setDataValue("RET.RET_CODE", SFConst.RESPCODE_FAILCODE_ESB);
+			context.setDataValue("RET.RET_MSG",SFUtil.isNotEmpty(e.getMessage())?e.getMessage():"交易失败");
+			
+		}
+		
+		FormatElement respHeadFormat = context.getFormat("PAESBHEAD_O");
+		PBankFormatElement headFormat = (ESBCDFormat)respHeadFormat.getFormatElement();
+		CompositeData responseHeadCD = (CompositeData)headFormat.format(context);
+		return PackUtil.packXmlStr(responseHeadCD);
+	}
+	
+	
+	/**
+	 * 初始化ESB公共报文头内容。
+	 * 
+	 */
+	public void initPubMsgHead(int type,Context context) throws Exception
+	{
+		String[] tmpStrings = null;
+		String tmpName = null;
+		
+		for (int i = 0; i < 5; i++) {
+			context.remove("_ESB_PARAM_" + i);
+			context.addDataField("_ESB_PARAM_" + i, "");
+		}
+		
+		
+		if (type == 0) {
+			//添加_ESB_HEAD公共KCOLL
+			context.addDataElement(SFUtil.getTemplateKColl(context, "SYS_HEAD"));
+			context.addDataElement(SFUtil.getTemplateKColl(context, "APP_HEAD"));
+			context.addDataElement(SFUtil.getTemplateKColl(context, "RET"));
+			
+//			//添加_ESB_HEAD公共KCOLL
+//			context.addDataElement(SFUtil.getTemplateKColl(context, "_ESB_HEAD"));
+			
+			//输入参数初始化
+			tmpName = "SYS_HEAD;APP_HEAD;;";
+			
+		}
+		else {
+			//输出参数初始化
+			tmpName = "SYS_HEAD;RET;APP_HEAD;";
+		}
+		tmpStrings = tmpName.split(";");
+
+		for (int i = 0; i < tmpStrings.length; i++) {
+			context.remove("_ESB_PARAM_" + i);
+			context.addDataField("_ESB_PARAM_" + i, tmpStrings[i]);
+		}
+		
+	}
+	
+	/**
+	 * 根据PBank交易定义将PBank的国际收支，传票，费用，工作流等公共数据更新到Context中。
+	 * @param request HTTP请求
+	 * @param context 交易上下文
+	 */
+	private void updatePBankPublicData(Context context) throws EMPException {
+
+	}
+
+}

@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+	<appender name="ASYNC" class="org.apache.log4j.AsyncAppender">
+		<appender-ref ref="LOGFILE" />
+		<appender-ref ref="STDOUT" />
+	</appender>
+
+	<appender name="LOGFILE" class="core.log.SFDailyRollingFileAppender">
+		<param name="File" value="${SF.LOGPATH}/000000.log" />
+		<param name="Append" value="true" />
+		<param name="MaxFileSize" value="500MB" />
+		<param name="MaxBackupIndex" value="-1" />
+		<param name="DatePattern" value="'.'yyyy-MM-dd" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[%d{yyyy-MM-dd HH:mm:ss,SSS}%m%n" />
+		</layout>
+	</appender>
+
+	<appender name="STDOUT" class="org.apache.log4j.ConsoleAppender">
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="[%d{yyyy-MM-dd HH:mm:ss,SSS}%m%n" />
+		</layout>
+	</appender>
+
+	<category name="Factory">
+		<priority value="info" />
+	</category>
+
+	<category name="CTP">
+		<priority value="info" />
+	</category>
+
+	<category name="->CORE">
+		<priority value="info" />
+	</category>
+
+	<category name="->CS">
+		<priority value="info" />
+	</category>
+
+	<category name="->HTML">
+		<priority value="info" />
+	</category>
+
+	<category name="->CICS">
+		<priority value="info" />
+	</category>
+
+	<category name="->MQ">
+		<priority value="info" />
+	</category>
+
+	<category name="->GUIB">
+		<priority value="info" />
+	</category>
+
+	<category name="->DWESK">
+		<priority value="info" />
+	</category>
+
+	<category name="->AUTO">
+		<priority value="info" />
+	</category>
+
+	<category name="->EVMG">
+		<priority value="info" />
+	</category>
+
+	<category name="->FPRT">
+		<priority value="info" />
+	</category>
+
+	<category name="->SMPL">
+		<priority value="info" />
+	</category>
+
+	<category name="->CSES">
+		<priority value="info" />
+	</category>
+
+	<category name="->DBCON">
+		<priority value="info" />
+	</category>
+
+	<category name="->EJBACC">
+		<priority value="info" />
+	</category>
+
+	<category name="->JSPT">
+		<priority value="info" />
+	</category>
+
+	<category name="->MONITOR">
+		<priority value="info" />
+	</category>
+
+	<category name="->SESSCHECK">
+		<priority value="info" />
+	</category>
+
+	<category name="->TCPIP">
+		<priority value="info" />
+	</category>
+
+	<category name="->unAssigned">
+		<priority value="info" />
+	</category>
+
+	<category name="unAssigned">
+		<priority value="info" />
+	</category>
+
+	<category name="FLOW">
+		<priority value="info" />
+	</category>
+
+	<category name="FBSModelUpdater">
+		<priority value="debug" />
+	</category>
+
+	<category name="Transaction">
+		<priority value="error" />
+	</category>
+
+	<category name="EMPJDBC">
+		<priority value="info" />
+	</category>
+
+	<category name="FlowEnd">
+		<priority value="debug" />
+	</category>
+	
+	<category name="UTANLOG">
+		<priority value="info" />
+	</category>
+
+	<root>
+		<priority value="info" />
+		<appender-ref ref="ASYNC" />
+	</root>
+
+</log4j:configuration>

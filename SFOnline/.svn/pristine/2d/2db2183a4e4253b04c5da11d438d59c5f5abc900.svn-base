@@ -1,0 +1,87 @@
+package module.cache;
+
+import java.sql.Connection;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+
+import core.cache.CacheHandler;
+import core.cache.CacheMap;
+import core.communication.access.esb.ESBAccessParam;
+import core.communication.access.esb.SFAccessParam;
+import core.communication.access.stzsecu.SZTAccessParam;
+import core.log.SFLogger;
+/**
+ * 缓存结果映射类
+ * @author 汪华
+ *
+ */
+public class CacheSetting extends CacheHandler{
+	private SFLogger logger=SFLogger.getLogger("000000");
+
+	public void init(Context context,Connection connection) throws SFException {
+		logger.info("初始化-缓存结果映射开始");
+		/*
+		 * SZT通信IP及用户名与密码预设
+		 */
+		/*
+		 * A股
+		 */
+		String sztRecvApp=ParamCache.getValue2("SZT","RECV_SZT_APP_ID");//A股深证通应用标识
+		String sztUserId=ParamCache.getValue2("SZT","SZT_USER_ID");//A股深证通用户号
+		String sztPwd=ParamCache.getValue2("SZT","PWD");//A股客户端密码
+		String sztLocalApp=ParamCache.getValue2("SZT","LOCAL_APP_ID");//A股存管应用标识
+		String sztLocalDestUserId=ParamCache.getValue2("SZT","LOCAL_DEST_USER_ID");//A股存管用户号
+		String sztMrIp=ParamCache.getValue2("SZT","SZT_MR_IP");//A股接入客户端消息路由器的IP地址
+		String sztMrPort=ParamCache.getValue2("SZT","SZT_MR_PORT");//A股接入客户端消息路由器的连接端口
+		String sztMrIpBak=ParamCache.getValue2("SZT","SZT_MR_IP_BAK");//A股备用消息路由器的IP 地址
+		String sztMrPortBak=ParamCache.getValue2("SZT","SZT_MR_PORT_BAK");//A股备用消息路由器的连接端口
+		String sztSendApp=ParamCache.getValue2("SZT","SEND_SZT_APP_ID");//A股目标应用的应用标识
+		String sztDllPath=ParamCache.getValue2("SZT","SZT_DLL_PATH");//A股深证通动态链接库路径
+		SZTAccessParam sztParam=new SZTAccessParam();
+		sztParam.setRecvApp(sztRecvApp);
+		sztParam.setUserId(sztUserId);
+		sztParam.setPwd(sztPwd);
+		sztParam.setLocalApp(sztLocalApp);
+		sztParam.setLocalDestUserId(sztLocalDestUserId);
+		sztParam.setMrIp(sztMrIp);
+		sztParam.setMrPort(Short.parseShort(sztMrPort));
+		sztParam.setMrIpBak(sztMrIpBak);
+		sztParam.setMrPortBak(Short.parseShort(sztMrPortBak));
+		sztParam.setSendApp(sztSendApp);
+		sztParam.setDllPath(sztDllPath);
+		CacheMap.putCache("SZT_ACCESS_PARAM", sztParam);
+		
+		/*
+		 * ESB
+		 */
+		String esbIp=ParamCache.getValue2("ESB","ESB_IP");//A股ESB地址
+		String esbPort=ParamCache.getValue2("ESB","ESB_PORT");//A股ESB端口
+		String esbTimeOut=ParamCache.getValue2("ESB","TIME_OUT");//A股ESB超时时间
+		ESBAccessParam esbParam=new ESBAccessParam();
+		esbParam.setEsbIp(esbIp);
+		esbParam.setEsbPort(esbPort);
+		esbParam.setEsbTimeOut(Integer.parseInt(esbTimeOut));
+		CacheMap.putCache("ESB_ACCESS_PARAM", esbParam);
+		
+		
+		
+		/*
+		 * ESB
+		 */
+		String SFIp=ParamCache.getValue2("SF_SYS","SFBATCH_IP");//A股ESB地址
+		String SFPort=ParamCache.getValue2("SF_SYS","SFBATCH_PORT");//A股ESB端口
+		String SFTimeOut=ParamCache.getValue2("SF_SYS","SFBATCH_TIME_OUT");//A股ESB超时时间
+		SFAccessParam SFParam=new SFAccessParam();
+		SFParam.setSFIp(SFIp);
+		SFParam.setSFPort(SFPort);
+		SFParam.setSFTimeOut(Integer.parseInt(SFTimeOut));
+		CacheMap.putCache("SF_ACCESS_PARAM", SFParam);
+		
+		logger.info("初始化-缓存结果映射结束");
+	}
+
+	public void refresh(Context context,Connection connection) throws SFException {
+		
+	}
+}

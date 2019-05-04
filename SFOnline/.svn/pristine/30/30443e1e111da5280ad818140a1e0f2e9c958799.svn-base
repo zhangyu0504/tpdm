@@ -1,0 +1,441 @@
+package core.log;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.BizUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+/**
+ * 交易日志对象
+ * @author 汪华
+ *
+ */
+public class SFLogger {
+	private Logger logger=null;
+	private static final Map<String,SFLogger> instanceMap=new HashMap<String,SFLogger>();
+	/**
+	 * 日志级别 DEBUG/ERROR/INFO
+	 */
+	private static final String DEBUG="0";//debug
+	private static final String INFO="1";//info
+	private static final String ERROR="2";//error
+	
+
+	/**
+	 * 根据名称获取日志配置
+	 * @param name 日志名称
+	 * @param logLevel 日志级别
+	 * @return
+	 */
+	private SFLogger(String txCode,Level logLevel) {
+		// 生成新的Logger 如果已經有了一個Logger实例返回現有的
+		logger = Logger.getLogger(txCode);
+		// 清空Appender。特別是不想使用现存实例时一定要初期化
+		logger.removeAllAppenders();
+		// 设置Logger級別,这里从数据库缓存配置中获取
+		logger.setLevel(logLevel);
+		// 设置是否继承父Logger:1、默认true继承root輸出;2、设置false后将不输出root。
+		logger.setAdditivity(false);
+		
+		/*
+		 * 生成新的Appender
+		 */
+		SFDailyRollingFileAppender appender = new SFDailyRollingFileAppender();
+		appender.setDatePattern("'.'yyyy-MM-dd");
+		//FileAppender appender = new RollingFileAppender();
+		//输出形式对象
+		PatternLayout layout = new PatternLayout();
+		// log的输出形式
+		String conversionPattern ="[%d{yyMMdd HH:mm:ss,SSS}|%-5p%m%n";
+		layout.setConversionPattern(conversionPattern);
+		appender.setLayout(layout);
+		// log输出路径
+		String logFilePath = BizUtil.getLogPath();
+		//设置文件路径
+		appender.setFile(logFilePath + "/" + txCode + ".log");
+		//设置时时日志输出，以缓存输出日志会出现日志丢失
+		appender.setBufferedIO(false);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+		//设置日志缓存大小8K=8192;16K=16384
+		appender.setBufferSize(8192);
+		//设置备份文件最大化（不设置将会每天最多只会有一个备份文件）
+		appender.setMaxBackupIndex(-1);
+		//设置日志分文件
+		appender.setMaxFileSize("500MB");
+		//设置日志为异步
+		// log的文字码
+		appender.setEncoding(SFConst.SYS_GBK);
+		// true:在已存在log文件后面追加 false:新log覆盖以前的log
+		appender.setAppend(true);
+		// 适用当前配置
+		appender.activateOptions();
+		logger.addAppender(appender);
+		
+//		//异步日志
+//		AsyncAppender asAppender =new AsyncAppender();
+//		asAppender.setBufferSize(16384);
+//		asAppender.addAppender(appender);
+//		asAppender.activateOptions();
+//		logger.addAppender(asAppender);
+
+//		/*
+//		 * 设置控制台日志输出
+//		 */
+//		ConsoleAppender consAppender=new ConsoleAppender();
+//		consAppender.setLayout(layout);
+//		consAppender.setTarget("System.out");
+//		// log的文字码
+//		consAppender.setEncoding(SFConst.SYS_GBK);
+//		// 适用当前配置
+//		consAppender.activateOptions();
+//		// 将新的Appender加到Logger中
+//		logger.addAppender(consAppender);
+	}
+	/**
+	 * 获取所有日志对象
+	 */
+	public static synchronized Map<String,SFLogger> getInstanceMap(){
+		return instanceMap;
+	}
+	
+	private static synchronized SFLogger getInstance(String logName){
+		if(!instanceMap.containsKey(logName)){
+			Level level=null;
+			try {
+				String logLevel =BizUtil.getLogLevel(logName);
+				// 获取当前业务交易码
+				if (DEBUG.equals(logLevel)) {
+					level=Level.DEBUG;
+				}else if (INFO.equals(logLevel)) {
+					level=Level.INFO;
+				}else if (ERROR.equals(logLevel)) {
+					level=Level.ERROR;
+				}
+			} catch (SFException e) {
+				e.printStackTrace();
+			}
+			if(level==null){
+				level=Level.DEBUG;
+			}
+			SFLogger logger=new SFLogger(logName,level);
+			instanceMap.put(logName,logger);
+		}
+		return instanceMap.get(logName);		
+	}
+	
+	/**
+	 * 获取日志对象
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	public static SFLogger getLogger(Context context){
+		//获取当前业务交易码
+		String txCode=null;
+		try {
+			txCode = SFUtil.getDataValue(context, SFConst.PUBLIC_TX_CODE);
+		} catch (SFException e) {
+			//e.printStackTrace();
+		}
+		return getLogger(txCode);
+	}
+	/**
+	 * 获取日志对象
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 */
+	public static SFLogger getLogger(String txCode){
+		//获取当前业务交易码
+		if(SFUtil.isEmpty(txCode)){
+			 txCode="000000";
+		}
+		return getInstance(txCode);
+	}
+
+
+	/**
+	 * debug
+	 * @param context
+	 * @param message
+	 * @param e
+	 */
+	public void debug(Object message){
+		String logMsg="]";
+		if(message!=null){
+			logMsg="]"+message.toString();
+		}
+		logger.debug(logMsg);
+	}
+
+	/**
+	 * trace
+	 * @param context
+	 * @param message
+	 * @param e
+	 */
+	public void trace(Object message){
+		String logMsg="]";
+		if(message!=null){
+			logMsg="]"+message.toString();
+		}
+		logger.trace(logMsg);
+	}
+
+	/**
+	 * info
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public void info(Object message){
+		String logMsg="]";
+		if(message!=null){
+			logMsg="]"+message.toString();
+		}
+		logger.info(logMsg);		
+	}
+
+	/**
+	 * error
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public void error(String message,Throwable exception){
+		String logMsg="]";
+		if(message!=null){
+			logMsg="]"+message.toString();
+		}
+		if(exception==null)
+			logger.error(logMsg);
+		else
+			logger.error(logMsg,exception);
+	}
+
+	/**
+	 * error
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public void error(String message){
+		error(message,null);
+	}
+	
+	
+	/**
+	 * fatal
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public void fatal(Object message){
+		String logMsg="]";
+		if(message!=null){
+			logMsg="]"+message.toString();
+		}
+		logger.fatal(logMsg);
+	}
+	
+
+	/**
+	 * debug
+	 * @param context
+	 * @param message
+	 * @param e
+	 */
+	public void debug(String logId,Object message){
+		String logMsg="";
+		if(SFUtil.isEmpty(logId)){
+			if(message!=null){
+				logMsg="]"+message.toString();
+			}else{
+				logMsg="]";
+			}
+		}else{
+			if(message!=null){
+				logMsg="|"+logId+"]"+message.toString();
+			}else{
+				logMsg="|"+logId+"]";
+			}		
+		}
+		logger.debug(logMsg);
+	}
+
+	/**
+	 * info
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public void info(String logId,Object message){
+		String logMsg="";
+		if(SFUtil.isEmpty(logId)){
+			if(message!=null){
+				logMsg="]"+message.toString();
+			}else{
+				logMsg="]";
+			}
+		}else{
+			if(message!=null){
+				logMsg="|"+logId+"]"+message.toString();
+			}else{
+				logMsg="|"+logId+"]";
+			}		
+		}
+		logger.info(logMsg);
+	}
+
+	/**
+	 * error
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public void error(String logId,Object message,Throwable exception){
+		//获取当前业务交易流水
+		String logMsg="";
+		if(SFUtil.isEmpty(logId)){
+			if(message!=null){
+				logMsg="]"+message.toString();
+			}else{
+				logMsg="]";
+			}
+		}else{
+			if(message!=null){
+				logMsg="|"+logId+"]"+message.toString();
+			}else{
+				logMsg="|"+logId+"]";
+			}		
+		}
+		if(exception==null)
+			logger.error(logMsg);
+		else
+			logger.error(logMsg,exception);
+	}
+	
+	
+	/**
+	 * debug
+	 * @param context
+	 * @param message
+	 * @param e
+	 */
+	public static void debug(Context context,Object message){
+		//获取当前业务交易流水
+		String logId=null;
+		try {
+			logId = SFUtil.getDataValue(context, SFConst.PUBLIC_LOG_ID);
+		} catch (SFException e) {
+			e.printStackTrace();
+		}
+		SFLogger.getLogger(context).debug(logId,message);
+	}
+
+	/**
+	 * error
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public static void error(Context context,Object message,Throwable exception){
+		//获取当前业务交易流水
+		String logId=null;
+		try {
+			logId = SFUtil.getDataValue(context, SFConst.PUBLIC_LOG_ID);
+		} catch (SFException e) {
+			e.printStackTrace();
+		}
+		SFLogger.getLogger(context).error(logId,message,exception);
+	}
+	
+	/**
+	 * error
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public static void error(Context context,Throwable exception){
+		error( context, null,exception);
+	}
+	
+	/**
+	 * error
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public static void error(Context context,Object message){
+		error( context, message,null);
+	}
+
+	/**
+	 * info
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public static void info(Context context,Object message){
+		//获取当前业务交易流水
+		String logId=null;
+		try {
+			logId = SFUtil.getDataValue(context, SFConst.PUBLIC_LOG_ID);
+		} catch (SFException e) {
+			e.printStackTrace();
+		}
+		SFLogger.getLogger(context).info(logId,message);
+	}
+	
+	
+	/**
+	 * debug
+	 * @param context
+	 * @param message
+	 * @param e
+	 */
+	public static void debug(String txCode,String logId,Object message){
+		SFLogger.getLogger(txCode).debug(logId,message);
+	}
+
+	/**
+	 * info
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public static void info(String txCode,String logId,Object message){
+		SFLogger.getLogger(txCode).info(logId,message);
+	}
+
+	/**
+	 * error
+	 * @param tranxCode
+	 * @param logMsg
+	 * @param e
+	 */
+	public static void error(String txCode,String logId,String message,Throwable exception){
+		SFLogger.getLogger(txCode).error(logId,message,exception);
+	}
+	
+	
+	
+	
+	
+	public static void main(String[] args){
+		long start=System.currentTimeMillis();
+		for(int i=0;i<100000;i++){
+			SFLogger.error("000001","201708080001","debug",null);
+		}
+		long end=System.currentTimeMillis();
+		SFLogger.error("000001","201708080001",">>>"+String.valueOf(end-start),null);
+		
+		
+	}
+}

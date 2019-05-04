@@ -1,0 +1,2127 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+<formats.xml>
+	<fmtDef id="PAESBHEAD_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="SYS_HEAD" dataName="$(_ESB_PARAM_0)" opCtx="true">				
+				<ESBField esbLen="30" len="30" id="SERVICE_CODE" dataName="SERVICE_CODE" constant="true" value="11003000003" />
+				<ESBField esbLen="6" len="6" id="CONSUMER_ID" dataName="CONSUMER_ID" constant="true" value="429696" />
+				<ESBField esbLen="2" len="2" id="SERVICE_SCENE" dataName="SERVICE_SCENE" constant="true" value="47" />
+
+				<!--<ESBField esbLen="4" len="4" id="MODULE_ID" dataName="MODULE_ID" />
+				--><ESBField esbLen="8" len="8" id="PROGRAM_ID" dataName="PROGRAM_ID" />
+				<ESBField esbLen="52" len="52" id="CONSUMER_SEQ_NO"	dataName="CONSUMER_SEQ_NO" />
+				<!--<ESBField esbLen="30" len="30" id="CONSUMER_SVR_ID"	dataName="CONSUMER_SVR_ID" />
+				--><ESBField esbLen="30" len="30" id="WS_ID" dataName="WS_ID" />
+				<ESBField esbLen="8" len="8" id="TRAN_DATE" dataName="TRAN_DATE" />
+				<ESBField esbLen="9" len="9" id="TRAN_TIMESTAMP" dataName="TRAN_TIMESTAMP" />
+				<!--<ESBField esbLen="20" len="20" id="USER_LANG" dataName="USER_LANG" />
+				--><ESBField esbLen="512" len="512" id="FILE_PATH" dataName="FILE_PATH" />
+			</ESBCD>
+			<ESBCD id="APP_HEAD" dataName="$(_ESB_PARAM_1)" opCtx="true">
+				<ESBField esbLen="9" len="9" id="BRANCH_ID" dataName="BRANCH_ID" />
+				<ESBField esbLen="30" len="30" id="USER_ID" dataName="USER_ID" />
+				<ESBField esbLen="30" len="30" id="USER_PASSWORD" dataName="USER_PASSWORD" />
+				<ESBField esbLen="2" len="2" id="USER_LEVEL" dataName="USER_LEVEL" />
+				<ESBField esbLen="2" len="2" id="USER_TYPE" dataName="USER_TYPE" />
+				<ESBField esbLen="1" len="1" id="APPR_FLAG" dataName="APPR_FLAG" />
+				<!--<ESBArray id="APPR_USER_ID_ARRAY" dataName="$(_ESB_PARAM_2)" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="30" len="30" id="APPR_USER_ID" dataName="APPR_USER_ID" />
+						<ESBField esbLen="2" len="2" id="APPR_USER_LEVEL" dataName="APPR_USER_LEVEL" />
+						<ESBField esbLen="2" len="2" id="APPR_USER_TYPE" dataName="APPR_USER_TYPE" />
+					</ESBCD>
+				</ESBArray>
+				-->
+				<ESBField esbLen="1" len="1" id="AUTH_FLAG" dataName="AUTH_FLAG" />
+				<!--<ESBArray id="AUTH_USER_ID_ARRAY" dataName="$(_ESB_PARAM_3)" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="30" len="30" id="AUTH_USER_ID" dataName="AUTH_USER_ID" />
+						<ESBField esbLen="30" len="30" id="AUTH_PASSWORD" dataName="AUTH_PASSWORD" />
+						<ESBField esbLen="2" len="2" id="AUTH_LEVEL" dataName="AUTH_LEVEL" />
+						<ESBField esbLen="2" len="2" id="AUTH_TYPE" dataName="AUTH_TYPE" />
+					</ESBCD>
+				</ESBArray>-->
+				<ESBField esbLen="52" len="52" id="BIZ_SEQ_NO" dataName="BIZ_SEQ_NO" />
+				<ESBField esbLen="8" len="8" id="REVERSAL_DATE" dataName="REVERSAL_DATE" />
+				<ESBField esbLen="42" len="42" id="REVERSAL_SEQ_NO" dataName="REVERSAL_SEQ_NO" />
+				<ESBField esbLen="256" len="256" id="QUERY_KEY" dataName="QUERY_KEY" />
+				<ESBField esbLen="1" len="1" id="PGUP_OR_PGDN" dataName="PGUP_OR_PGDN" />
+				<ESBField esbLen="3" len="3" id="PER_PAGE_NUM" dataName="PER_PAGE_NUM" />
+				<ESBField esbLen="1" len="1" id="TRANT_FLAG" dataName="TRANT_FLAG" />
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+
+	<fmtDef id="PAESBHEAD_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="SYS_HEAD" dataName="$(_ESB_PARAM_0)" opCtx="true">
+				<ESBField esbLen="30" len="30" id="SERVICE_CODE" dataName="SERVICE_CODE" />
+				<ESBField esbLen="6" len="6" id="CONSUMER_ID" dataName="CONSUMER_ID" />
+				<ESBField esbLen="2" len="2" id="SERVICE_SCENE" dataName="SERVICE_SCENE" />
+<!--				<ESBField esbLen="4" len="4" id="MODULE_ID" dataName="MODULE_ID" />-->
+				<ESBField esbLen="52" len="52" id="ESB_SEQ_NO" dataName="ESB_SEQ_NO" />
+				<ESBField esbLen="8" len="8" id="PROGRAM_ID" dataName="PROGRAM_ID" />
+				<ESBField esbLen="52" len="52" id="CONSUMER_SEQ_NO"	dataName="CONSUMER_SEQ_NO" />
+				<ESBField esbLen="30" len="30" id="CONSUMER_SVR_ID"	dataName="CONSUMER_SVR_ID" />
+				<ESBField esbLen="30" len="30" id="WS_ID" dataName="WS_ID" />
+				<ESBField esbLen="8" len="8" id="TRAN_DATE" dataName="TRAN_DATE" /><!--200301/200102/200103对私客户用到-->
+				<!--<ESBField esbLen="9" len="9" id="TRAN_TIMESTAMP" dataName="TRAN_TIMESTAMP" />
+					**200200注释**-->
+<!--				<ESBField esbLen="20" len="20" id="USER_LANG" dataName="USER_LANG" />-->
+				<ESBField esbLen="512" len="512" id="FILE_PATH" dataName="FILE_PATH" />
+				<ESBField esbLen="1" len="1" id="RET_STATUS" dataName="RET_STATUS" />
+				<ESBArray id="RET" dataName="$(_ESB_PARAM_1)" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="30" len="30" id="RET_CODE" dataName="RET_CODE" />
+						<ESBField esbLen="512" len="512" id="RET_MSG" dataName="RET_MSG" />
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>
+			
+			<ESBCD id="APP_HEAD" dataName="$(_ESB_PARAM_2)" opCtx="true">
+				<ESBField esbLen="9" len="9" id="BRANCH_ID" dataName="BRANCH_ID" />
+				<ESBField esbLen="30" len="30" id="USER_ID" dataName="USER_ID" />
+				<ESBField esbLen="30" len="30" id="USER_PASSWORD" dataName="USER_PASSWORD" />
+				<ESBField esbLen="2" len="2" id="USER_LEVEL" dataName="USER_LEVEL" />
+				<ESBField esbLen="2" len="2" id="USER_TYPE" dataName="USER_TYPE" />
+				<ESBField esbLen="1" len="1" id="APPR_FLAG" dataName="APPR_FLAG" />
+				<!--<ESBArray id="APPR_USER_ID_ARRAY" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="30" len="30" id="APPR_USER_ID" dataName="APPR_USER_ID" />
+						<ESBField esbLen="2" len="2" id="APPR_USER_LEVEL" dataName="APPR_USER_LEVEL" />
+						<ESBField esbLen="2" len="2" id="APPR_USER_TYPE" dataName="APPR_USER_TYPE" />
+					</ESBCD>
+				</ESBArray>-->
+				<ESBField esbLen="1" len="1" id="AUTH_FLAG" dataName="AUTH_FLAG" />
+				<!--<ESBArray id="AUTH_USER_ID_ARRAY" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="30" len="30" id="AUTH_USER_ID" dataName="AUTH_USER_ID" />
+						<ESBField esbLen="30" len="30" id="AUTH_PASSWORD" dataName="AUTH_PASSWORD" />
+						<ESBField esbLen="2" len="2" id="AUTH_LEVEL" dataName="AUTH_LEVEL" />
+						<ESBField esbLen="2" len="2" id="AUTH_TYPE" dataName="AUTH_TYPE" />
+					</ESBCD>
+				</ESBArray>-->
+				<ESBField esbLen="52" len="52" id="BIZ_SEQ_NO" dataName="BIZ_SEQ_NO" />
+				<ESBField esbLen="8" len="8" id="REVERSAL_DATE" dataName="REVERSAL_DATE" />
+				<ESBField esbLen="42" len="42" id="REVERSAL_SEQ_NO" dataName="REVERSAL_SEQ_NO" />
+				<!--<ESBField esbLen="42" len="42" id="SERV_SEQ_NO" dataName="SERV_SEQ_NO" />
+			*200200注释*-->
+<!--				<ESBField esbLen="1" len="1" id="PGUP_OR_PGDN" dataName="PGUP_OR_PGDN" />-->
+				<!--<ESBField esbLen="3" len="3" id="RESULT_NUM" dataName="RESULT_NUM" />*200200注释*-->
+				<ESBField esbLen="10" len="10" id="TOTAL_NUM" dataName="TOTAL_NUM" />
+					<!-- TOTAL_NUM 200300/200302用到*-->
+<!--				<ESBArray id="QUERY_KEY_ARRAY" opCtx="true">-->
+<!--					<ESBCD>-->
+<!--						<ESBField esbLen="256" len="256" id="QUERY_KEY" dataName="QUERY_KEY" />-->
+<!--					</ESBCD>-->
+<!--				</ESBArray>-->
+				<ESBField esbLen="2" len="2" id="END_FLAG" dataName="END_FLAG" />
+				<!-- END_FLAG 200302/300302用到*-->
+				<ESBField esbLen="8" len="8" id="ACCOUNT_DATE" dataName="ACCOUNT_DATE" />
+				<!-- ACCOUNT_DATE 100201/100200/300200/300201 用到*-->
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	<!-- ******************************************************************************************************* -->
+	<!-- *************************                  接收渠道接口(零售)             ****************************** -->
+	<!-- ******************************************************************************************************* -->
+	<!-- 09001000004.70 证转银 -->
+	<fmtDef id="09001000004_70_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200201_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="32" len="32"  id="BESPEAK_SERIAL_NO" dataName="BOOK_SERIAL_NO"  label="预约顺序号"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="50" len="50"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="10" len="10"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="5" len="5"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="300" len="300"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT" nullCheck="true" label="转账金额"/>
+				<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="1" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09001000004_70_O" formatType="paesb">		
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200201_O" opCtx="true">
+				<ESBField esbLen="30" len="30"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="512" len="512"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" label="卡号"/>
+				<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" label="币种"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT" label="转账金额"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" label="券商代码"/>
+				<ESBField esbLen="50" len="50"  id="STOCKJOBBER_ACCT_NO" dataName="TRU_ACCT_ID"  label="券商账号"/>
+				<ESBField esbLen="150" len="150"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="COMMISSION" dataName="COMMISSION"  label="手续费"/>
+				<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT" label="证券资金账号"/>
+				<ESBField esbLen="3" len="3"  id="CURR_TYPE" dataName="CURR_TYPE"  label="币种类型"/>
+				<ESBField esbLen="10" len="10"  id="THIRD_TYPE" dataName="TPDM_FLAG"  label="第三方存管类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 09001000003.70 个人户银转证 -->
+	<fmtDef id="09001000003_70_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200200_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" label="币种"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT" nullCheck="true" label="转账金额"/>
+				<ESBField esbLen="10" len="10"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="5" len="5"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="300" len="300"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="1" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09001000003_70_O" formatType="paesb">		
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200200_O" opCtx="true">
+				<ESBField esbLen="30" len="30"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="512" len="512"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" label="卡号"/>
+				<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME" label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" label="币种"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT" label="转账金额"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" label="券商代码"/>
+				<ESBField esbLen="50" len="50"  id="STOCKJOBBER_ACCT_NO" dataName="TRU_ACCT_ID"  label="券商账号"/>
+				<ESBField esbLen="150" len="150"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="COMMISSION" dataName="COMMISSION"  label="手续费"/>
+				<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT" label="证券资金账号"/>
+				<ESBField esbLen="3" len="3"  id="CURR_TYPE" dataName="CURR_TYPE"  label="币种类型"/>
+				<ESBField esbLen="2" len="2"  id="THIRD_TYPE" dataName="TPDM_FLAG"  label="第三方存管类型"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	<!-- 11003000003.75 查询资金台帐余额-->
+	<fmtDef id="11003000003_75_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200301_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="16" len="16"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="1" len="1"  id="QUERY_TYPE" dataName="RANGE" nullCheck="true" label="查询类型"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" label="币种"/>
+				<ESBField esbLen="2" len="2"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="1" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11003000003_75_O" formatType="paesb">		
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200301_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="8" len="8"  id="QUERY_DATE" dataName="QUERY_DATE"  label="查询日期"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="150" len="150"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="AVAIL_BALANCE" dataName="ACCT_BAL"  label="可用余额"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="ACT_CASH_AVAIL_LIMIT" dataName="RMB_AVAIL_WITHDRAW_BAL"  label="实际取现可用额度"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="MANAGE_ACCT_BALANCE" dataName="RMB_TRU_BAL"  label="管理账户余额"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="AVAIL_BALANCE1" dataName="USD_ACCT_BAL"  label="可用余额1"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="ACT_CASH_AVAIL_LIMIT1" dataName="USD_AVAIL_WITHDRAW_BAL"  label="实际取现可用额度1"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="MANAGE_ACCT_BALANCE1" dataName="USD_TRU_BAL"  label="管理账户余额1"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="AVAIL_BALANCE2" dataName="HKD_ACCT_BAL"  label="可用余额2"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="ACT_CASH_AVAIL_LIMIT2" dataName="HKD_AVAIL_WITHDRAW_BAL"  label="实际取现可用额度2"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="MANAGE_ACCT_BALANCE2" dataName="HKD_TRU_BAL"  label="管理账户余额2"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	<!-- 11003000008.71 查询交易明细（当日，历史）-->
+	<fmtDef id="11003000008_71_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200302_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="false" label="币种"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="8" len="8"  id="BEGIN_DATE" dataName="START_DATE" nullCheck="true" label="开始日期"/>
+				<ESBField esbLen="8" len="8"  id="END_DATE" dataName="END_DATE" nullCheck="true" label="终止日期"/>
+				<ESBField esbLen="2" len="2"  id="QUERY_TIMES" dataName="PAGE_NUM" nullCheck="true" label="查询次数"/>
+				<ESBField esbLen="2" len="2"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="1" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11003000008_71_O" formatType="paesb">		
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200302_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>				
+				<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="1" len="1"  id="END_FLAG" dataName="END_FLAG"  label="结束标志"/>
+				<ESBField esbLen="2" len="2"  id="TOTAL_NUM" dataName="TOTAL_REC"  label="符合查询条件的记录总数"/>
+				<ESBArray id="TRAN_LIST_ARRAY" dataName="200302_O_ICOLL" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+						<ESBField esbLen="150" len="150"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+						<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+						<ESBField esbLen="3" len="3"  id="TRAN_CCY" dataName="CUR_CODE"  label="交易币种"/>
+						<ESBField esbLen="20" len="20" scale="4" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT"  label="转账金额"/>
+						<ESBField esbLen="8" len="8"  id="TRAN_DATE" dataName="TX_DATE"  label="交易日期"/>
+						<ESBField esbLen="20" len="20"  id="TRAN_TYPE" dataName="BUSI_TYPE"  label="交易类型"/>
+						<ESBField esbLen="10" len="10"  id="TRAN_CHANNEL" dataName="INIT_SIDE"  label="交易渠道"/>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 11003000007.70 查询签约关系-->	
+	<fmtDef id="11003000007_70_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200300_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" label="证件号码"/>
+				<ESBField esbLen="2" len="2"  id="CHANNEL" dataName="INIT_SIDE"  label="来源渠道"/>
+				<ESBField esbLen="1" len="1"  id="SIGN_STATUS_CODE" dataName="SIGN_FLAG" label="签约状态"/>
+				<ESBField esbLen="1" len="1"  id="TYPE" dataName="TPDM_FLAG"  label="类型"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE"  value="1" label="客户类型"/>
+				
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11003000007_70_O" formatType="paesb">		
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200300_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="2" len="2"  id="TOTAL_NUM" dataName="TOTAL_REC"  label="符合查询条件的记录总数"/>
+				<ESBArray id="THIRD_SIGN_ARRAY" dataName="200300_O_ICOLL" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+						<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+						<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+						<ESBField esbLen="5" len="5"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+						<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+						<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+						<ESBField esbLen="10" len="10"  id="TYPE" dataName="INV_TYPE"  label="类型"/>
+						<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+						<ESBField esbLen="150" len="150"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+						<ESBField esbLen="8" len="8"  id="SIGN_STATUS_CODE" dataName="SIGN_FLAG"  label="签约状态"/>
+						<ESBField esbLen="8" len="8"  id="APPOINT_DATE" dataName="OPEN_DATE"  label="指定日期"/>
+						<ESBField esbLen="8" len="8"  id="APPOINT_DATE1" dataName="SIGN_DATE"  label="指定日期1"/>
+						<ESBField esbLen="8" len="8"  id="BESPEAK_DATE" dataName="OPEN_DATE"  label="预约日期"/>
+						<ESBField esbLen="8" len="8"  id="BESPEAK_DATE1" dataName="TX_DATE"  label="预约日期1"/>
+						<ESBField esbLen="20" len="20"  id="CATCH_CUST_CHANNEL" dataName="CHANNEL"  label="获客渠道"/>
+						<ESBField esbLen="64" len="64"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+						<ESBField esbLen="20" len="20"  id="SIGN_SUB_BRANCH_ID" dataName="DEP_ID"  label="签约网点号"/>
+						<ESBField esbLen="2" len="2"  id="STKTYPE" dataName="TPDM_FLAG"  label="第三方存管类型"/>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 09002000002.72 银行确认开通三方存管-->	
+	<fmtDef id="09002000002_72_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200100_I" opCtx="true">
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户姓名"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="12" len="12"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO" label="客户经理代码"/>
+				<ESBField esbLen="4" len="4"  id="SUB_BRANCH_ID" dataName="OPEN_DEP_ID" label="网点号"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="16" len="16"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="20" len="20"  id="CATCH_CUST_CHANNEL" dataName="CHANNEL" label="获客渠道"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" label="币种"/>
+				<ESBField esbLen="40" len="40"  id="MEMO" dataName="MEMO" label="备注"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="1" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09002000002_72_O" formatType="paesb">		
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200100_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户姓名"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="12" len="12"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="4" len="4"  id="SUB_BRANCH_ID" dataName="OPEN_DEP_ID"  label="网点号"/>
+				<ESBField esbLen="20" len="20"  id="CATCH_CUST_CHANNEL" dataName="CHANNEL"  label="获客渠道"/>
+				<ESBField esbLen="8" len="8"  id="TRAN_DATE" dataName="TX_DATE"  label="交易日期"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="2" len="2"  id="THIRD_TYPE" dataName="TPDM_FLAG"  label="第三方存管类型"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 09003000007.71 查询三方存管劵商列表-->	
+	<fmtDef id="09003000007_71_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200303_I" opCtx="true">
+				<ESBField esbLen="1" len="1"  id="TYPE" dataName="SEC_COMP_TYPE" nullCheck="true" label="类型"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09003000007_71_O" formatType="paesb">		
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200303_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="3" len="3"  id="TOTAL_NUM" dataName="TOTAL_REC"  label="符合查询条件的记录总数"/>
+				<ESBArray id="TRAN_LIST_ARRAY" dataName="200303_O_ICOLL" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+						<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+						<ESBField esbLen="1" len="1"  id="AGREEMENT_TYPE" dataName="PROTOCOL"  label="协议类型"/>
+						<ESBField esbLen="1" len="1"  id="MODE" dataName="SEC_BRCH_ID_MODE"  label="模式"/>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 11002000012.70 校验卡号卷商代码（预开通\激活）-->
+	<fmtDef id="11002000012_70_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200305_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户姓名"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="1" len="1"  id="TRAN_TYPE" dataName="BUSI_TYPE" nullCheck="true" label="交易类型"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="1" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11002000012_70_O" formatType="paesb">		
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200305_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="300" len="300"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 09002000002.73 银行预约开通三方存管-->
+	<fmtDef id="09002000002_73_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200106_I" opCtx="true">
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户姓名"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="12" len="12"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="4" len="4"  id="SUB_BRANCH_ID" dataName="OPEN_DEP_ID" nullCheck="true" label="网点号"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="16" len="16"  id="PHONE_NO" dataName="PHONE"  label="固定电话号码"/>
+				<ESBField esbLen="16" len="16"  id="MOBILE" dataName="MOBILE"  label="手机号码"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_DEPT_CODE" dataName="SEC_BRCH_ID"  label="券商营业部代码"/>
+				<ESBField esbLen="20" len="20"  id="CATCH_CUST_CHANNEL" dataName="CHANNEL"  label="获客渠道"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="150" len="150"  id="EMAIL" dataName="EMAIL_ADDR"  label="电子邮件地址"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="40" len="40"  id="MEMO" dataName="MEMO"  label="备注"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="1" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09002000002_73_O" formatType="paesb">		
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200106_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户姓名"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="12" len="12"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="4" len="4"  id="SUB_BRANCH_ID" dataName="OPEN_DEP_ID"  label="网点号"/>
+				<ESBField esbLen="20" len="20"  id="CATCH_CUST_CHANNEL" dataName="CHANNEL"  label="获客渠道"/>
+				<ESBField esbLen="35" len="35"  id="BESPEAK_SERIAL_NO" dataName="BOOK_SERIAL_NO"  label="预约顺序号"/>
+				<ESBField esbLen="8" len="8"  id="TRAN_DATE" dataName="TX_DATE"  label="交易日期"/>
+				<ESBField esbLen="40" len="40"  id="MEMO" dataName="MEMO"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 09003000006.70 预约查询-->
+	<fmtDef id="09003000006_70_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200304_I" opCtx="true">
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户姓名"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="8" len="8"  id="BEGIN_DATE" dataName="START_DATE" nullCheck="true" label="开始日期"/>
+				<ESBField esbLen="8" len="8"  id="END_DATE" dataName="END_DATE" nullCheck="true" label="终止日期"/>
+				<ESBField esbLen="2" len="2"  id="QUERY_TIMES" dataName="PAGE_NUM"  label="查询次数"/>
+				<ESBField esbLen="2" len="2"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09003000006_70_O" formatType="paesb">		
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200304_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户姓名"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="1" len="1"  id="END_FLAG" dataName="END_FLAG"  label="结束标志"/>
+				<ESBField esbLen="2" len="2"  id="TOTAL_NUM" dataName="TOTAL_REC"  label="符合查询条件的记录总数"/>
+				<ESBArray id="TRAN_LIST_ARRAY" dataName="200304_O_ICOLL" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+						<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+						<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+						<ESBField esbLen="8" len="8"  id="BESPEAK_DATE" dataName="TX_DATE"  label="预约日期"/>
+						<ESBField esbLen="8" len="8"  id="DATE" dataName="OPEN_DATE"  label="日期"/>
+						<ESBField esbLen="8" len="8"  id="CANCEL_DATE" dataName="DEL_DATE"  label="撤销日期"/>
+						<ESBField esbLen="35" len="35"  id="BESPEAK_SERIAL_NO" dataName="BOOK_SERIAL_NO"  label="预约顺序号"/>
+						<ESBField esbLen="1" len="1"  id="SIGN_STATUS_CODE" dataName="SIGN_FLAG"  label="签约状态"/>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 09002000002.74 预约撤销-->
+	<fmtDef id="09002000002_74_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200121_I" opCtx="true">
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户姓名"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="35" len="35"  id="BESPEAK_SERIAL_NO" dataName="BOOK_SERIAL_NO"  label="预约顺序号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="1" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09002000002_74_O" formatType="paesb">		
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200121_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="35" len="35"  id="BESPEAK_SERIAL_NO" dataName="BOOK_SERIAL_NO"  label="预约顺序号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09002000002.75 变更银行结算帐号-->
+	<fmtDef id="09002000002_75_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200102_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="OLD_CARD_NO" dataName="OLD_ACCT_ID" nullCheck="true" label="原卡号"/>
+				<ESBField esbLen="5" len="5"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户姓名"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="19" len="19"  id="NEW_CARD_NO" dataName="NEW_ACCT_ID" nullCheck="true" label="新卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true"  label="币种"/>
+				<ESBField esbLen="50" len="50"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="300" len="300"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="1" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09002000002_75_O" formatType="paesb">	
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200102_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="OLD_CARD_NO" dataName="OLD_ACCT_ID" label="原卡号"/>
+				<ESBField esbLen="19" len="19"  id="NEW_CARD_NO" dataName="NEW_ACCT_ID" label="新卡号"/>
+				<ESBField esbLen="300" len="300"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--11003000007.73 一户通查询签约关系-->
+	<fmtDef id="11003000007_73_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200306_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" label="证件号码"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11003000007_73_O" formatType="paesb">	
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200306_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="2" len="2"  id="TOTAL_NUM" dataName="TOTAL_REC"  label="符合业务查询条件的记录总数"/>
+				<ESBArray id="TRAN_LIST_ARRAY" dataName="200306_O_ICOLL" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+						<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+						<ESBField esbLen="30" len="30"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+						<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+						<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+						<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+						<ESBField esbLen="10" len="10"  id="TYPE" dataName="INV_TYPE"  label="类型"/>
+						<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+						<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+						<ESBField esbLen="1" len="1"  id="SIGN_STATUS_CODE" dataName="SIGN_FLAG"  label="签约状态"/>
+						<ESBField esbLen="8" len="8"  id="APPOINT_DATE" dataName="OPEN_DATE"  label="指定日期"/>
+						<ESBField esbLen="8" len="8"  id="APPOINT_DATE1" dataName="SIGN_DATE"  label="指定日期1"/>
+						<ESBField esbLen="8" len="8"  id="BESPEAK_DATE" dataName="OPEN_DATE"  label="预约日期"/>
+						<ESBField esbLen="8" len="8"  id="BESPEAK_DATE1" dataName="TX_DATE"  label="预约日期1"/>
+						<ESBField esbLen="20" len="20"  id="CATCH_CUST_CHANNEL" dataName="CHANNEL"  label="获客渠道"/>
+						<ESBField esbLen="12" len="12"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+						<ESBField esbLen="4" len="4"  id="SIGN_SUB_BRANCH_ID" dataName="DEP_ID"  label="签约网点号"/>
+						<ESBField esbLen="3" len="3"  id="OWNERSHIP_TYPE" dataName="OWNERSHIP_TYPE"  label="账户归属种类"/>
+						<ESBField esbLen="20" len="20" scale="4" type="double" id="LAST_BALANCE" dataName="BEGIN_BAL"  label="上次余额"/>
+						<ESBField esbLen="20" len="20" scale="4" type="double" id="PRESENT_BALABCE" dataName="ACCT_BAL"  label="当前余额"/>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--04002000002.23 银证联名卡一体化开户接口-->
+	<fmtDef id="04002000002_23_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200120_I" opCtx="true">
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户姓名"/>
+				<ESBField esbLen="1" len="1"  id="SEX" dataName="SEX" label="性别"/>
+				<ESBField esbLen="10" len="10"  id="NATIONALITY_NAME" dataName="NATIONALITY" label="国籍名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO" label="客户经理代码"/>
+				<ESBField esbLen="4" len="4"  id="SUB_BRANCH_ID" dataName="OPEN_DEP_ID"  label="网点号"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="16" len="16"  id="PHONE_NO" dataName="PHONE" label="固定电话号码"/>
+				<ESBField esbLen="16" len="16"  id="MOBILE" dataName="MOBILE" label="手机号码"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_DEPT_CODE" dataName="SEC_BRCH_ID" label="券商营业部代码"/>
+				<ESBField esbLen="20" len="20"  id="CATCH_CUST_CHANNEL" dataName="CHANNEL" label="获客渠道"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="150" len="150"  id="EMAIL" dataName="EMAIL_ADDR" label="电子邮件地址"/>
+				<ESBField esbLen="8" len="8"  id="BIRTH_DATE" dataName="BIRTH_DATE" label="出生日期"/>
+				<ESBField esbLen="150" len="150"  id="COM_ADDRESS" dataName="ADDR" label="通讯地址"/>
+				<ESBField esbLen="150" len="150"  id="CENSUS_ADDRESS" dataName="CENSUS_ADDRESS" label="户籍地址"/>
+				<ESBField esbLen="6" len="6"  id="POSTALCODE" dataName="ZIP" label="邮政编码"/>
+				<ESBField esbLen="8" len="8"  id="BEGIN_DATE" dataName="START_DATE" label="开始日期"/>
+				<ESBField esbLen="8" len="8"  id="END_DATE" dataName="END_DATE" label="终止日期"/>
+				<ESBField esbLen="150" len="150"  id="CERT_ORG_NAME" dataName="CERT_ORG_NAME" label="发证机关名称"/>
+				<ESBField esbLen="150" len="150"  id="IMAGE_NO" dataName="IMAGE_NO" label="影像条形号码"/>
+				<ESBField esbLen="30" len="30"  id="OCCUPATION" dataName="OCCUPATION" label="职业"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="1" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="04002000002_23_O" formatType="paesb">	
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200120_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户姓名"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="4" len="4"  id="SIGN_SUB_BRANCH_ID" dataName="OPEN_DEP_ID"  label="签约网点号"/>
+				<ESBField esbLen="20" len="20"  id="CATCH_CUST_CHANNEL" dataName="CHANNEL"  label="获客渠道"/>
+				<ESBField esbLen="35" len="35"  id="BESPEAK_SERIAL_NO" dataName="BOOK_SERIAL_NO"  label="预约顺序号"/>
+				<ESBField esbLen="8" len="8"  id="TRAN_DATE" dataName="TX_DATE"  label="交易日期"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- ******************************************************************************************************* -->
+	<!-- *************************                 接收渠道接口（对公）                                 ****************************** -->
+	<!-- ******************************************************************************************************* -->
+	<!--09001000004.03 机构客户证转银-->
+	<fmtDef id="09001000004_03_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200201_I" opCtx="true">
+				<ESBField esbLen="50" len="50"  id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="150" len="150"  id="CLINET_NAME" dataName="INV_NAME" label="客户名称"/>
+				<ESBField esbLen="5" len="5"  id="GLOBAL_TYPE" dataName="ID_TYPE" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" label="证件号码"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="资金账号"/>
+				<ESBField esbLen="50" len="50"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT" nullCheck="true" label="转账金额"/>
+				<ESBField esbLen="40" len="40"  id="BESPEAK_NO" dataName="BOOK_NO" label="预约编号"/>
+				<ESBField esbLen="10" len="10"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="300" len="300"  id="REMARK" dataName="REMARK" label="备注"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="2" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09001000004_03_O" formatType="paesb">	
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200201_O" opCtx="true">
+				<ESBField esbLen="30" len="30"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="512" len="512"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="150" len="150"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="50" len="50"  id="IN_ACCT_NO" dataName="ACCT_ID"  label="转入账号"/>
+				<ESBField esbLen="150" len="150"  id="CLINET_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT"  label="转账金额"/>
+				<ESBField esbLen="300" len="300"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="10" len="10"  id="THIRD_TYPE" dataName="TPDM_FLAG"  label="第三方存管类型"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09001000003.04 机构客户银转证-->
+	<fmtDef id="09001000003_04_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200200_I" opCtx="true">
+				<ESBField esbLen="50" len="50"  id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="150" len="150"  id="CLINET_NAME" dataName="INV_NAME" label="客户名称"/>
+				<ESBField esbLen="5" len="5"  id="GLOBAL_TYPE" dataName="ID_TYPE" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" label="证件号码"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="资金账号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" label="币种"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT" nullCheck="true" label="转账金额"/>
+				<ESBField esbLen="10" len="10"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="4" len="4"  id="CHEQUE_TYPE" dataName="CHEQUE_TYPE" label="支票类型"/>
+				<ESBField esbLen="30" len="30"  id="CHEQUE_NO" dataName="CHEQUE_NO" label="支票号"/>
+				<ESBField esbLen="8" len="8"  id="REMARK" dataName="REMARK" label="备注"/>
+				<ESBField esbLen="50" len="50"  id="CHEQUE_PASSWORD" dataName="CHEQUE_PASSWORD" label="支票密码"/>
+				<ESBField esbLen="300" len="300"  id="ISSUE_DATE" dataName="ISSUE_DATE" label="签发日期"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="2" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09001000003_04_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200200_O" opCtx="true">
+				<ESBField esbLen="30" len="30"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="512" len="512"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="150" len="150"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="50" len="50"  id="IN_ACCT_NO" dataName="ACCT_ID"  label="转入账号"/>
+				<ESBField esbLen="150" len="150"  id="CLINET_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT"  label="转账金额"/>
+				<ESBField esbLen="300" len="300"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="2" len="2"  id="THIRD_TYPE" dataName="TPDM_FLAG"  label="第三方存管类型"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09003000014.04 机构客户查询券商端资金台账余额-->	
+	<fmtDef id="09003000014_04_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200301_I" opCtx="true">
+				<ESBField esbLen="20" len="20"  id="SETTLE_ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="结算账号"/>
+				<ESBField esbLen="6" len="6"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" label="币种"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="2" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09003000014_04_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200301_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="8" len="8"  id="QUERY_DATE" dataName="QUERY_DATE"  label="查询日期"/>
+				<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="50" len="50"  id="SETTLE_ACCT_NO" dataName="ACCT_ID"  label="结算账号"/>
+				<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="资金账号"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="AVAIL_BALANCE" dataName="ACCT_BAL"  label="可用余额"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="ACT_CASH_AVAIL_LIMIT" dataName="RMB_AVAIL_WITHDRAW_BAL"  label="实际取现可用额度"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double" id="MANAGE_ACCT_BALANCE" dataName="RMB_TRU_BAL"  label="管理账户余额"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="AVAIL_BALANCE1" dataName="USD_ACCT_BAL"  label="可用余额1"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="ACT_CASH_AVAIL_LIMIT1" dataName="USD_AVAIL_WITHDRAW_BAL"  label="实际取现可用额度1"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="MANAGE_ACCT_BALANCE1" dataName="USD_TRU_BAL"  label="管理账户余额1"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="AVAIL_BALANCE2" dataName="HKD_ACCT_BAL"  label="可用余额2"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="ACT_CASH_AVAIL_LIMIT2" dataName="HKD_AVAIL_WITHDRAW_BAL"  label="实际取现可用额度2"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="MANAGE_ACCT_BALANCE2" dataName="HKD_TRU_BAL"  label="管理账户余额2"/>
+				<ESBField esbLen="300" len="300"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="150" len="150"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09003000006.87 机构客户查询交易明细（当日，历史）-->
+	<fmtDef id="09003000006_87_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200302_I" opCtx="true">
+				<ESBField esbLen="20" len="20"  id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="8" len="8"  id="START_DATE" dataName="START_DATE"  label="起始日期"/>
+				<ESBField esbLen="8" len="8"  id="END_DATE" dataName="END_DATE"  label="终止日期"/>
+				<ESBField esbLen="2" len="2"  id="QUERY_TIMES" dataName="PAGE_NUM"  label="查询次数"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="2" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09003000006_87_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200302_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="50" len="50"  id="ACCT_NO" dataName="ACCT_ID"  label="账号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="2" len="2"  id="END_FLAG" dataName="END_FLAG"  label="结束标志"/>
+				<ESBField esbLen="2" len="2"  id="TOTAL_NUM" dataName="TOTAL_REC"  label="符合查询条件的记录总数"/>
+				<ESBArray id="TRAN_LIST_ARRAY" dataName="200302_O_ICOLL" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+						<ESBField esbLen="150" len="150"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+						<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="资金账号"/>
+						<ESBField esbLen="3" len="3"  id="TRAN_CCY" dataName="CUR_CODE"  label="交易币种"/>
+						<ESBField esbLen="20" len="20" scale="2" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT"  label="转账金额"/>
+						<ESBField esbLen="8" len="8"  id="TRAN_DATE" dataName="TX_DATE"  label="交易日期"/>
+						<ESBField esbLen="20" len="20"  id="TRAN_TYPE" dataName="BUSI_TYPE"  label="交易类型"/>
+						<ESBField esbLen="10" len="10"  id="TRAN_CHANNEL" dataName="INIT_SIDE"  label="交易渠道"/>
+						<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户姓名"/>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09003000001.74 机构客户查询签约关系-->
+	<fmtDef id="09003000001_74_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200300_I" opCtx="true">
+				<ESBField esbLen="20" len="20"  id="ACCT_NO" dataName="ACCT_ID"  label="账号"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="资金账号"/>
+				<ESBField esbLen="2" len="2"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="18" len="18"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="1" len="1"  id="TYPE" dataName="TPDM_FLAG"  label="类型"/>
+				<ESBField esbLen="1" len="1"  id="SIGN_STATUS_CODE" dataName="SIGN_FLAG"  label="签约状态"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE"  value="2" label="客户类型"/><!--  -->
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09003000001_74_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200300_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="2" len="2"  id="TOTAL_NUM" dataName="TOTAL_REC"  label="符合查询条件的记录总数"/>
+				<ESBArray id="THIRD_SIGN_ARRAY" dataName="200300_O_ICOLL" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="50" len="50"  id="ACCT_NO" dataName="ACCT_ID"  label="账号"/>
+						<ESBField esbLen="150" len="150"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+						<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+						<ESBField esbLen="50" len="50"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="资金账号"/>
+						<ESBField esbLen="10" len="10"  id="TYPE" dataName="INV_TYPE"  label="类型"/>
+						<ESBField esbLen="10" len="10"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+						<ESBField esbLen="150" len="150"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+						<ESBField esbLen="8" len="8"  id="SIGN_STATUS_CODE" dataName="SIGN_FLAG"  label="签约状态"/>
+						<ESBField esbLen="8" len="8"  id="APPOINT_DATE" dataName="OPEN_DATE"  label="指定日期"/>
+						<ESBField esbLen="8" len="8"  id="APPOINT_DATE1" dataName="SIGN_DATE"  label="指定日期1"/>
+						<ESBField esbLen="20" len="20"  id="CATCH_CUST_CHANNEL" dataName="CHANNEL"  label="获客渠道"/>
+						<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+						<ESBField esbLen="20" len="20"  id="SIGN_SUB_BRANCH_ID" dataName="DEP_ID"  label="签约网点号"/>
+						<ESBField esbLen="2" len="2"  id="STKTYPE" dataName="TPDM_FLAG"  label="第三方存管类型"/>
+						<ESBField esbLen="40" len="40"  id="REMARK" dataName="REMARK"  label="备注"/>
+						<ESBField esbLen="5" len="5"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+						<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+						<ESBField esbLen="40" len="40"  id="PHONE_NO_AND_MOBILE" dataName="PHONE"  label="联系电话"/>
+						<ESBField esbLen="16" len="16"  id="MOBILE" dataName="MOBILE"  label="手机号码"/>
+						<ESBField esbLen="30" len="30"  id="FAX_NO" dataName="FAX"  label="传真"/>
+						<ESBField esbLen="10" len="10"  id="POSTAL_CODE" dataName="ZIP"  label="邮编"/>
+						<ESBField esbLen="300" len="300"  id="EMAIL" dataName="EMAIL_ADDR"  label="电子邮件地址"/>
+						<ESBField esbLen="200" len="200"  id="ADDRESS" dataName="ADDR"  label="地址"/>
+						<ESBField esbLen="150" len="150"  id="TRANS_NAME" dataName="TRN_NAME"  label="代理人姓名"/>
+						<ESBField esbLen="20" len="20"  id="REPR_CLIENT_NAME" dataName="LEGAL_NAME"  label="法人代表姓名"/>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--11002000034.32 机构客户变更联系资料-->
+	<fmtDef id="11002000034_32_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200104_I" opCtx="true">
+				<ESBField esbLen="20" len="20"  id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="16" len="16"  id="PHONE_NO_AND_MOBILE" dataName="PHONE"  label="联系电话"/>
+				<ESBField esbLen="16" len="16"  id="MOBILE" dataName="MOBILE"  label="手机号码"/>
+				<ESBField esbLen="16" len="16"  id="FAX_NO" dataName="FAX"  label="传真"/>
+				<ESBField esbLen="6" len="6"  id="POSTAL_CODE" dataName="ZIP"  label="邮编"/>
+				<ESBField esbLen="40" len="40"  id="EMAIL" dataName="EMAIL_ADDR"  label="电子邮件地址"/>
+				<ESBField esbLen="128" len="128"  id="ADDRESS" dataName="ADDR"  label="地址"/>
+				<ESBField esbLen="20" len="20"  id="TRANS_NAME" dataName="TRN_NAME"  label="代理人姓名"/>
+				<ESBField esbLen="20" len="20"  id="REPR_CLIENT_NAME" dataName="LEGAL_NAME"  label="法人代表姓名"/>
+				<ESBField esbLen="40" len="40"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="2" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11002000034_32_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200104_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="20" len="20"  id="ACCT_NO" dataName="ACCT_ID"  label="账号"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="16" len="16"  id="PHONE_NO_AND_MOBILE" dataName="PHONE"  label="联系电话"/>
+				<ESBField esbLen="16" len="16"  id="MOBILE" dataName="MOBILE"  label="手机号码"/>
+				<ESBField esbLen="16" len="16"  id="FAX_NO" dataName="FAX"  label="传真"/>
+				<ESBField esbLen="6" len="6"  id="POSTAL_CODE" dataName="ZIP"  label="邮编"/>
+				<ESBField esbLen="40" len="40"  id="EMAIL" dataName="EMAIL_ADDR"  label="电子邮件地址"/>
+				<ESBField esbLen="128" len="128"  id="ADDRESS" dataName="ADDR"  label="地址"/>
+				<ESBField esbLen="20" len="20"  id="TRANS_NAME" dataName="TRN_NAME"  label="代理人姓名"/>
+				<ESBField esbLen="20" len="20"  id="REPR_CLIENT_NAME" dataName="LEGAL_NAME"  label="法人代表姓名"/>
+				<ESBField esbLen="40" len="40"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--11002000008.61 机构客户建立 取消三方存管账户状态字-->
+	<fmtDef id="11002000008_61_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200103_I" opCtx="true">
+				<ESBField esbLen="20" len="20"  id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="1" len="1"  id="FUNCTION_CODE" dataName="FUNCTION_CODE" nullCheck="true" label="功能码"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="2" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11002000008_61_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200103_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="50" len="50"  id="ACCT_NO" dataName="ACCT_ID"  label="账号"/>
+				<ESBField esbLen="10" len="10"  id="FUNCTION_CODE" dataName="FUNCTION_CODE"  label="功能码"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--11002000008.62 个人客户建立 取消三方存管卡状态字-->
+	<fmtDef id="11002000008_62_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200103_I" opCtx="true">
+				<ESBField esbLen="20" len="20"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="1" len="1"  id="FUNCTION_CODE" dataName="FUNCTION_CODE" nullCheck="true" label="功能码"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="1" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11002000008_62_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200103_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="20" len="20"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="10" len="10"  id="FUNCTION_CODE" dataName="FUNCTION_CODE"  label="功能码"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09002000002.37 机构客户确认签约关系-->	
+	<fmtDef id="09002000002_37_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200100_I" opCtx="true">
+				<ESBField esbLen="20" len="20"  id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="100" len="100"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户姓名"/>
+				<ESBField esbLen="2" len="2"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="18" len="18"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="6" len="6"  id="POSTAL_CODE" dataName="ZIP"  label="邮编"/>
+				<ESBField esbLen="100" len="100"  id="ADDRESS" dataName="ADDR"  label="地址"/>
+				<ESBField esbLen="40" len="40"  id="EMAIL" dataName="EMAIL_ADDR"  label="电子邮件地址"/>
+				<ESBField esbLen="16" len="16"  id="PHONE_NO_AND_MOBILE" dataName="PHONE"  label="联系电话"/>
+				<ESBField esbLen="16" len="16"  id="MOBILE" dataName="MOBILE"  label="手机号码"/>
+				<ESBField esbLen="16" len="16"  id="FAX_NO" dataName="FAX"  label="传真"/>
+				<ESBField esbLen="70" len="70"  id="TRANS_NAME" dataName="TRN_NAME"  label="代理人姓名"/>
+				<ESBField esbLen="2" len="2"  id="GLOBAL_TYPE1" dataName="TRN_ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="18" len="18"  id="GLOBAL_ID1" dataName="TRN_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="资金账号"/>
+				<ESBField esbLen="6" len="6"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="40" len="40"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="2" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09002000002_37_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200100_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="20" len="20"  id="ACCT_NO" dataName="ACCT_ID"  label="账号"/>
+				<ESBField esbLen="100" len="100"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户姓名"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="2" len="2"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="18" len="18"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="资金账号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="40" len="40"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="2" len="2"  id="THIRD_TYPE" dataName="TPDM_FLAG"  label="第三方存管类型"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09002000002.38 机构客户变更银行结算账号-->
+	<fmtDef id="09002000002_38_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200102_I" opCtx="true">
+				<ESBField esbLen="20" len="20"  id="OLD_ACCT_NO" dataName="OLD_ACCT_ID" nullCheck="true" label="原账号"/>
+				<ESBField esbLen="2" len="2"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="18" len="18"  id="GLOBAL_ID" dataName="INV_ID_CODE" label="证件号码"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户姓名"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="资金账号"/>
+				<ESBField esbLen="20" len="20"  id="NEW_ACCT_NO" dataName="NEW_ACCT_ID" nullCheck="true" label="新账号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="6" len="6"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="40" len="40"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="1" len="1"  id="INV_TYPE" dataName="INV_TYPE" value="2" nullCheck="true" label="客户类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09002000002_38_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="200102_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="OLD_ACCT_NO" dataName="OLD_ACCT_ID"  label="原账号"/>
+				<ESBField esbLen="19" len="19"  id="NEW_ACCT_NO" dataName="NEW_ACCT_ID"  label="新账号"/>
+				<ESBField esbLen="300" len="300"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- ******************************************************************************************************* -->
+	<!-- *************************                 接收渠道接口（B股）                                 ****************************** -->
+	<!-- ******************************************************************************************************* -->
+	<!--09002000002.40 B股签约-->
+	<fmtDef id="09002000002_40_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09002000002_40_I" opCtx="true">
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME" nullCheck="true" label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="16" len="16"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="16" len="16"  id="MOBILE" dataName="MOBILE" nullCheck="true" label="手机号码"/>
+				<ESBField esbLen="40" len="40"  id="EMAIL" dataName="EMAIL_ADDR"  label="电子邮件地址"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="1" len="1"  id="CLIENT_TYPE" dataName="INV_TYPE" nullCheck="true" label="客户类型"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09002000002_40_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09002000002_40_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="8" len="8"  id="TRAN_DATE" dataName="TX_DATE"  label="交易日期"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09002000002.41 B股解约-->
+	<fmtDef id="09002000002_41_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09002000002_41_I" opCtx="true">
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME" nullCheck="true" label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="16" len="16"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09002000002_41_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09002000002_41_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" label="卡号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09001000003.06 B股银转证-->
+	<fmtDef id="09001000003_06_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09001000003_06_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME" nullCheck="true" label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="16" len="16"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT" nullCheck="true" label="转账金额"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09001000003_06_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09001000003_06_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT"  label="转账金额"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09001000004.04 B股证转银-->
+	<fmtDef id="09001000004_04_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09001000004_04_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT" nullCheck="true" label="转账金额"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME" nullCheck="true" label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="16" len="16"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09001000004_04_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09001000004_04_O" opCtx="true">
+				<ESBField esbLen="15" len="15"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="512" len="512"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT"  label="转账金额"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09002000002.42 B股变更银行结算账号-->
+	<fmtDef id="09002000002_42_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09002000002_42_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="OLD_CARD_NO" dataName="OLD_ACCT_ID" nullCheck="true" label="原卡号"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户姓名"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME" nullCheck="true" label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="19" len="19"  id="NEW_CARD_NO" dataName="NEW_ACCT_ID" nullCheck="true" label="新卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09002000002_42_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09002000002_42_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户姓名"/>
+				<ESBField esbLen="19" len="19"  id="OLD_CARD_NO" dataName="OLD_ACCT_ID"  label="原卡号"/>
+				<ESBField esbLen="19" len="19"  id="NEW_CARD_NO" dataName="NEW_ACCT_ID"  label="新卡号"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--11003000003.60 B股查询证券资金帐户余额-->
+	<fmtDef id="11003000003_60_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="11003000003_60_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME" nullCheck="true" label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT" nullCheck="true" label="证券资金账号"/>
+				<ESBField esbLen="16" len="16"  id="STOCK_ACCT_PASS" dataName="CAP_ACCT_PWD" nullCheck="true" label="证券资金密码"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11003000003_60_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="11003000003_60_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="8" len="8"  id="QUERY_DATE" dataName="QUERY_DATE"  label="查询日期"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户姓名"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="AVAIL_BALANCE_USD" dataName="USD_ACCT_BAL"  label="美元可用余额"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TAKE_BALANCE_USD" dataName="USD_AVAIL_WITHDRAW_BAL"  label="美元可取余额"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="USD_MGR_ACCT_BALANCE" dataName="USD_TRU_BAL"  label="美元管理账户余额"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="AVAIL_BALANCE_HKD" dataName="HKD_ACCT_BAL"  label="港币可用余额"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TAKE_BALANCE_HKD" dataName="HKD_AVAIL_WITHDRAW_BAL"  label="港币可取余额"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="HKD_MGR_ACCT_BALANCE" dataName="HKD_TRU_BAL"  label="港币管理账户余额"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--11003000007.46 B股查询三方存管关联账户-->
+	<fmtDef id="11003000007_46_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="11003000007_46_I" opCtx="true">
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE"  label="来源渠道"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11003000007_46_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="11003000007_46_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="2" len="2"  id="TOTAL_NUM" dataName="TOTAL_REC"  label="符合查询条件的记录总数"/>
+				<ESBArray id="SIGN_ARRAY" dataName="11003000007_46_O_ICOLL" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+						<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+						<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+						<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+						<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+						<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+						<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+						<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+						<ESBField esbLen="1" len="1"  id="SIGN_STATUS" dataName="SIGN_FLAG"  label="签约状态"/>
+						<ESBField esbLen="8" len="8"  id="SIGN_DATE" dataName="SIGN_DATE"  label="签约日期"/>
+						<ESBField esbLen="20" len="20"  id="CUST_MANAGER_ID" dataName="CUS_MAG_NO"  label="客户经理代码"/>
+						<ESBField esbLen="1" len="1"  id="SIGN_CHANNEL" dataName="CHANNEL"  label="签约渠道"/>
+						<ESBField esbLen="20" len="20"  id="SIGN_SUB_BRANCH_ID" dataName="OPEN_DEP_ID"  label="签约网点号"/>
+						<ESBField esbLen="16" len="16"  id="MOBILE" dataName="MOBILE"  label="手机"/>
+						<ESBField esbLen="40" len="40"  id="EMAIL" dataName="EMAIL_ADDR"  label="电子邮件地址"/>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--11003000044.01 B股查询交易明细-->
+	<fmtDef id="11003000044_01_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="11003000044_01_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+				<ESBField esbLen="8" len="8"  id="BEGIN_DATE" dataName="START_DATE" nullCheck="true" label="开始日期"/>
+				<ESBField esbLen="8" len="8"  id="END_DATE" dataName="END_DATE" nullCheck="true" label="终止日期"/>
+				<ESBField esbLen="2" len="2"  id="PAGE_NUM" dataName="PAGE_NO" nullCheck="true" label="页码"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11003000044_01_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="11003000044_01_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="1" len="1"  id="END_FLAG" dataName="END_FLAG"  label="结束标志"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+				<ESBField esbLen="2" len="2"  id="TOTAL_NUM" dataName="TOTAL_REC"  label="符合查询条件的记录总数"/>
+				<ESBArray id="TRAN_LIST_ARRAY" dataName="11003000044_01_O_ICOLL" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="8" len="8"  id="STOCKJOBBER_CODE" dataName="SEC_COMP_CODE"  label="券商代码"/>
+						<ESBField esbLen="70" len="70"  id="STOCKJOBBER_NAME" dataName="SEC_COMP_NAME"  label="券商名称"/>
+						<ESBField esbLen="22" len="22"  id="SEC_ACCT_NO" dataName="CAP_ACCT"  label="证券资金账号"/>
+						<ESBField esbLen="3" len="3"  id="TRAN_CCY" dataName="CUR_CODE"  label="交易币种"/>
+						<ESBField esbLen="20" len="20" scale="4" type="double" id="TRANSFER_AMT" dataName="TX_AMOUNT"  label="转账金额"/>
+						<ESBField esbLen="8" len="8"  id="TRAN_DATE" dataName="TX_DATE"  label="交易日期"/>
+						<ESBField esbLen="1" len="1"  id="TRAN_TYPE" dataName="BUSI_TYPE"  label="交易类型"/>
+						<ESBField esbLen="1" len="1"  id="TRAN_CHANNEL" dataName="INIT_SIDE"  label="交易渠道"/>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--11002000008.67 B股建立/取消三方存管卡状态字-->
+	<fmtDef id="11002000008_67_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="11002000008_67_I" opCtx="true">
+				<ESBField esbLen="20" len="20"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="1" len="1"  id="FUNCTION_CODE" dataName="FUNCTION_CODE" nullCheck="true" label="功能码"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11002000008_67_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="11002000008_67_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="20" len="20"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="1" len="1"  id="FUNCTION_CODE" dataName="FUNCTION_CODE"  label="功能码"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--09002000002.43 B股转账限额设置-->
+	<fmtDef id="09002000002_43_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09002000002_43_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME" nullCheck="true" label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE" nullCheck="true" label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE" nullCheck="true" label="证件号码"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="1" len="1"  id="LIMIT_FLAG" dataName="LIMIT_FLAG" nullCheck="true" label="限额标志"/>
+				<ESBField esbLen="1" len="1"  id="LIMIT_BUSS_TYPE" dataName="LIMIT_BUSS_TYPE" nullCheck="true" label="限制业务类型"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TRAN_LIMIT" dataName="LIMIT_AMOUNT" nullCheck="true" label="交易限额"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="09002000002_43_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="09002000002_43_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="3" len="3"  id="CCY" dataName="CUR_CODE"  label="币种"/>
+				<ESBField esbLen="3" len="3"  id="GLOBAL_TYPE" dataName="ID_TYPE"  label="证件类型"/>
+				<ESBField esbLen="32" len="32"  id="GLOBAL_ID" dataName="INV_ID_CODE"  label="证件号码"/>
+				<ESBField esbLen="1" len="1"  id="LIMIT_FLAG" dataName="LIMIT_FLAG"  label="限额标志"/>
+				<ESBField esbLen="1" len="1"  id="LIMIT_BUSS_TYPE" dataName="LIMIT_BUSS_TYPE"  label="限制业务类型"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="TRAN_LIMIT" dataName="LIMIT_AMOUNT"  label="交易限额"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!--11002000034.55 B股变更客户资料-->
+	<fmtDef id="11002000034_55_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="11002000034_55_I" opCtx="true">
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="卡号"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="3" len="3"  id="OLD_GLOBAL_TYPE" dataName="OLD_ID_TYPE" nullCheck="true" label="旧证件类型"/>
+				<ESBField esbLen="32" len="32"  id="OLD_GLOBAL_ID" dataName="OLD_INV_ID_CODE" nullCheck="true" label="旧证件号码"/>
+				<ESBField esbLen="3" len="3"  id="NEW_GLOBAL_TYPE" dataName="NEW_ID_TYPE" nullCheck="true" label="新证件类型"/>
+				<ESBField esbLen="32" len="32"  id="NEW_GLOBAL_ID" dataName="NEW_INV_ID_CODE" nullCheck="true" label="新证件号码"/>
+				<ESBField esbLen="16" len="16"  id="MOBILE" dataName="MOBILE"  label="手机"/>
+				<ESBField esbLen="40" len="40"  id="EMAIL" dataName="EMAIL_ADDR"  label="电子邮件地址"/>
+				<ESBField esbLen="1" len="1"  id="CHANNEL" dataName="INIT_SIDE" nullCheck="true" label="来源渠道"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="11002000034_55_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="11002000034_55_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+				<ESBField esbLen="19" len="19"  id="CARD_NO" dataName="ACCT_ID"  label="卡号"/>
+				<ESBField esbLen="70" len="70"  id="CLIENT_NAME" dataName="INV_NAME"  label="客户名称"/>
+				<ESBField esbLen="32" len="32"  id="OLD_GLOBAL_ID" dataName="OLD_INV_ID_CODE"  label="旧证件号码"/>
+				<ESBField esbLen="3" len="3"  id="OLD_GLOBAL_TYPE" dataName="OLD_ID_TYPE"  label="旧证件类型"/>
+				<ESBField esbLen="3" len="3"  id="NEW_GLOBAL_TYPE" dataName="NEW_ID_TYPE"  label="新证件类型"/>
+				<ESBField esbLen="32" len="32"  id="NEW_GLOBAL_ID" dataName="NEW_INV_ID_CODE"  label="新证件号码"/>
+				<ESBField esbLen="16" len="16"  id="MOBILE" dataName="MOBILE"  label="手机"/>
+				<ESBField esbLen="40" len="40"  id="EMAIL" dataName="EMAIL_ADDR"  label="电子邮件地址"/>
+				<ESBField esbLen="80" len="80"  id="REMARK" dataName="REMARK"  label="备注"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	
+	<!--内部通讯接口-->
+	<!--900481.01 刷新缓存-->
+	<fmtDef id="900481_01_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="900481_I" opCtx="true">
+				<ESBField esbLen="2" len="2"  id="FLUSH_TYPE" dataName="FLUSH_TYPE" nullCheck="true" label="账号"/>
+				<ESBField esbLen="300" len="300"  id="REMARK" dataName="REMARK"  label="证券资金账号"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="900481_01_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="900481_O" opCtx="true">
+				<ESBField esbLen="5" len="5"  id="RET_CODE" dataName="RESP_CODE"  label="交易返回代码"/>
+				<ESBField esbLen="40" len="40"  id="RET_MSG" dataName="RESP_MSG"  label="交易返回信息"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- ******************************************************************************************************* -->
+	<!-- *************************                      发送主机接口                                       ****************************** -->
+	<!-- ******************************************************************************************************* -->
+	<!-- 11003000038.28 R3036 账户信息查询 -->
+	<fmtDef id="R3036_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="2" len="2" id="INFO_OBTAIN_FLAG" dataName="INFO_OBTAIN_FLAG" value="Y" nullCheck="true" label="信息获取标志"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="R3036_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBField esbLen="30" len="30" id="ECIF_CLIENT_NO" dataName="BECIF_NO" label="ECIF客户号"/>
+				<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_ID" label="账号"/>
+				<ESBField esbLen="20" len="20" id="SUB_BRANCH_ID2" dataName="SUB_BRANCH_ID2"  label="网点号"/>
+				<ESBArray id="CERT_ARRAY" dataName="MSG_O_CERT_ARRAY" opCtx="TRUE">
+					<ESBCD>
+						<ESBField esbLen="10" len="10" id="CERT_TYPE" dataName="CERT_TYPE" label="凭证类型"/>
+						<ESBField esbLen="30" len="30" id="CERT_NO" dataName="CERT_NO"  label="凭证号码"/>
+						<ESBArray id="CERT_PROPERTY_ARRAY" dataName="CERT_PROPERTY_ARRAY" opCtx="TRUE">
+							<ESBCD>
+								<ESBField esbLen="10" len="10" id="CERT_STATUS" dataName="CERT_STATUS" label="凭证状态"/>
+								<ESBField esbLen="8" len="8" id="EXPIRY_DATE" dataName="EXPIRY_DATE"  label="到期日"/>
+							</ESBCD>
+						</ESBArray>
+					</ESBCD>
+				</ESBArray>
+				<ESBArray id="ACCT_ARRAY" dataName="MSG_O_ACCT_ARRAY" opCtx="TRUE">
+					<ESBCD>
+						<ESBField esbLen="50" len="50" id="SUB_ACCT_NO" dataName="SUB_ACCT_NO" label="子账号"/>
+						<ESBArray id="ACCT_PROPERTY_ARRAY" dataName="ACCT_PROPERTY_ARRAY" opCtx="TRUE">
+							<ESBCD>
+								<ESBField esbLen="32" len="32" id="ACCT_STATUS" dataName="ACCT_STATUS" label="账户状态"/>
+								<ESBField esbLen="8" len="8" id="EXPIRY_DATE" dataName="EXPIRY_DATE"  label="到期日"/>
+							</ESBCD>
+						</ESBArray>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 11003000038.46 C3011 对公账户信息查询 -->
+	<fmtDef id="C3011_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="C3011_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBField esbLen="20" len="20" id="BELONG_BRANCH_ID" dataName="OPEN_DEP_ID" label="所属机构号"/>
+				<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_NO"  label="账号"/>
+				<ESBField esbLen="200" len="200" id="CH_ACCT_NAME" dataName="INV_NAME" label="账户中文名称"/>
+				<ESBField esbLen="10" len="10" id="ACCT_TYPE" dataName="ACCT_TYPE"  label="账户类型"/>
+				<ESBField esbLen="5" len="5" id="GLOBAL_TYPE" dataName="ID_TYPE" label="证件类型"/>
+				<ESBField esbLen="32" len="32" id="GLOBAL_ID" dataName="INV_ID_CODE" label="证件号码"/>
+				<ESBField esbLen="32" len="32" id="CLIENT_NO" dataName="BECIF_NO"  label="客户号"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	
+	<!-- 11003000003.47 C3019 对公活期账户余额及利息查询 -->
+	<fmtDef id="C3019_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="3" len="3" id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="C3019_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBField esbLen="20" len="20" scale="4" type="double"  id="BALANCE" dataName="ACCT_BAL" label="账户余额"/>
+				<ESBField esbLen="20" len="20" scale="4" type="double"  id="FREEZE_AMT" dataName="FROZEN_BAL" label="冻结金额"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	
+	<!-- 11003000038.81 C3048 对公账户状态字维护查询 -->
+	<fmtDef id="C3048_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="50" len="50" id="BUSS_TYPE" dataName="BUSS_TYPE"  label="业务类型"/>
+				<ESBField esbLen="10" len="10" id="FUNCTION_CODE" dataName="FUNCTION_CODE" value="A/D" nullCheck="true" label="功能码"/>
+				<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="20" len="20" id="STATUS_WORD_CODE" dataName="STATUS_WORD_CODE" value="DGZH20" nullCheck="true" label="状态字代码"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="C3048_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	
+	<!-- 11003000003.45 R3034 账户余额查询 -->
+	<fmtDef id="R3034_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="3" len="3" id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="200" len="200" id="ACCT_NAME" dataName="INV_NAME" nullCheck="true" label="账户名称"/>
+				<ESBField esbLen="2" len="2" id="QUERY_FLAG" dataName="QUERY_FLAG" value="N" nullCheck="true" label="查询标志"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="R3034_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBArray id="TRAN_LIST_ARRAY" dataName="MSG_O_ICOLL" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_ID" label="账号"/>
+						<ESBField esbLen="50" len="50" id="BUSS_TYPE" dataName="BUSS_TYPE"  label="业务类型"/>
+						<ESBField esbLen="20" len="20" id="BRANCH_ID" dataName="OPEN_DEP_ID" label="机构(分行)号"/>
+						<ESBField esbLen="3" len="3" id="CCY" dataName="CUR_CODE" label="币种"/>
+						<ESBField esbLen="20" len="20" scale="4" type="double"  id="NET_BALANCE" dataName="ACCT_BAL" label="净余额"/>
+						<ESBField esbLen="10" len="10" id="PBC_ACCT_TYPE" dataName="PBC_ACCT_TYPE" label="人行账户分类"/>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	
+	<!-- 11002000022.17 R3042 账户分账户信息维护 -->
+	<fmtDef id="R3042_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="2" len="2" id="FLAG" dataName="FLAG" value="Y" nullCheck="true" label="标志"/>
+				<ESBArray id="ACCT_ARRAY" dataName="MSG_I_ICOLL1" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="3" len="3" id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+						<ESBArray id="ACCT_PROPERTY_ARRAY" dataName="MSG_I_ICOLL1_ICOLL" opCtx="true">
+							<ESBCD>
+								<ESBField esbLen="32" len="32" id="ACCT_STATUS" dataName="ACCT_STATUS"  value="50" nullCheck="true" label="账户状态"/>
+								<ESBField esbLen="2" len="2" id="FLAG" dataName="FLAG" value="A/D" nullCheck="true" label="标志"/>
+							</ESBCD>
+						</ESBArray>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="R3042_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	
+	<!-- 11002000034.12 M7030 客户/账户状态效验 -->
+	<fmtDef id="M7030_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="10" len="10" id="CHECK_TYPE" dataName="CHECK_TYPE" value="A" nullCheck="true" label="验证类型"/>
+				<ESBField esbLen="1" len="1" id="DR_CR_FLAG" dataName="DR_CR_FLAG" value="D" nullCheck="true" label="借贷方向"/>
+				<ESBField esbLen="10" len="10" id="FUNCTION_TYPE" dataName="FUNCTION_TYPE" value="R" nullCheck="true" label="功能类型"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="M7030_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBField esbLen="200" len="200" id="ACCT_NAME" dataName="INV_NAME" label="账户名称"/>
+				<ESBField esbLen="5" len="5" id="GLOBAL_TYPE" dataName="ID_TYPE" label="证件类型"/>
+				<ESBField esbLen="32" len="32" id="GLOBAL_ID" dataName="INV_ID_CODE" label="证件号码"/>
+			</ESBCD>	
+		</ESBCD>
+	</fmtDef>
+	
+	
+	<!-- 11003040004.65 M8010 对公客户信息查询 -->
+	<fmtDef id="M8010_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="M8010_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBField esbLen="30" len="30" id="ECIF_CLIENT_NO" dataName="BECIF_NO" label="ECIF客户号"/>
+				<ESBField esbLen="1" len="1" id="FIN_FLAG" dataName="FIN_FLAG" label="同业标志"/>
+				<ESBField esbLen="5" len="5" id="GLOBAL_TYPE" dataName="GLOBAL_TYPE" label="证件类型"/>
+				<ESBField esbLen="32" len="32" id="GLOBAL_ID" dataName="GLOBAL_ID" label="证件号码"/>
+				<ESBField esbLen="150" len="150" id="CLINT_CHN_NAME" dataName="INV_NAME" label="客户中文名"/>
+				<ESBField esbLen="15" len="15" id="LICENSE_NO" dataName="LICENSE_NO" label="营业执照号"/>
+				<ESBField esbLen="80" len="80" id="ORG_CODE_GLOBAL_ID" dataName="ORG_CODE_GLOBAL_ID" label="组织机构代码证号码"/>
+				<ESBField esbLen="80" len="80" id="CREDIT_ORG_CODE_GLOBAL_ID" dataName="CREDIT_ORG_CODE_GLOBAL_ID" label="信用机构代码证号码"/>
+				<ESBField esbLen="10" len="10" id="OTHER_PROVE_FILE_TYPE" dataName="OTHER_PROVE_FILE_TYPE" label="其他证明文件种类"/>
+				<ESBField esbLen="80" len="80" id="OTHER_PROVE_FILE_NO" dataName="OTHER_PROVE_FILE_NO" label="其他证明文件种类"/>
+			</ESBCD>	
+		</ESBCD>
+	</fmtDef>
+	<!-- 01001000001.29 G1001 一对一活期转账 -->
+	<fmtDef id="G1001_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="50" len="50" id="OUT_ACCT_NO" dataName="OUT_ACCT_NO" nullCheck="true" label="转出账号"/>
+				<ESBField esbLen="50" len="50" id="IN_ACCT_NO" dataName="IN_ACCT_NO" nullCheck="true" label="转入账号"/>
+				<ESBField esbLen="20" len="20" scale="2" type="double"  id="AMT" dataName="TX_AMOUNT" nullCheck="true" label="金额"/>
+				<ESBField esbLen="3" len="3" id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				
+				<ESBField esbLen="20" len="20" id="OUT_BRANCH_ID" dataName="OUT_BRANCH_ID"  label="转出行号"/>
+				<ESBField esbLen="20" len="20" id="IN_BRANCH_ID" dataName="IN_BRANCH_ID" label="转入行号"/>
+				
+				<ESBField esbLen="50" len="50" id="OUT_COUNTER_ACCT_NO" dataName="OUT_COUNTER_ACCT_NO"  label="转出对方行账号"/>
+				<ESBField esbLen="150" len="150" id="OUT_COUNTER_CLIENT_NAME" dataName="OUT_COUNTER_CLIENT_NAME"  label="转出对方行客户名称"/>
+				<ESBField esbLen="150" len="150" id="OUT_COUNTER_BRANCH_NAME" dataName="OUT_COUNTER_BRANCH_NAME" label="转出对方行行名"/>
+				<ESBField esbLen="150" len="150" id="OUT_COUNTER_BANK_NAME" dataName="OUT_COUNTER_BANK_NAME" value="平安银行" label="转出对方行银行名称"/>
+				<ESBField esbLen="4" len="4" id="OUT_TOTAL_DETAIL_FLAG" dataName="OUT_TOTAL_DETAIL_FLAG" label="转出汇总明细标志"/>
+				
+				<ESBField esbLen="50" len="50" id="IN_COUNTER_ACCT_NO" dataName="IN_COUNTER_ACCT_NO" label="转入对方行账号"/>
+				<ESBField esbLen="150" len="150" id="IN_COUNTER_CLIENT_NAME" dataName="IN_COUNTER_CLIENT_NAME"  label="转入对方行客户名称"/>
+				<ESBField esbLen="150" len="150" id="IN_COUNTER_BRANCH_NAME" dataName="IN_COUNTER_BRANCH_NAME"  label="转入对方行分行名称"/>
+				<ESBField esbLen="150" len="150" id="IN_COUNTER_BANK_NAME" dataName="IN_COUNTER_BANK_NAME" value="平安银行"  label="转入对方行银行名称"/>
+				<ESBField esbLen="4" len="4" id="IN_TOTAL_DETAIL_FLAG" dataName="IN_TOTAL_DETAIL_FLAG" label="转入汇总明细标志"/>
+				
+				<ESBField esbLen="30" len="30" id="STATEMENT_NO" dataName="STATEMENT_NO" label="对账单号"/>
+				<ESBField esbLen="300" len="300" id="VALIDATION_FLAG" dataName="VALIDATION_FLAG" label="验证标志"/>
+				<ESBField esbLen="200" len="200" id="OUT_ACCT_USAGE" dataName="OUT_ACCT_USAGE"  label="转出账户用途"/>
+				<ESBField esbLen="200" len="200" id="IN_ACCT_USAGE" dataName="IN_ACCT_USAGE" nullCheck="true"  label="转入账户用途"/>
+				<ESBField esbLen="20" len="20" id="TRAN_TYPE" dataName="TRAN_TYPE" label="交易类型"/>
+				<ESBField esbLen="10" len="10" id="TRADER_TYPE_CODE" dataName="TRADER_TYPE_CODE"  label="商户类型代码"/>
+				
+				<ESBField esbLen="10" len="10" id="CERT_TYPE" dataName="CERT_TYPE" label="凭证类型"/>
+				<ESBField esbLen="30" len="30" id="CERT_NO" dataName="CERT_NO" label="凭证号码"/>
+				<ESBField esbLen="8" len="8" id="ISSUE_DATE" dataName="ISSUE_DATE"  label="签发日期"/>
+				<ESBField esbLen="1" len="1" id="CANCEL_FLAG" dataName="CANCEL_FLAG" label="撤销标志"/>
+				
+				<ESBField esbLen="300" len="300" id="REMARK" dataName="REMARK" label="备注"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="G1001_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBField esbLen="20" len="20" scale="4" type="double" id="AVAIL_BALANCE" dataName="AVAIL_BALANCE" label="可用余额"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 01004000001.24 G1010 联机通用冲销 -->
+	<fmtDef id="G1010_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="52" len="52" id="OLD_BUSS_SEQ_NO" dataName="OLD_BUSS_SEQ_NO" nullCheck="true" label="原业务流水号"/>
+				<ESBField esbLen="52" len="52" id="OLD_TRAN_SEQ_NO" dataName="OLD_TRAN_SEQ_NO" nullCheck="true" label="原交易流水号"/>
+				<ESBField esbLen="300" len="300" id="REASON" dataName="REASON" nullCheck="true" label="原因"/>
+				<ESBField esbLen="2" len="2" id="FLAG" dataName="FLAG" value="0" nullCheck="true" label="标志"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="G1010_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBField esbLen="52" len="52" id="REVERSE_SEQ_NO" dataName="REVERSE_SEQ_NO" label="冲正流水号"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	
+	<!-- 11003040003.37 G3023 交易状态查询 -->
+	<fmtDef id="G3023_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="300" len="300" id="VALIDATION_FLAG" dataName="999" nullCheck="true" label="验证标志"/>
+				<ESBField esbLen="52" len="52" id="TRAN_SEQ_NO" dataName="TRAN_SEQ_NO" nullCheck="true" label="交易流水号"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="G3023_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBArray id="TRAN_LIST_ARRAY" opCtx="true" dataName="MSG_O_ICOLL">
+					<ESBCD>
+						<ESBField esbLen="52" len="52" id="BUSS_SEQ_NO" dataName="BUSS_SEQ_NO" label="业务流水号"/>
+						<ESBField esbLen="52" len="52" id="TRAN_SEQ_NO" dataName="TRAN_SEQ_NO" label="交易流水号"/>
+						<ESBField esbLen="32" len="32" id="TRAN_STATUS" dataName="TRAN_STATUS" label="交易状态"/>
+						<ESBField esbLen="4" len="4" id="FLAG" dataName="FLAG" label="标志"/>
+					</ESBCD>
+				</ESBArray>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 11003000018.06 M8004 当前工作日查询 -->
+	<fmtDef id="M8004_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="300" len="300" id="VALIDATION_FLAG" dataName="VALIDATION_FLAG" nullCheck="true" label="验证标志"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="M8004_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+					<ESBField esbLen="8" len="8" id="DATE" dataName="DATE" label="日期"/>
+					<ESBField esbLen="2" len="2" id="RETAIL_WORKINGDAY_FLAG" dataName="RETAIL_WORKINGDAY_FLAG" label="工作日标志(对私)"/>
+					<ESBField esbLen="2" len="2" id="PUBLIC_WORKINGDAY_FLAG" dataName="PUBLIC_WORKINGDAY_FLAG" label="工作日标志(对公)"/>
+					<ESBField esbLen="8" len="8" id="NEXT_RETAIL_DATE" dataName="NEXT_RETAIL_DATE" label="下个个人业务日期"/>
+					<ESBField esbLen="8" len="8" id="NEXT_PUBLIC_DATE" dataName="NEXT_PUBLIC_DATE" label="下个对公业务日期"/>
+					<ESBField esbLen="2" len="2" id="SYS_STATUS" dataName="SYS_STATUS" label="系统状态"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 11003000008.32 Q1001 对公账户历史动账交易明细查询 -->
+	<fmtDef id="Q1001_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="20" len="20" id="QUERY_TYPE" dataName="QUERY_TYPE" nullCheck="true" label="查询类型"/>
+				<ESBField esbLen="5" len="5" id="SUB_QUERY_TYPE" dataName="SUB_QUERY_TYPE" nullCheck="true" label="子查询类型"/>
+				<ESBField esbLen="50" len="50" id="ACCT_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+				<ESBField esbLen="3" len="3" id="CCY" dataName="CUR_CODE" nullCheck="true" label="币种"/>
+				<ESBField esbLen="4" len="4" id="REVERSAL_FLAG" dataName="REVERSAL_FLAG" nullCheck="true" label="冲销标志"/>
+				<ESBField esbLen="8" len="8" id="START_DATE" dataName="START_DATE" nullCheck="true" label="起始日期"/>
+				<ESBField esbLen="8" len="8" id="END_DATE" dataName="END_DATE" nullCheck="true" label="终止日期"/>
+				<ESBField esbLen="10" len="10" id="RET_MSG_TYPE" dataName="RET_MSG_TYPE" nullCheck="true" label="返回报文类型"/>
+				<ESBField esbLen="10" len="10" id="QUERY_TOTAL_RECORD" dataName="QUERY_TOTAL_RECORD" nullCheck="true" label="查询总记录数"/>
+				<ESBField esbLen="30" len="30" id="START_RECORD_NO" dataName="START_RECORD_NO" nullCheck="true" label="起始记录号"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="Q1001_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBField esbLen="512" len="512" id="FILE_PATH" dataName="FILE_PATH" label="文件路径"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 11005000002.55 M9002 文件传送服务 -->
+	<!-- 转到批量接收
+	<fmtDef id="11005000002_55_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="900230_I" opCtx="true">
+				<ESBField esbLen="100" len="100" id="RESPONSE_FILE_NAME" dataName="RESPONSE_FILE_NAME" nullCheck="true" label="下送文件名" />
+			    <ESBField esbLen="25" len="25" id="FILE_NO" dataName="FILE_NO" label="文件号" />
+				<ESBField esbLen="100" len="100" id="UPLOAD_FILE_NAME" dataName="UPLOAD_FILE_NAME" label="上传文件名" />
+				<ESBField esbLen="10" len="10" id="TOTAL_NUM" type="int" dataName="TOTAL_NUM" label="总笔数" />
+				<ESBField esbLen="10" len="10" id="SUCCESS_NUM" type="int" dataName="SUCCESS_NUM" label="成功笔数" />
+				<ESBField esbLen="10" len="10" id="UNSUCCESS_NUM" type="int" dataName="UNSUCCESS_NUM" label="不成功笔数" />
+				<ESBArray id="SYSTEM_ARRAY" dataName="SYSTEM_ARRAY" opCtx="true">
+					<ESBCD>
+						<ESBField esbLen="10" len="10" id="SUB_SYSTEM_NO" dataName="SUB_SYSTEM_NO" nullCheck="true" label="子系统ID" />
+					</ESBCD>
+				</ESBArray>
+				<ESBField esbLen="32" len="32" id="FILE_MD5" dataName="FILE_MD5" nullCheck="true" label="文件算法" />
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+		
+	<fmtDef id="11005000002_55_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="900230_O" opCtx="true">
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>	
+	-->
+	
+	
+	<!-- ******************************************************************************************************* -->
+	<!-- *************************                  卡管接口(发报)                 ****************************** -->
+	<!-- ******************************************************************************************************* -->
+	<!-- 04003000003.04 查询卡类型BCARD93432 -->
+	<fmtDef id="BCARD93432_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="19" len="19" id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="BCARD93432_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBField esbLen="3" len="3" id="CARD_TYPE" dataName="CARD_TYPE" label="卡类型"/>
+				<ESBField esbLen="150" len="150" id="CARD_TYPE_NAME" dataName="CARD_TYPE_NAME" label="卡类型名称"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	<!-- 04003000003.24 查询卡等级BCARD93439 -->
+	<fmtDef id="BCARD93439_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_I" opCtx="true">
+				<ESBField esbLen="19" len="19" id="CARD_NO" dataName="ACCT_ID" nullCheck="true" label="账号"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="BCARD93439_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="MSG_O" opCtx="true">
+				<ESBField esbLen="19" len="19" id="CARD_NO" dataName="ACCT_ID" label="账号"/>
+				<ESBField esbLen="10" len="10" id="CARD_LEVEL" dataName="CARD_LEVEL" label="卡等级"/>
+				<ESBField esbLen="150" len="150" id="CARD_LEVEL_NAME" dataName="CARD_LEVEL_NAME" label="卡等级名称"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	
+ <!-- 券商发送单户结息文件-->
+	<fmtDef id="906166_01_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="106166_I" opCtx="true">
+				<ESBField esbLen="8" len="8" id="CHK_DATE" dataName="CHK_DATE" label="对帐日期"/>
+				<ESBField esbLen="255" len="255" id="FILE_NAME" dataName="FILE_NAME" label="文件名"/>
+				<ESBField esbLen="8" len="8" id="SEC_COMP_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="906166_01_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="106166_O" opCtx="true">
+				<ESBField esbLen="5" len="5" id="RESP_CODE" dataName="RESP_CODE" label="响应代码"/>
+				<ESBField esbLen="256" len="256" id="RESP_MSG" dataName="RESP_MSG" label="响应信息"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	 <!-- 券商发送带资金销户文件-->
+	<fmtDef id="906167_01_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="106167_I" opCtx="true">
+				<ESBField esbLen="8" len="8" id="CHK_DATE" dataName="CHK_DATE" label="对帐日期"/>
+				<ESBField esbLen="255" len="255" id="FILE_NAME" dataName="FILE_NAME" label="文件名"/>
+				<ESBField esbLen="8" len="8" id="SEC_COMP_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="906167_01_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="106167_O" opCtx="true">
+				<ESBField esbLen="5" len="5" id="RESP_CODE" dataName="RESP_CODE" label="响应代码"/>
+				<ESBField esbLen="256" len="256" id="RESP_MSG" dataName="RESP_MSG" label="响应信息"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	 <!-- 券商发送日终清算文件-->
+	<fmtDef id="906168_01_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="106168_I" opCtx="true">
+				<ESBField esbLen="8" len="8" id="CHK_DATE" dataName="CHK_DATE" label="对帐日期"/>
+				<ESBField esbLen="255" len="255" id="FILE_NAME" dataName="FILE_NAME" label="文件名"/>
+				<ESBField esbLen="8" len="8" id="SEC_COMP_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="906168_01_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="106168_O" opCtx="true">
+				<ESBField esbLen="5" len="5" id="RESP_CODE" dataName="RESP_CODE" label="响应代码"/>
+				<ESBField esbLen="256" len="256" id="RESP_MSG" dataName="RESP_MSG" label="响应信息"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	
+	 <!-- 券商发送开户异常文件-->
+	<fmtDef id="906169_01_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="106169_I" opCtx="true">
+				<ESBField esbLen="8" len="8" id="CHK_DATE" dataName="CHK_DATE" label="对帐日期"/>
+				<ESBField esbLen="255" len="255" id="FILE_NAME" dataName="FILE_NAME" label="文件名"/>
+				<ESBField esbLen="8" len="8" id="SEC_COMP_CODE" dataName="SEC_COMP_CODE" nullCheck="true" label="券商代码"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="906169_01_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="106169_O" opCtx="true">
+				<ESBField esbLen="5" len="5" id="RESP_CODE" dataName="RESP_CODE" label="响应代码"/>
+				<ESBField esbLen="256" len="256" id="RESP_MSG" dataName="RESP_MSG" label="响应信息"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	
+	
+	
+	 <!-- 合作行账务类对账-->
+	<fmtDef id="90810016_01_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="810016_I" opCtx="true">
+				<ESBField esbLen="8" len="8" id="CHECK_DATE" dataName="CHECK_DATE" label="对帐日期"/>
+				<ESBField esbLen="4" len="4" id="BANKNO" dataName="BANKNO" label="合作行"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="90810016_01_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="810016_O" opCtx="true">
+				<ESBField esbLen="18" len="18" id="FILENAME" dataName="FILENAME" label="文件名称"/>
+				<ESBField esbLen="10" len="10" id="FILESIZE" dataName="FILESIZE" label="文件大小"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+		 <!-- 合作行客户类对账-->
+	<fmtDef id="90810017_01_I" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="810017_I" opCtx="true">
+				<ESBField esbLen="8" len="8" id="CHECK_DATE" dataName="CHECK_DATE" label="对帐日期"/>
+				<ESBField esbLen="4" len="4" id="BANKNO" dataName="BANKNO" label="合作行"/>
+			</ESBCD>
+		</ESBCD>
+	</fmtDef>
+	
+	<fmtDef id="90810017_01_O" formatType="paesb">
+		<ESBCD>
+			<ESBCD id="BODY" dataName="810017_O" opCtx="true">
+				<ESBField esbLen="18" len="18" id="FILENAME" dataName="FILENAME" label="文件名称"/>
+				<ESBField esbLen="10" len="10" id="FILESIZE" dataName="FILESIZE" label="文件大小"/>
+			</ESBCD>		
+		</ESBCD>
+	</fmtDef>
+	
+	
+	
+	
+</formats.xml>

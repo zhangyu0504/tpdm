@@ -1,0 +1,40 @@
+package common.services;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.service.EMPService;
+import common.action.db.SqlExecAction;
+import common.util.SFConst;
+
+/**
+ * 
+ * <b>功能描述：</b><br>
+ * FBS公共服务对象，提供各种存管系统的基本公共函数<br>
+ * <b>函数列表：</b><br>
+ * &lt;name="getSQLExecAction"&gt;&lt;function="获取Sql语句执行的Action"&gt;<br>
+ * @version 1.0
+ * @modifier
+ * 
+ */
+
+public class PublicService extends EMPService {
+
+	/**
+	 * 新产生一个公共的SQL语句执行对象.
+	 * 
+	 * @param context
+	 * @throws EMPException
+	 */
+	public SqlExecAction getSQLExecAction(Context context)
+			throws EMPException {
+		SqlExecAction sqlExecAction = null;
+
+		sqlExecAction = new SqlExecAction();
+		sqlExecAction.setDataSource((String) context
+				.getDataValue(SFConst.SERVICE_DATASOURCE));
+		sqlExecAction.setSqlService((String) context
+				.getDataValue(SFConst.SERVICE_SQL));
+
+		return sqlExecAction;
+	}
+}

@@ -1,0 +1,103 @@
+package module.trans.cobank2sf;
+
+import module.bean.AgtAgentBranch;
+import module.bean.AgtCustomerInfo;
+import module.dao.AgtAgentBranchDao;
+import module.trans.TranBase;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+/**
+ * 此类为合作行发起修改客户所属机构
+ * @author ex_kjkfb_songshimin
+ * 交易码:300120
+ */
+public class T300120 extends TranBase {
+
+	@Override
+	protected void initialize( Context context ) throws SFException {}
+
+	@Override
+	public void doHandle( Context context ) throws SFException {
+		// 更新客户所属机构
+		SFLogger.info( context, String.format( "updAgtCustomerInfo()开始" ) );
+		updAgtCustomerInfo( context );
+		SFLogger.info( context, String.format( "updAgtCustomerInfo()结束" ) );
+
+	}
+
+	@Override
+	public void doHost( Context context ) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void doSecu( Context context ) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void chkStart( Context context ) throws SFException {
+		String secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" );
+		String capAcct = SFUtil.getReqDataValue( context, "CAP_ACCT" );
+		String openBranch = SFUtil.getReqDataValue( context, "OPEN_BRANCH_ID" );
+		AgtCustomerInfo agtCustomerInfo = new AgtCustomerInfo();
+		AgtAgentBranch agtAgentBranch = new AgtAgentBranch();
+		try {
+			agtCustomerInfo = agtCustomerInfoDao.qryAgtCustomerInfo( context, tranConnection, capAcct, secCompCode );
+			SFUtil.chkCond( context, agtCustomerInfo == null, "ST5041", String.format( "该客户不属于该合作行" ) );
+			String bankId = agtCustomerInfo.getBankId();
+
+			// 检查所属机构是否属于该合作行
+			AgtAgentBranchDao agtAgentBranchDao = new AgtAgentBranchDao();
+			agtAgentBranch = agtAgentBranchDao.qryAgtAgentBranch( context, tranConnection, bankId, openBranch );
+			SFUtil.chkCond( context, agtAgentBranch == null, "ST5705", String.format( "[开户网点[%s]]不存在", openBranch ) );
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+
+	}
+
+	/**
+	 * 更新数据操作
+	 * @param context
+	 * @throws SFException
+	 */
+	private void updAgtCustomerInfo( Context context ) throws SFException {
+		String secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" );
+		String capAcct = SFUtil.getReqDataValue( context, "CAP_ACCT" );
+		String openBranch = SFUtil.getReqDataValue( context, "OPEN_BRANCH_ID" );
+		String bankId = SFUtil.getDataValue( context, "A_REQUEST_HEAD.BANKNO" );
+		try {
+			DBHandler.beginTransaction( context, tranConnection );// 开启事务1
+			agtCustomerInfoDao.updAgtCustomerInfoByBankId( context, tranConnection, capAcct, secCompCode, bankId, openBranch );
+			DBHandler.commitTransaction( context, tranConnection );// 提交事务1
+			/**
+			 * 组返回节点参数
+			 */
+			SFUtil.setResDataValue( context, "SEC_COMP_CODE", secCompCode );
+			SFUtil.setResDataValue( context, "CAP_ACCT", capAcct );
+			SFUtil.setResDataValue( context, "OPEN_BRANCH_ID", openBranch );
+		} catch( SFException e ) {
+			throw e;
+		} catch( Exception e ) {
+			SFUtil.chkCond( context, "ST4895", e.getMessage() );
+		}
+	}
+
+	@Override
+	protected void chkEnd( Context context ) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+}

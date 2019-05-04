@@ -1,0 +1,15 @@
+#应用码
+APP_CODE=01
+
+#应用属性  SFOnline-非直连   SFOnlineZL-直连
+APP_TYPE=SFOnline
+
+#1：启用本机读取深证通消息 ，0：禁用本机读取深证通消息 。
+SZT_ENABLE=0
+
+#每台机器深证通线程数（最大值不超过5）
+SZT_THREAD_NUM=5
+
+#本机日志打印目录（WAS启动时读取TRDPARAM表前要写日志，故本地配置日志输出路径）
+LOG_PATH=/logs
+

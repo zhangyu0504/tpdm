@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+
+<contexts.xml>
+	<context id="rootCtx" type="root">
+		<refKColl refId="rootKColl"/>
+		<refService alias="transactionManager" type="service" refId="transactionManager"/>
+		<refService alias="tableService" type="service" refId="tableService"/>
+		<refService alias="tbpmdatasource0" type="service" refId="tbpmdatasource0"/>
+		<refService alias="sfsqlexecservice0" type="service" refId="sfsqlexecservice0"/>
+		<refService alias="sfgencontextbysql0" type="service" refId="sfgencontextbysql0"/>
+		<refService alias="sfprocedureaccessservice0" type="service" refId="sfprocedureaccessservice0"/>
+		<refService alias="sfexpresscalculate0" type="service" refId="sfexpresscalculate0"/>
+		<refService alias="cacheManagerService" type="service" refId="cacheManagerService"/>
+		<refService alias="ftpFileService" type="service" refId="ftpFileService"/>
+		<refService alias="publicservice0" type="service" refId="publicservice0"/>
+	</context>
+	<context id="APPChannelCtx" parent="rootCtx" type="channel">
+		<refKColl refId="APPChannelKColl"/>
+	</context>
+	<context id="APPSessionCtx" parent="APPChannelCtx" type="session">
+		<refKColl refId="APPSessionKColl"/>
+	</context>
+</contexts.xml>

@@ -1,0 +1,349 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+
+<EditorProfile title="JSP Editor" >
+
+	<elementCatalog id="EMPTag" name="EMP Tags">
+		
+		<Element id="emp:tab" name="emp:tab">
+			<attributes>
+				<attr id="name" />
+				<attr id="label" editorClass="com.ecc.emp.ide.jsp.support.ResourcePropertyEditor"/>
+				<attr id="active"  attrType="boolean" />
+				<attr id="dataSrc" />
+				<attr id="cacheData" attrType="boolean" />
+			</attributes>
+		</Element>
+		
+		<Element id="emp:URL" name="emp:URL">
+			<attributes>
+				<attr id="name" />
+				<attr id="href" />
+				<attr id="label"
+					editorClass="com.ecc.emp.ide.jsp.support.ResourcePropertyEditor" />
+				<attr id="target" />
+				<attr id="contentDivId" />
+				<attr id="imageFile"/>
+				<attr id="needLocale" />
+				<attr id="CSSClass" name="CSSClass"/>
+			</attributes>
+		</Element>
+
+		<Element id="emp:text" name="emp:text">
+			<attributes>
+				<attr id="name" desc="名称" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="dataType"/>
+
+				<attr id="mapCollName"
+					editorClass="com.ecc.emp.ide.jsp.support.IcollNameProperty" />
+				<attr id="mapValueName"/>
+				<attr id="mapDescName"/>
+			</attributes>
+		</Element>
+
+		<Element id="emp:form" name="emp:form"
+			wizardClass="com.ecc.emp.ide.jsp.tagWizard.FormWizard">
+			<attributes>
+				<attr id="name" name="名称"/>
+				<attr id="action" />
+				<attr id="enctype" name="enctype"
+					valueList="application/x-www-form-urlencoded=普通;multipart/form-data=文件上传;" />
+				<attr id="method" valueList="POST;GET;" />
+				<attr id="cltType" />
+				<attr id="contentDivId" />
+				<attr id="customAttr"/>
+			</attributes>
+		</Element>
+
+		<Element id="emp:input" name="emp:input">
+			<attributes>
+				<attr id="name"/>
+				<attr id="type" name="type"
+					valueList="text;password;hidden;submit;reset;button;" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="valueDataName" name="valueDataName" />
+				<attr id="valueRequestName" name="valueRequestName" />
+				<attr id="value" name="value" />
+				<attr id="dataType" name="数据类型"/>
+				<attr id="required" name="必输项" attrType="boolean" />
+				<attr id="size" name="size" />
+				<attr id="customAttr" />
+				<attr id="CSSClass" name="CSSClass">
+				</attr>
+			</attributes>
+		</Element>
+
+		<Element id="emp:combobox" name="emp:ComboBox">
+			<attributes>
+				<attr id="name" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="dataTypeName" name="数据类型"/>
+				<attr id="optionSrc" valueList="0=CTP数据;1=手工设定;2=无;" />
+				<attr id="iCollName"
+					editorClass="com.ecc.emp.ide.jsp.support.IcollNameProperty"/>
+				<attr id="valueName"/>
+				<attr id="descName"/>
+				<attr id="languageResouce" name="asLanguageResource" attrType="boolean"/>
+				<attr id="itemStr" name="items"/>
+				<attr id="size" name="size" />
+				<attr id="multiple" />
+				<attr id="customAttr" />
+				<attr id="cltType" />
+				<attr id="CSSClass" name="CSSClass"/>
+			</attributes>
+		</Element>
+
+		<Element id="emp:selection" name="emp:selection">
+			<attributes>
+				<attr id="name" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="dataTypeName" name="数据类型"/>
+				<attr id="optionSrc" valueList="0=CTP数据;1=手工设定;2=无;" />
+				<attr id="iCollName"
+					editorClass="com.ecc.emp.ide.jsp.support.IcollNameProperty"/>
+				<attr id="valueName"/>
+				<attr id="descName"/>
+				<attr id="languageResouce" name="asLanguageResource" attrType="boolean" />
+				<attr id="itemStr" name="items"/>
+				<attr id="type" name="type" valueList="checkbox;radio;" />
+				<attr id="label" 
+					editorClass="com.ecc.emp.ide.jsp.support.ResourcePropertyEditor"/>
+				<attr id="layout" name="布局"
+					valueList="br=换行;table=表格;none=无;" />
+				<attr id="customAttr" />
+				<attr id="CSSClass" name="CSSClass"/>
+			</attributes>
+		</Element>
+
+		<Element id="emp:textArea" name="emp:textArea">
+			<attributes>
+				<attr id="name" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="valueDataName "/>
+				<attr id="rows" />
+				<attr id="cols" />
+				<attr id="customAttr" />
+				<attr id="CSSClass" name="CSSClass"/>
+			</attributes>
+		</Element>
+
+		<Element id="emp:fieldMessage" name="emp:fieldMessage">
+			<attributes>
+				<attr id="name" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="CSSClass" name="CSSClass"/>
+			</attributes>
+		</Element>
+
+		<Element id="emp:dynPassword" name="emp:dynPassword">
+			<attributes>
+				<attr id="name" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="value" />
+				<attr id="required" attrType="boolean" />
+				<attr id="size" />
+				<attr id="keyboardType" valueList="NUM;FULL;"/>
+				<attr id="keyBoardTitle" />
+				<attr id="keyBoardWidth" />
+				<attr id="keyBoardHeight" />
+				<attr id="nextFieldName" />
+				<attr id="encodeKey" />
+				<attr id="imgSrc" />
+				<attr id="customAttr" />
+				<attr id="CSSClass" name="CSSClass" />
+			</attributes>
+		</Element>
+
+	</elementCatalog>
+	
+	<elementCatalog id="CTPTag" name="CTP Tags">
+		
+		<Element id="ctp:tab" name="ctp:tab">
+			<attributes>
+				<attr id="name" />
+				<attr id="label" editorClass="com.ecc.emp.ide.jsp.support.ResourcePropertyEditor"/>
+				<attr id="active"  attrType="boolean" />
+				<attr id="dataSrc" />
+				<attr id="cacheData" attrType="boolean" />
+			</attributes>
+		</Element>
+		
+		<Element id="ctp:URL" name="ctp:URL">
+			<attributes>
+				<attr id="name" />
+				<attr id="href" />
+				<attr id="label"
+					editorClass="com.ecc.emp.ide.jsp.support.ResourcePropertyEditor" />
+				<attr id="target" />
+				<attr id="contentDivId" />
+				<attr id="imageFile"/>
+				<attr id="needLocale" />
+				<attr id="CSSClass" name="CSSClass"/>
+			</attributes>
+		</Element>
+		<Element id="ctp:text" name="ctp:text">
+			<attributes>
+				<attr id="name"/>
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="dataType"/>
+
+				<attr id="mapCollName"
+					editorClass="com.ecc.emp.ide.jsp.support.IcollNameProperty" />
+				<attr id="mapValueName"/>
+				<attr id="mapDescName"/>
+			</attributes>
+		</Element>
+		<Element id="ctp:form" name="ctp:form"
+			wizardClass="com.ecc.emp.ide.jsp.tagWizard.FormWizard">
+			<attributes>
+				<attr id="name" name="名称"/>
+				<attr id="action" />
+				<attr id="enctype" name="enctype"
+					valueList="application/x-www-form-urlencoded=普通;multipart/form-data=文件上传;" />
+				<attr id="method" valueList="POST;GET;" />
+				<attr id="cltType" />
+				<attr id="contentDivId" />
+				<attr id="customAttr"/>
+			</attributes>
+		</Element>
+		<Element id="ctp:input" name="ctp:input">
+			<attributes>
+				<attr id="name"/>
+				<attr id="type" name="type"
+					valueList="text;password;hidden;submit;reset;button;" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="valueDataName" name="valueDataName" />
+				<attr id="valueRequestName" name="valueRequestName" />
+				<attr id="value" name="value" />
+				<attr id="dataType" name="数据类型"/>
+				<attr id="required" name="必输项" attrType="boolean" />
+				<attr id="size" name="size" />
+				<attr id="customAttr" />
+				<attr id="CSSClass" name="CSSClass">
+				</attr>
+			</attributes>
+		</Element>
+		<Element id="ctp:combobox" name="ctp:ComboBox">
+			<attributes>
+				<attr id="name" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="dataTypeName" name="数据类型"/>
+				<attr id="optionSrc" valueList="0=CTP数据;1=手工设定;2=无;" />
+				<attr id="iCollName"
+					editorClass="com.ecc.emp.ide.jsp.support.IcollNameProperty"/>
+				<attr id="valueName"/>
+				<attr id="descName"/>
+				<attr id="languageResouce" name="asLanguageResource" attrType="boolean"/>
+				<attr id="itemStr" name="items"/>
+				<attr id="size" name="size" />
+				<attr id="multiple" />
+				<attr id="customAttr" />
+				<attr id="cltType" />
+				<attr id="CSSClass" name="CSSClass"/>
+			</attributes>
+		</Element>
+		<Element id="ctp:selection" name="ctp:selection">
+			<attributes>
+				<attr id="name" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="dataTypeName" name="数据类型"/>
+				<attr id="optionSrc" valueList="0=ctp数据;1=手工设定;2=无;" />
+				<attr id="iCollName"
+					editorClass="com.ecc.emp.ide.jsp.support.IcollNameProperty"/>
+				<attr id="valueName"/>
+				<attr id="descName"/>
+				<attr id="languageResouce" name="asLanguageResource" attrType="boolean" />
+				<attr id="itemStr" name="items"/>
+				<attr id="type" name="type" valueList="checkbox;radio;" />
+				<attr id="label" 
+					editorClass="com.ecc.emp.ide.jsp.support.ResourcePropertyEditor"/>
+				<attr id="layout" name="布局"
+					valueList="br=换行;table=表格;none=无;" />
+				<attr id="customAttr" />
+				<attr id="CSSClass" name="CSSClass"/>
+			</attributes>
+		</Element>
+
+		<Element id="ctp:textArea" name="ctp:textArea">
+			<attributes>
+				<attr id="name" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="valueDataName "/>
+				<attr id="rows" />
+				<attr id="cols" />
+				<attr id="customAttr" />
+				<attr id="CSSClass" name="CSSClass"/>
+			</attributes>
+		</Element>
+
+		<Element id="ctp:fieldMessage" name="ctp:fieldMessage">
+			<attributes>
+				<attr id="name" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="CSSClass" name="CSSClass"/>
+			</attributes>
+		</Element>
+		<Element id="ctp:dynPassword" name="ctp:dynPassword">
+			<attributes>
+				<attr id="name" />
+				<attr id="dataName"
+					editorClass="com.ecc.emp.ide.jsp.support.DataNameProperty" />
+				<attr id="value" />
+				<attr id="required" attrType="boolean" />
+				<attr id="size" />
+				<attr id="keyboardType" valueList="NUM;FULL;"/>
+				<attr id="keyBoardTitle" />
+				<attr id="keyBoardWidth" />
+				<attr id="keyBoardHeight" />
+				<attr id="nextFieldName" />
+				<attr id="encodeKey" />
+				<attr id="imgSrc" />
+				<attr id="customAttr" />
+				<attr id="CSSClass" name="CSSClass" />
+			</attributes>
+		</Element>
+		<Element id="ctp:table" name="ctp:table" 
+				wizardClass="com.ecc.emp.ide.jsp.tagWizard.TableWizard">
+		<attributes>
+			<attr id="name"></attr>
+			<attr id="CSSClass"></attr>
+			<attr id="collName"></attr>
+			<attr id="iCollName" editorClass="com.ecc.emp.ide.jsp.support.IcollNameProperty"></attr>
+			<attr id="needTableTitle"></attr>
+			<attr id="toBeForm"></attr>
+			<attr id="formType"></attr>
+			<attr id="actionType"></attr>
+			<attr id="method" ></attr>
+			<attr id="srvOpName"></attr>
+			<attr id="action"></attr>
+			<attr id="value"></attr>
+			<attr id="jspFileName"></attr>
+			<attr id="titleClass"></attr>
+			<attr id="line1Class"></attr>
+			<attr id="line2Class"></attr>
+			<attr id="cellpadding"></attr>
+			<attr id="cellspacing"></attr>
+			<attr id="appendAttrs"></attr>
+			<attr id="border"></attr>
+			<attr id="htmlCltOp"></attr>
+			<attr id="contentDivId"></attr>
+			<attr id="width"></attr>
+			<attr id="cltType"></attr>
+			<attr id="isLayoutContent"></attr>
+		</attributes>
+		</Element>
+	</elementCatalog>
+</EditorProfile>

@@ -1,0 +1,79 @@
+package module.trans.bankchl2sf;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.SFUtil;
+import core.log.SFLogger;
+
+import module.bean.AcctJour;
+import module.dao.AcctJourDao;
+import module.trans.TranBase;
+
+public class T200312 extends TranBase {
+
+	private String txdate = null;
+	private String busiSeqNo = null;
+	
+	@Override
+	protected void initialize(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void doHandle(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+		txdate = SFUtil.getReqDataValue(context, "TRAN_DATE");
+
+		busiSeqNo = SFUtil.getReqDataValue(context, "TRAN_SEQ_NO");
+
+		SFLogger.info(context, String.format("txdate[%s]", txdate));
+		SFLogger.info(context, String.format("busiSeqNo[%s]", busiSeqNo));
+
+		AcctJourDao acctJourDao = new AcctJourDao();
+		AcctJour acctJour = new AcctJour();
+		acctJour = acctJourDao.qryAcctStatus(context, tranConnection, txdate, busiSeqNo);
+		
+		SFUtil.chkCond( context, null == acctJour , "ST4069", String.format( "查询无此流水记录" ) );
+		
+		SFLogger.info(context, String.format("getTxDate[%s]", acctJour.getTxDate()));
+		SFLogger.info(context, String.format("getChlTranSeqId[%s]", acctJour.getChlTranSeqId()));
+		SFLogger.info(context, String.format("getChlSeqId[%s]", acctJour.getChlSeqId()));
+		SFLogger.info(context, String.format("getJourFlag[%s]", acctJour.getJourFlag()));
+		SFLogger.info(context, String.format("getDetailFlag[%s]", acctJour.getDetailFlag()));
+
+		// 交易成功，组返回报文
+		SFUtil.setResDataValue( context, "TRAN_DATE", acctJour.getTxDate() );
+		SFUtil.setResDataValue( context, "BUSI_SEQ_NO", acctJour.getChlSeqId() );
+		SFUtil.setResDataValue( context, "TRAN_SEQ_NO", acctJour.getChlTranSeqId() );
+		SFUtil.setResDataValue( context, "STATUS", ("00".equals(acctJour.getJourFlag())?"S":"F") );
+		SFUtil.setResDataValue( context, "ERR_CODE", acctJour.getRespCode() );
+		SFUtil.setResDataValue( context, "ERR_MSG", acctJour.getRespMsg() );
+	}
+
+	@Override
+	public void doHost(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void doSecu(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void chkStart(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	protected void chkEnd(Context context) throws SFException {
+		// TODO Auto-generated method stub
+
+	}
+
+}

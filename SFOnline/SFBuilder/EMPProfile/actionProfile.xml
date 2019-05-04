@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="GBK" ?>
+
+<EditorProfile rootElement="flow">
+	<elementCatalog id="rootCatalog" name="rootCatalog" showInToolPanel="false">
+		<Element id="flow" name="flow">
+			<childElements>
+				<child id="SetFieldErrorMsgAction" allowedCount="*"/>
+				<child id="TCPIPAccessAction" allowedCount="*"/>
+				<child id="JDBCSQLExecAction" allowedCount="*"/>
+				<child id="JDBCTableAction" allowedCount="*"/>
+				<child id="CompareStringAction" allowedCount="*"/>
+				<child id="ComputeExpressionAction" allowedCount="*"/>
+				<child id="CopyDataValueAction" allowedCount="*"/>
+				<child id="ICollAction" allowedCount="*"/>
+				<child id="FiltSubmitDataAction" allowedCount="*"/>
+				<child id="FormatAction" allowedCount="*"/>
+				<child id="GenerateRandomStringAction" allowedCount="*"/>
+				<child id="GenTransactionNumber" allowedCount="*"/>
+				<child id="HaveElementsInICollAction" allowedCount="*"/>
+				<child id="SaveToFileAction" allowedCount="*"/>
+				<child id="SetTimeAction" allowedCount="*"/>
+				<child id="SetValueAction" allowedCount="*"/>
+				<child id="UnformatAction" allowedCount="*"/>
+				<child id="ZIPDataAction" allowedCount="*"/>
+				<child id="UNZIPDataAction" allowedCount="*"/>
+				<child id="UnzipFileAction" allowedCount="*"/>
+				<child id="ZipFileAction" allowedCount="*"/>
+				<child id="FtpFileAction" allowedCount="*"/>
+				<child id="HttpCommAction" allowedCount="*"/>
+				<child id="MQReceiveAction" allowedCount="*"/>
+				<child id="MQSendtoAction" allowedCount="*"/>
+				<child id="SendMailAction" allowedCount="*"/>
+				<child id="DecryptDataAction" allowedCount="*"/>
+				<child id="EncryptDataAction" allowedCount="*"/>
+				<child id="EndAction" allowedCount="*"/>
+				<child id="JDBCProcedureAction" allowedCount="*"/>
+				<child id="JDBCBatchSQLAction" allowedCount="*"/>
+				<child id="SendToCICSAction" allowedCount="*"/>
+				<child id="EJournalAction" allowedCount="*"/>
+				<child id="StartAction" allowedCount="1"/>				
+				<child id="ExtendedAction" allowedCount="*"/>
+				<child id="CommonFlowCaller" allowedCount="*"/>
+				<child id="SelfAction" allowedCount="*"/>
+				<child id="CallBiz" allowedCount="*"/>
+				<child id="SQLExecAction" allowedCount="*"/>
+				<child id="PageSQLExecAction" allowedCount="*"/>				
+				<child id="TableAction" allowedCount="*"/>
+				<child id="JDBCCommitAction" allowedCount="*"/>
+				<child id="JDBCRollbackAction" allowedCount="*"/>
+				<child id="ForAction" allowedCount="*"/>
+				<child id="SwitchAction" allowedCount="*"/>
+				<child id="BlankAction" allowedCount="*"/>
+			</childElements>
+			<document/>
+		</Element>			
+	</elementCatalog>
+	<elementCatalog id="hide" name="隐藏功能" showInToolPanel="false">
+		<Element id="BlankAction" name="未知" implClass="" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/icons/biz/unknown.gif">
+			<document></document>
+		</Element>	
+	</elementCatalog>
+	<elementCatalog id="common" name="基本功能{EMP}">
+		<Element id="StartAction" name="开始" implClass="com.ecc.emp.flow.EMPStartAction" wrapperClass="com.ecc.ide.editor.visualflow.StartActionWrapper" iconName="/images/start.gif">
+			<document>空操作，代表流程的开始。</document>
+		</Element>
+		<Element id="EndAction" name="结束" implClass="com.ecc.emp.flow.EMPEndAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/end.gif">
+			<attributes>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="errorCode" attrName="错误码" desc= "错误码。"/>
+				<attr id="errorMessage" attrName="错误信息" desc= "错误信息。"/>
+				<attr id="errorCodeField" attrName="错误码数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放错误码的数据域。默认为errorCode。"/>
+				<attr id="errorMsgField" attrName="错误信息数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放错误信息的数据域。默认为errorMsg。"/>
+				<attr id="result" attrName="返回值" desc= "本步骤的返回值，即整个流程的返回值。"/>
+			</attributes>
+			<document>结束操作步骤，代表流程的结束。可以设置返回值、错误码以及错误信息。</document>
+		</Element>
+		<Element id="ExtendedAction" name="扩展步骤" implClass="com.ecc.emp.flow.ExtendedAction" wrapperClass="com.ecc.ide.editor.visualflow.FlowExtendPointElementWrapper" iconName="/images/extend.gif">
+			<attributes>
+				<attr id="extendId" attrName="扩展点定义" desc= "在定义了公共流程时，定义特定扩展点的扩展实现" editorClass="com.ecc.ide.emp.propertyeditor.CommonFlowExtendActionSelectEditor"/>
+				<attr id="defaultRetValue" attrName="默认返回值" desc="仅在公共流程的定义中生效，在biz中定义无效"/>
+			</attributes>
+			<childElements/>
+			<document>扩展点步骤，仅在定义公共流程时有意义，可以扩展公共流程中预设的扩展点的逻辑功能</document>
+		</Element>
+		<Element id="CommonFlowCaller" name="调用公共流程" implClass="com.ecc.emp.flow.EMPCommonFlowCaller" wrapperClass="com.ecc.ide.editor.visualflow.FlowExtendPointElementWrapper" iconName="/images/call.gif">
+			<attributes>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="flowId" attrName="引用公共流程ID" desc= "可以在这里调用特定的公共流程，完成某项操作" editorClass="com.ecc.ide.emp.propertyeditor.CommonFlowSelectEditor"/>
+			<!--   attr id="desc" attrName="说明"  editorClass="com.ecc.ide.editor.TextAreaPropertyEditor"/ --> 
+			</attributes>
+			<childElements/>
+			<document>公共流程调用功能，在定义了若干公共流程时（每个流程完成一项特定功能），使用本action可以去掉用公共流程</document>
+		</Element>
+		<Element id="SelfAction" name="自定义步骤" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/selfaction.gif" wizardClass="com.ecc.ide.refactor.ActionWizard">
+			<attributes>
+				<attr id="implClass" editable="false"/>
+			</attributes>
+			<childElements/>
+			<document>自定义交易步骤组件，使用本组件无须将action配置到profile文件中，即可直接调用继承自EMPAction的交易步骤代码。</document>
+		</Element>
+		<Element id="CallBiz" name="调用业务构件" implClass="com.ecc.emp.processor.EMPBusinessLogicCaller" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/call.gif" editClass="com.ecc.emp.ide.callbiz.CallBizEditor" wizardClass="com.ecc.emp.ide.callbiz.CallBizWizard">
+			<attributes>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="bizId" attrName="业务构件名称" />
+				<attr id="opId" attrName="业务逻辑ID" />
+			</attributes>
+			<childElements/>
+			<document>公共流程调用功能，在定义了若干公共流程时（每个流程完成一项特定功能），使用本action可以去掉用公共流程</document>
+		</Element>
+		
+		<Element id="ForAction" name="循环组件" implClass="com.ecc.emp.processor.ForAction" wrapperClass="com.ecc.emp.ide.biz.subflow.ForActionWrapper" iconName="/icons/foraction.gif" editClass="com.ecc.emp.ide.biz.subflow.SubFlowEditor" wizardClass="com.ecc.emp.ide.biz.subflow.SubFlowWizard">
+			<attributes>
+				<attr id="cycleCounter" attrName="计数器初始值" editorClass="com.ecc.ide.editor.dataValidator.ValidateFormulaPropertyEditor"/>
+				<attr id="cycleCondition" attrName="循环终止判断条件" editorClass="com.ecc.ide.editor.dataValidator.ValidateFormulaPropertyEditor"/>
+				<attr id="cycleUpdator" attrName="循环处理" editorClass="com.ecc.ide.editor.dataValidator.ValidateFormulaPropertyEditor"/>
+			</attributes>
+			<childElements/>
+			<document>业务逻辑流程中的for循环实现.模仿Java的for循环处理，设定三个条件（EMP公式形式）：计数器初始值；循环终止判断条件；循环处理；$counterValue为内置的循环计数器</document>
+		</Element>
+		
+		<Element id="SwitchAction" name="Switch组件" implClass="com.ecc.emp.processor.SwitchAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper"  iconName="/icons/switchaction.gif">
+			<attributes/>			
+			<childElements>
+				<child id="CaseAction" allowedCount="*"/>
+			</childElements>
+			<document>Switch处理</document>
+		</Element>
+		<Element id="CaseAction" name="Case" implClass="com.ecc.emp.processor.CaseConditionAction" wrapperClass="com.ecc.emp.ide.biz.subflow.ForActionWrapper" iconName="/icons/caseaction.gif" editClass="com.ecc.emp.ide.biz.subflow.SubFlowEditor" wizardClass="com.ecc.emp.ide.biz.subflow.SubFlowWizard">
+			<attributes>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称"/>
+				<attr id="caseCondition" attrName="判断条件" editorClass="com.ecc.ide.editor.dataValidator.ValidateFormulaPropertyEditor"/>
+			</attributes>
+			<childElements/>
+			<document>Case</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="DBAccess" name="数据库访问{EMP}" showInToolPanel="false">
+		<Element id="JDBCSQLExecAction" name="执行SQL语句" implClass="com.ecc.emp.jdbc.sql.JDBCSQLExecAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=成功;1=失败;2=记录不存在;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="transactionType" attrName="事务类型" mustSet="true" defaultValue="TRX_REQUIRED" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= "事务类型。"/>
+				<attr id="dataSource" attrName="数据源" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的数据源的定义名称。"/>
+				<attr id="sqlService" attrName="执行SQL服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的执行SQL语句服务的定义名称。"/>
+			</attributes>
+			<document>执行SQL语句的操作步骤，通过执行SQL语句服务（JDBCSQLExecService），实现在一个事务中执行多条SQL语句的操作。返回值：0=成功;1=失败;2=记录不存在		</document>
+		</Element>
+		<Element id="JDBCTableAction" name="访问数据库表" implClass="com.ecc.emp.jdbc.table.JDBCTableAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif" wizardClass="com.ecc.ide.editor.wizard.jdbc.JDBCTableOpStepWizard">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=正常;-1=异常;2=记录未找到;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="transactionType" attrName="事务类型" mustSet="true" defaultValue="TRX_REQUIRED" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= "事务类型。"/>
+				<attr id="op" attrName="操作" mustSet="true" valueList="enquiry=查询所有记录;pageEnquiry=分页查询;retrieve=查询单条记录;insert=添加;delete=删除;update=更新;" desc= "需要进行的操作。"/>
+				<attr id="dataMapping" attrName="数据映射" desc= "EMP数据域到数据库表字段的映射关系。默认使用数据库表服务中的映射，在此可以定义特殊的映射关系。"/>
+				<attr id="columns" attrName="字段列表" desc= "需要操作的字段，若不设置则代表对所有字段进行操作。多个名称之间以;隔开。"/>
+				<attr id="condition" attrName="查询条件" desc= "查询、删除、更新操作时的查询条件，即SQL的WHERE子句。"/>
+				<attr id="iCollName" attrName="iColl名称" mustInputFormula="($op='enquiry') or ($op='pageEnquiry')" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放查询多条记录时的结果集的数据集合名称。"/>
+				<attr id="dataSource" attrName="数据源" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的数据源的定义名称。"/>
+				<attr id="tableService" attrName="访问数据库表服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的访问数据库表服务的定义名称。"/>
+			</attributes>
+			<document>访问数据库表的操作步骤，通过数据库表访问服务（JDBCTableService），根据外部参数配置，实现对数据库表的各种操作。返回值：0=正常;-1=异常;2=记录未找到</document>
+		</Element>		
+		<Element id="JDBCBatchSQLAction" name="执行SQL脚本" implClass="com.ecc.emp.jdbc.batchsql.JDBCBatchSQLAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=正常;-1=异常">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="sqlFileName" attrName="SQL脚本文件" mustSet="true" editorClass="com.ecc.ide.editor.FilePropertyEditor" desc= "SQL脚本文件的名称。"/>
+				<attr id="dataSource" attrName="数据源" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的数据源的定义名称。"/>
+				<attr id="batchService" attrName="执行SQL脚本服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的执行SQL脚本服务的定义名称。"/>
+			</attributes>
+			<document>执行SQL脚本的操作步骤，通过执行SQL脚本服务（JDBCBatchSQLService），根据外部参数配置，实现读取并执行SQL文件脚本的操作。返回值：0=正常;-1=异常</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="DataBase" name="数据库访问{EMP}">
+		<Element id="SQLExecAction" name="执行SQL语句" implClass="com.ecc.emp.jdbc.sql.SQLExecAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=成功;1=失败;2=记录不存在;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="transactionType" attrName="事务类型" mustSet="true" defaultValue="TRX_REQUIRED" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= "事务类型。"/>
+				<attr id="dataSource" attrName="数据源" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的数据源的定义名称。"/>
+				<attr id="sqlService" attrName="执行SQL服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的执行SQL语句服务的定义名称。"/>
+				<attr id="refSQL" attrName="SQL定义服务" mustSet="true" desc= "需要执行的SQL语句定义服务名称，可以顺序执行多个，用分号隔开"/>
+			</attributes>
+			<childElements>
+			</childElements>
+			<document>执行SQL语句的操作步骤，通过执行SQL语句服务（SQLExecService），实现在一个事务中执行多条SQL语句的操作。返回值：0=成功;1=失败;2=记录不存在		</document>
+		</Element>
+		<Element id="PageSQLExecAction" name="执行翻页SQL语句" implClass="com.ecc.emp.jdbc.sql.PageSQLExecAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=成功;1=失败;2=记录不存在;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="transactionType" attrName="事务类型" mustSet="true" defaultValue="TRX_REQUIRED" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= "事务类型。"/>
+				<attr id="dataSource" attrName="数据源" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的数据源的定义名称。"/>
+				<attr id="sqlService" attrName="执行SQL服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的执行SQL语句服务的定义名称。"/>
+				<attr id="refSQL" attrName="SQL定义服务" mustSet="true" desc= "需要执行的SQL语句定义服务名称，可以顺序执行多个，用分号隔开"/>
+				<attr id="pageSQL" attrName="执行翻页的SQL服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的执行翻页的SQL语句服务的定义名称。"/>
+			</attributes>
+			<document>执行翻页SQL语句的操作步骤，通过动态构造翻页的SQL语句服务，实现翻页操作。返回值：0=成功;1=失败;2=记录不存在		</document>
+		</Element>
+		<Element id="TableAction" name="访问数据库表" implClass="com.ecc.emp.jdbc.table.TableAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif" wizardClass="com.ecc.ide.editor.wizard.jdbc.renewal.TableActionWizard">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=正常;-1=异常;2=记录未找到;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="transactionType" attrName="事务类型" mustSet="true" defaultValue="TRX_REQUIRED" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= "事务类型。"/>
+				<attr id="op" attrName="操作" mustSet="true" valueList="enquiry=查询所有记录;pageEnquiry=分页查询;retrieve=查询单条记录;insert=添加;delete=删除;update=更新;" desc= "需要进行的操作。"/>
+				<attr id="dataMapping" attrName="数据映射" desc= "EMP数据域到数据库表字段的映射关系。默认使用数据库表服务中的映射，在此可以定义特殊的映射关系。"/>
+				<attr id="columns" attrName="字段列表" desc= "需要操作的字段，若不设置则代表对所有字段进行操作。多个名称之间以;隔开。"/>
+				<attr id="condition" attrName="查询条件" desc= "查询、删除、更新操作时的查询条件，即SQL的WHERE子句或GROUP BY等子句。"/>
+				<attr id="iCollName" attrName="iColl名称" mustInputFormula="($op='enquiry') or ($op='pageEnquiry')" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放查询多条记录时的结果集的数据集合名称。"/>
+				<attr id="dataSource" attrName="数据源" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的数据源的定义名称。"/>
+				<attr id="tableService" attrName="数据库表访问服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的数据库表访问服务的定义名称。"/>
+				<attr id="tableDefine" attrName="数据库表定义服务" mustSet="true" desc= "所使用的数据库表定义服务的定义名称。"/>
+				<attr id="tableSequenceColumn" attrName="表索引字段" desc= "分页查找时，使用此字段索引排序。"/>
+				<attr id="maxLine" attrName="最大记录数" desc= "分页查询时，一次返回的最大记录数。"/>
+			</attributes>
+			<document>访问数据库表的操作步骤，通过数据库表访问服务（TableService），根据外部参数配置，实现对数据库表的各种操作。返回值：0=正常;-1=异常;2=记录未找到</document>
+		</Element>
+		<Element id="JDBCProcedureAction" name="访问存储过程" implClass="com.ecc.emp.jdbc.procedure.JDBCProcedureAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=正常;-1=异常;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="transactionType" attrName="事务类型" mustSet="true" defaultValue="TRX_REQUIRED" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= "事务类型。"/>
+				<attr id="iCollName" attrName="iColl名称" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "批量执行存储过程的源数据集合名称。"/>
+				<attr id="isBatch" attrName="批量执行" defaultValue="disable" valueList="batch=批量;disable=不批量;" desc= "批量执行存储过程的标识，若为批量执行则遇到错误就停止。"/>
+				<attr id="dataSource" attrName="数据源" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的数据源的定义名称。"/>
+				<attr id="procedureService" attrName="访问存储过程服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的访问存储过程服务的定义名称。"/>
+				<attr id="procedureDefine" attrName="存储过程定义" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的存储过程定义服务的定义名称。"/>
+			</attributes>
+			<document>访问存储过程的操作步骤，通过存储过程访问服务（ProcedureAccessService），调用并执行本地数据库的存储过程。返回值：0=正常;-1=异常	</document>
+		</Element>
+		<Element id="JDBCCommitAction" name="提交当前事务" implClass="com.ecc.emp.jdbc.JDBCCommitAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=正常;">
+						</attr>				
+			</attributes>
+			<document>提交当前事务的交易步骤。返回值：0=正常;	</document>
+		</Element>
+		<Element id="JDBCRollbackAction" name="回滚当前事务" implClass="com.ecc.emp.jdbc.JDBCRollbackAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=正常;">
+						</attr>				
+			</attributes>
+			<document>回滚当前事务的交易步骤。返回值：0=正常;	</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="dataOperation" name="数据操作{EMP}">
+		<Element id="SetValueAction" name="为数据域赋值" implClass="com.ecc.emp.action.SetValueAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;-1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="dataName" attrName="数据域列表" mustSet="true" desc= "指定的数据域，多个数据域之间用“|”分隔。"/>
+				<attr id="dataValue" attrName="值列表" mustSet="true" desc= "要设置的值，多个值之间用“|”分隔。"/>
+			</attributes>
+			<document>向指定的数据域设定指定的值的操作步骤。返回值：0=成功;-1=异常</document>
+		</Element>
+		<Element id="CopyDataValueAction" name="复制数据域" implClass="com.ecc.emp.action.CopyDataValueAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;2=变量与源值个数不等;3=变量个数超过默认最大值;-1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="sourceDataField" attrName="源数据域" mustSet="true" desc= "源数据域名称列表，如果是多个数据域，中间使用“|”进行分隔。"/>
+				<attr id="targetDataField" attrName="目标数据域" mustSet="true" desc= "目标数据域名称列表，如果是多个数据域，中间使用“|”进行分隔。"/>
+			</attributes>
+			<document>将某一数据域中的值复制到另一个数据域的操作步骤，可以同时复制多个数据域。返回值：0=成功;2=变量与源值个数不等;3=变量个数超过默认最大值;-1=异常;</document>
+		</Element>
+		<Element id="CompareStringAction" name="比较数据域" implClass="com.ecc.emp.action.CompareStringAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=相等;1=不相等;-1=异常;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="param1" attrName="数据域1" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "要比较的数据域之一。"/>
+				<attr id="param2" attrName="数据域2" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "要比较的数据域之二。"/>
+			</attributes>
+			<document>比较两个数据域的值是否相等的操作步骤。返回值：0=相等;1=不相等;-1=异常</document>
+		</Element>
+		<Element id="ComputeExpressionAction" name="表达式计算" implClass="com.ecc.emp.action.ComputeExpressionAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=成功;-1=失败;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="exp" attrName="表达式" mustSet="true" desc= "要计算的表达式。"/>
+				<attr id="param" attrName="结果数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放表达式计算结果的数据域。"/>
+			</attributes>
+			<document>表达式求值的操作步骤。返回值：0=成功;-1=失败</document>
+		</Element>
+		<Element id="ICollAction" name="数据集合操作" implClass="com.ecc.emp.action.ICollAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;1=操作失败;Other=其它;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="iCollName" attrName="iCollName" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "要操作的数据集合名称。"/>
+				<attr id="op" attrName="op" mustSet="true" valueList="add=添加;delete=删除;update=更新;retrieve=查询;" desc= "要进行的操作。"/>
+				<attr id="idxFieldName" attrName="idxFieldName" mustInputFormula="($op='delete') or ($op='retrieve') or ($op='update')" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "查询、删除或更新操作时的条件数据域。若此数据域中的值等于iColl中某条记录(kColl)的同名数据域的值，则该记录即为要操作的记录。"/>
+				<attr id="retrieveFields" attrName="retrieveFields" desc= "要查询的数据域列表。多个数据域间以“;”隔开，最后一个数据域后面也要加上“;”。"/>
+				<attr id="updateFields" attrName="updateFields" desc= "要更新的数据域列表。多个数据域间以“;”隔开，最后一个数据域后面也要加上“;”。"/>
+			</attributes>
+			<document>对指定iColl中的数据进行类似数据库增删改查操作的操作步骤。返回值：0=成功;1=失败</document>
+		</Element>
+		<Element id="FiltSubmitDataAction" name="数据集合运算" implClass="com.ecc.emp.action.FiltSubmitDataAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;-1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="selectedICollName" attrName="数据集合1" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "要操作的数据集合之一。"/>
+				<attr id="wholeICollName" attrName="数据集合2" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "要操作的数据集合之二。"/>
+				<attr id="targetRecords" attrName="结果数据集合" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放结果的数据集合，若无设置则使用数据集合2。"/>
+				<attr id="keyName" attrName="关键数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "用于比较的关键数据域。"/>
+				<attr id="action" attrName="操作" defaultValue="in" valueList="in=交集（缺省）;+=并集;-=差集;" desc= "要进行的操作。差集操作为数据集合2-数据集合1。"/>
+			</attributes>
+			<document>对两个iColl数据集合按照某一关键数据域进行交集、并集、差集运算的操作步骤。返回值：0=成功;-1=异常</document>
+		</Element>
+		<Element id="HaveElementsInICollAction" name="取iColl记录数" implClass="com.ecc.emp.action.HaveElementsInICollAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=集合中不存在元素;-1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="iCollName" attrName="iColl名称" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "数据集合名称。"/>
+			</attributes>
+			<document>取得一个iColl中存在的记录（kColl）个数的操作步骤。返回值：0=不存在元素;-1=异常;其他=记录个数</document>
+		</Element>
+		<Element id="GenerateRandomStringAction" name="生成随机字符串" implClass="com.ecc.emp.action.GenerateRandomStringAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="dataName" attrName="结果数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放生成的随机字符串的数据域。"/>
+				<attr id="length" attrName="长度" mustSet="true" defaultValue="6" desc= "随机字符串长度。"/>
+				<attr id="scope" attrName="字符范围" defaultValue="0-9|A-Z|a-z" desc= "随机字符串使用的字符范围。"/>
+				<attr id="delim" attrName="字符间隔符" mustSet="true" desc= "字符间隔符。"/>
+			</attributes>
+			<document>生成随机字符串并将其放入指定的数据域中的操作步骤。返回值：0=成功;1=异常</document>
+		</Element>
+		<Element id="GenTransactionNumber" name="生成流水号" implClass="com.ecc.emp.action.GenTransactionNumberAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="tranNumFieldName" attrName="流水号数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放生成流水号的数据域。"/>
+				<attr id="seqId" attrName="标识" defaultValue="_default" desc= "流水号标识。若存在多个流水号，以此id作为唯一标识。"/>
+				<attr id="fixLength" attrName="长度" defaultValue="0" desc= "流水号固定长度，若设为0表示长度不固定。"/>
+				<attr id="align" attrName="对齐方式" defaultValue="right" valueList="right=右对齐;left=左对齐" desc= "当为固定长度时的对齐方式。"/>
+				<attr id="padChar" attrName="填充字符" defaultValue=" " desc= "当不足固定长度时的填充字符。"/>
+				<attr id="step" attrName="递增值" defaultValue="1" desc= "递增值。"/>
+				<attr id="min" attrName="最小值" defaultValue="0" desc= "最小值（初始值）。"/>
+				<attr id="max" attrName="最大值" defaultValue="1" desc= "最大值。"/>
+			</attributes>
+			<document>生成流水号的操作步骤。0=成功;1=异常</document>
+		</Element>
+		<Element id="SetTimeAction" name="取系统时间" implClass="com.ecc.emp.action.SetTimeAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=操作成功;-1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="timeFieldName" attrName="数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放时间的数据域。"/>
+				<attr id="timeFormat" attrName="时间格式" defaultValue="yyyy/MM/dd/HH:mm:ss" desc= "时间格式定义。"/>
+			</attributes>
+			<document>取得系统时间并以指定的格式存入指定的数据域中的操作步骤。返回值：0=成功;-1=异常</document>
+		</Element>
+		<Element id="FormatAction" name="格式化数据" implClass="com.ecc.emp.action.FormatAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=操作成功;-1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="dataType" attrName="数据来源类型" mustSet="true" defaultValue="context" valueList="context;kColl;" desc= "数据来源类型，可选择context或kColl。"/>
+				<attr id="packMsgSaveTo" attrName="结果数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放格式化结果的数据域。"/>
+				<attr id="formatName" attrName="格式名称" mustSet="true" desc= "Format格式定义名称。"/>
+				<attr id="kCollName" attrName="kColl名称" mustInputFormula="$dataType='kColl'" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "数据来源kColl名称。"/>
+			</attributes>
+			<document>格式化数据操作步骤。通过配置的Format格式，将交易数据格式化并存放到指定的数据域中。返回值：0=成功;-1=异常</document>
+		</Element>
+		<Element id="UnformatAction" name="反格式化数据" implClass="com.ecc.emp.action.UnformatAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;-1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="dataType" attrName="目标数据类型" mustSet="true" valueList="context;kColl;" desc= "存放反格式化结果的数据类型，可选择context或kColl。"/>
+				<attr id="packMsgGetFrom" attrName="源数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "来源数据域。"/>
+				<attr id="formatName" attrName="格式名称" mustSet="true" desc= "Format格式定义名称。"/>
+				<attr id="kCollName" attrName="kColl名称" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "目标kColl名称。"/>
+			</attributes>
+			<document>反格式化数据操作步骤。通过配置的格式名称，将数据反格式赋给context或者kColl。返回值：0=成功;-1=异常</document>
+		</Element>
+		<Element id="SaveToFileAction" name="交易数据保存到文件" implClass="com.ecc.emp.action.SaveToFileAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="fileName" attrName="文件名" mustSet="true" desc= "初始文件名，为避免重复，实际文件名会自动添加序号。"/>
+				<attr id="fileNameField" attrName="文件名数据域" defaultValue="fileName" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "保存实际文件名(包括了文件所在的绝对路径)的数据域。默认为fileName。"/>
+				<attr id="formatName" attrName="格式定义" defaultValue="fileFormat" desc= "Format格式定义名称。默认为fileFormat。"/>
+			</attributes>
+			<document>将交易数据按指定format格式格式化后保存到指定文件中的操作步骤。返回值：0=正常;1=数据格式化错误;-1=写文件错误;其它=异常</document>
+		</Element>
+		<Element id="SetFieldErrorMsgAction" name="设置域错误信息" implClass="com.ecc.emp.action.SetFieldErrorMsgAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="fieldNames" attrName="数据域列表" mustSet="true" desc= "要设置错误信息的数据域列表。多个数据域之间用“|”隔开。"/>
+				<attr id="errorMsgs" attrName="错误信息列表" mustSet="true" desc= "要设置的错误信息列表，与数据域列表对应。多个信息之间用“|”隔开。"/>
+				<attr id="needClear" attrName="清空" attrType="boolean" defaultValue="true" desc= "是否事先清空所有域错误信息。"/>
+			</attributes>
+			<document>设置域错误信息的操作步骤。此步骤往当前context的名为fieldErrorMsg的kColl中增加（修改）一个或多个数据域，此数据域的值会显示在响应页面同名数据域输入框（text类型的emp:input）的后面。返回值：0=正常;-1=参数不全</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="communication" name="通信处理{EMP}">
+		<Element id="TCPIPAccessAction" name="TCPIP主机访问" implClass="com.ecc.emp.tcpip.TCPIPAccessAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="sendFormatName" attrName="发送报文" desc= "发送数据报文格式化定义名称。"/>
+				<attr id="receiveFormatName" attrName="接收报文" desc= "接收数据报文格式化定义名称。"/>
+				<attr id="timeOut" attrName="超时时间" desc= "接收超时时间（单位毫秒）。"/>
+				<attr id="serviceName" attrName="TCPIP通信服务" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的TCPIP通信服务定义名称。"/>
+				<attr id="hostId" attrName="冲正主机Id" desc="EMPReversalHandler中定义的对应冲正主机Id"/>
+			</attributes>
+			<document>访问TCPIP主机的操作步骤，通过访问TCPIP主机服务（TCPIPService），实现TCP/IP协议的通讯功能。</document>
+		</Element>
+		<Element id="FtpFileAction" name="FTP传送文件" implClass="com.ecc.emp.comm.ftp.FtpFileAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;-1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="fileType" attrName="文件传输方式" mustSet="true" valueList="0=按照二进制传输;1=按照文本传输;" desc= "文件的传输方式（二进制或文本）。"/>
+				<attr id="tranType" attrName="传输类型" mustSet="true" valueList="0=下载(get);1=上传(put);" desc= "下载或上传。"/>
+				<attr id="localFileName" attrName="本地文件名" mustSet="true" desc= "本地文件名(直接设置或前面加上$符号表示数据域)。"/>
+				<attr id="localPath" attrName="本地路径" mustSet="true" desc= "本地绝对路径(直接设置或前面加上$符号表示数据域)。"/>
+				<attr id="remoteFileName" attrName="服务器文件名" mustSet="true" desc= "服务器文件名(直接设置或前面加上$符号表示数据域)。"/>
+				<attr id="remotePath" attrName="服务器路径" mustSet="true" desc= "服务器路径(直接设置或前面加上$符号表示数据域)。"/>
+				<attr id="serviceName" attrName="FTP传送文件服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的FTP传送文件服务定义名称。"/>
+			</attributes>
+			<document>通过FTP上传下载文件的操作步骤，通过ftp传送文件服务（FtpFileService），实现FTP上传下载文件的功能。返回值：0=成功;-1=异常</document>
+		</Element>
+		<Element id="HttpCommAction" name="HTTP通信" implClass="com.ecc.emp.comm.http.HttpCommAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;-1=失败;">
+						</attr>
+				<attr id="label" attrName="描述" desc="显示在可视化编辑器中的名称"/>
+				<attr id="SendFormatName" attrName="发送报文定义" desc="发送数据的打包格式，如果请求数据域存在值，则该参数无效"/>
+				<attr id="ReceiveFormatName" attrName="接收报文定义" desc="接收到的数据的解包格式，如果响应数据域存在值，则该参数无效"/>
+				<attr id="timeOut" attrName="连接超时" desc="通讯超时的时间"/>
+				<attr id="msgField" attrName="请求数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc="存放需要发送的请求内容的数据域名称。数据域中值的格式为name1=value1&amp;name2=value2&amp;name3=value3"></attr>
+				<attr id="recMsgField" attrName="响应数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc="用于存储接收到的响应信息的数据域名称"/>
+				<attr id="encoding" attrName="编码" desc="对请求数据域中得到的数据进行编码"/>
+				<attr id="dataName" attrName="kColl名称" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc="在HttpCommService服务中，若httpURL设置为数据域名称（即不是以HTTP://开头），则在这里dataName设置为数据域所在的kColl名称，不设则表示context"/>
+				<attr id="serviceName" attrName="HTTP通信缓冲池" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc="所使用的HTTP通信缓冲池定义名称"/>
+			</attributes>
+			<document>直接与间接的HTTP通信处理操作步骤，通过http通讯服务（HttpCommService），向Http服务器发送请求并接收返回的数据。</document>
+		</Element>
+		<Element id="MQReceiveAction" name="MQ通信接收" implClass="com.ecc.emp.comm.MQ.MQReceiveAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;-1=失败;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="packMsgSaveTo" attrName="接收消息数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放接收到的MQ消息的数据域。"/>
+				<attr id="MQResourceIdField" attrName="ResourceId数据域" defaultValue="MQResourceId" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放resourceId的数据域。"/>
+				<attr id="MessageIdField" attrName="MessageId数据域" defaultValue="MessageID" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放messageID的数据域。"/>
+				<attr id="GWRetCode" attrName="网关返回码数据域" defaultValue="GWRetCode" desc= "存放GWRetCode网关返回码的数据域。"/>
+				<attr id="hostRetCode" attrName="主机返回码数据域" defaultValue="hostRetCode" desc= "存放hostRetCode主机返回码的数据域。"/>
+				<attr id="serviceName" attrName="MQ接收服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的MQ通信接收服务的定义名称。"/>
+			</attributes>
+			<document>接收MQ服务器发送过来的消息的操作步骤，通过MQ接收服务（MQReceiveService），接收MQ服务器发送过来的消息数据包。</document>
+		</Element>
+		<Element id="MQSendtoAction" name="MQ通信发送" implClass="com.ecc.emp.comm.MQ.MQSendtoAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;-1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="packMsgGetFrom" attrName="发送消息数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放MQ消息内容的数据域。"/>
+				<attr id="msgExpirty" attrName="消息时效" defaultValue="-1" desc= "消息时效。"/>
+				<attr id="msgPersitent" attrName="消息持久性" defaultValue="2" desc= "消息持久性。"/>
+				<attr id="msgPirority" attrName="消息优先级" defaultValue="-1" desc= "消息优先级。"/>
+				<attr id="MQResourceIdField" attrName="ResourceId数据域" defaultValue="MQResourceId" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放resourceId的数据域。"/>
+				<attr id="MessageIdField" attrName="MessageId数据域" defaultValue="MessageID" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放messageID的数据域。"/>
+				<attr id="serviceName" attrName="MQ发送服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的MQ发送服务定义名称。"/>
+			</attributes>
+			<document>向MQ服务器发送消息的操作步骤，通过MQ发送服务（MQSendtoService），向MQ服务器发送消息数据包。</document>
+		</Element>
+		<Element id="SendMailAction" name="发送邮件" implClass="com.ecc.emp.comm.mail.SendMailAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;-1=邮件内容格式化错误;-2=系统错误;1=邮件服务器指定错误;2=发送人错误;3=接收人错误;4=认证错误;5=附件文件不存在;6=连接服务器失败;7=获取发送邮件服务失败;Other=其他错误;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="mailFormat" attrName="邮件格式" desc= "邮件内容的格式化定义的名称。若邮件内容数据域无取值则使用该报文格式。"/>
+				<attr id="hostType" attrName="服务器验证" valueList="1=true;-1=false;" mustSet="true" desc= "邮件服务器是否需要验证。"/>
+				<attr id="smtpHost" attrName="邮件服务器地址" desc= "SMTP邮件服务器地址。"/>
+				<attr id="userNameField" attrName="用户名称数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放用户名称的数据域。"/>
+				<attr id="passwordField" attrName="密码数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放用户密码的数据域。"/>
+				<attr id="mailFromField" attrName="发件人姓名数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放发件人姓名的数据域。"/>
+				<attr id="mailToListField" attrName="收件人姓名数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放收件人姓名的数据域，多个用户之间用“;”分隔。"/>
+				<attr id="mailccListField" attrName="抄送人姓名数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放抄送人姓名的数据域，多个用户之间用“;”分隔。"/>
+				<attr id="mailbccListField" attrName="密送人姓名数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放密送人姓名的数据域，多个用户之间用“;”分隔。"/>
+				<attr id="subjectField" attrName="邮件标题数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放邮件标题的数据域。"/>
+				<attr id="filePathField" attrName="附件目录数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放附件本地目录的数据域，多个附件之间用“;”分隔。"/>
+				<attr id="serviceName" attrName="serviceName" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的发送邮件服务的定义名称。"/>
+				<attr id="contentField" attrName="邮件内容数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放邮件内容的数据域。"/>
+			</attributes>
+			<document>会话邮件发送操作步骤，通过发送邮件服务（SendMailService），实现邮件的实时发送。</document>
+		</Element>
+		<Element id="SendToCICSAction" name="CICS主机通信" implClass="com.ecc.emp.comm.CICS.SendToCICSAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="timeout" attrName="超时时间" defaultValue="60000" desc= "接收超时时间（单位毫秒）。"/>
+				<attr id="cicsResourceName" attrName="CICS通信服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "CICS Resource标识，指定发送所用的CICS连接服务。"/>
+				<attr id="sendFormatName" attrName="发送报文" defaultValue="hostSendFormat" desc= "发送数据报文格式化定义名称。"/>
+				<attr id="receiveFormatName" attrName="接受报文" defaultValue="hostReceiveFormat" desc= "接收数据报文格式化定义名称。"/>
+				<attr id="succFlag" attrName="成功标志" defaultValue="0" desc= "成功标志，若等于返回信息则代表发送成功。"/>
+			</attributes>
+			<document>访问CICS主机的操作步骤，通过CICS通讯服务（CICSService），向CICS发送数据包，并从CICS接收返回数据。</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="security" name="安全相关{EMP}">
+		<Element id="DecryptDataAction" name="交易数据解密" implClass="com.ecc.emp.action.DecryptDataAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="algorithm" attrName="加密算法名称" mustSet="true" valueList="DES;DESede;" desc= "加密算法名称。"/>
+				<attr id="keyStr" attrName="密钥字符串" mustSet="true" desc= "密钥字符串的值，密钥一般是一个byte数组，密钥字符串值是经过sun.misc.BASE64Encoder进行BASE64编码的字符串。"/>
+				<attr id="oriDataName" attrName="结果数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放解密后的明文数据的数据域名称。"/>
+				<attr id="encryptDataName" attrName="源密文数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放要解密的数据的数据域名称，该数据域中存放经过base64编码后的密文字符串。"/>
+				<attr id="encroptMode" attrName="加密模式" defaultValue="ECB" desc= "加密模式。"/>
+				<attr id="paddingMode" attrName="填充模式" defaultValue="PKCS5Padding" desc= "填充模式。"/>
+				<attr id="secLibRegMode" attrName="安全库注册方法" defaultValue="dynamic" valueList="static;dynamic;" desc= "安全库的注册方法（目前只支持SUN的加密库实现）。"/>
+			</attributes>
+			<document>对指定的交易数据进行解密的操作步骤，解密后的数据存入指定的数据域中。该操作步骤使用私钥对数据进行解密，使用的加密库必须符合JCE1.2.2接口规范，目前支持SUN和IBM的加密库实现。支持的加密算法为标准的DES和DESede算法。</document>
+		</Element>
+		<Element id="EncryptDataAction" name="交易数据加密" implClass="com.ecc.emp.action.EncryptDataAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="algorithm" attrName="加密算法名称" mustSet="true" valueList="DES;DESede;" desc= "加密算法名称。"/>
+				<attr id="keyStr" attrName="密钥字符串" mustSet="true" desc= "密钥字符串的值，密钥一般是一个byte数组，密钥字符串值是经过sun.misc.BASE64Encoder进行BASE64编码的字符串。"/>
+				<attr id="oriDataName" attrName="源明文数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放需要加密的数据的数据域名称。"/>
+				<attr id="encryptDataName" attrName="结果数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放加密后的数据的数据域名称，该数据域中存放经过BASE64编码后密文字符串。"/>
+				<attr id="encroptMode" attrName="加密模式" defaultValue="ECB" desc= "加密模式。"/>
+				<attr id="paddingMode" attrName="填充模式" defaultValue="PKCS5Padding" desc= "填充模式。"/>
+			</attributes>
+			<document>对指定的交易数据进行加密的操作步骤，将加密后的数据存入指定的数据域中。该操作步骤使用私钥对数据进行加密，使用的加密库必须符合JCE1.2.2接口规范，目前支持SUN和IBM的加密库实现。支持的加密算法为标准的DES和DESede算法。</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="log" name="日志访问{EMP}">
+		<Element id="EJournalAction" name="访问日志表" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/db_obj.gif">
+			<attributes>
+				<attr id="states" attrName="states" editable="false" valueList="0=正常;-1=异常;2=记录未找到;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="transactionType" attrName="事务类型" defaultValue="TRX_REQUIRED" valueList="TRX_REQUIRED=应用全局事务;TRX_REQUIRE_NEW=创建独有事务;" desc= "事务类型。"/>
+				<attr id="op" attrName="操作" mustSet="true" valueList="update=更新;enquiry=查询所有记录;pageEnquiry=分页查询;retrieve=查询单条记录;delete=删除;insert=添加;" desc= "要进行的操作。"/>
+				<attr id="dataMapping" attrName="数据映射" desc= "EMP数据域到数据库表字段的映射关系。默认使用日志服务中的映射，在此可以定义特殊的映射关系。"/>
+				<attr id="columns" attrName="字段列表" desc= "需要操作的字段，若不设置则代表对所有字段进行操作。多个名称之间以;隔开。"/>
+				<attr id="condition" attrName="查询条件" desc= "查询、删除、更新操作时的查询条件，即SQL的WHERE子句。"/>
+				<attr id="iCollName" attrName="iColl名称" mustInputFormula="($op='enquiry') or ($op='pageEnquiry')" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放查询多条记录时的结果集的数据集合名称。"/>
+				<attr id="dataSource" attrName="数据源" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的数据源的定义名称。"/>
+				<attr id="ejService" attrName="EJ服务" mustSet="true" editorClass="com.ecc.ide.editor.service.ServicePropertyEditor" desc= "所使用的EJ日志服务定义名称。"/>
+				<attr id="recordSizeField" attrName="日志表项数目数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "记录日志表项数目的数据域名称，在执行日志备份操作时使用"/>
+			</attributes>
+			<document>访问日志表的操作步骤，继承了JDBCTableAction的属性和方法，通过调用日志表访问服务（EJournalService），根据外部参数配置，实现对日志表的各种操作。返回值：0=正常;-1=异常;2=记录未找到</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="zip" name="压缩操作{EMP}">
+		<Element id="ZIPDataAction" name="数据压缩" implClass="com.ecc.emp.action.ZIPDataAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="isGZIPCompatible" attrName="兼容选项" attrType="boolean" mustSet="true" defaultValue="false" desc= "是否兼容GZIP、PKZIP的压缩格式。"/>
+				<attr id="oriDataName" attrName="源数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "需要压缩的数据域名称。"/>
+				<attr id="retDataName" attrName="结果数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放压缩后数据的数据域名称。"/>
+			</attributes>
+			<document>对指定的交易数据进行数据解压缩，使用标准的zip算法进行数据的解压缩，然后将结果填入指定的数据域中。</document>
+		</Element>
+		<Element id="UNZIPDataAction" name="数据解压缩" implClass="com.ecc.emp.action.UNZIPDataAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="isGZIPCompatible" attrName="兼容选项" attrType="boolean" mustSet="true" defaultValue="false" desc= "是否兼容GZIP、PKZIP的压缩格式。"/>
+				<attr id="oriDataName" attrName="源数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "需要解压缩的数据域名称。"/>
+				<attr id="retDataName" attrName="结果数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放解压后数据的数据域名称。"/>
+			</attributes>
+			<document>对指定的交易数据进行数据解压缩，使用标准的zip算法进行数据的解压缩，然后将结果填入指定的数据域中。</document>
+		</Element>
+		<Element id="ZipFileAction" name="文件压缩" implClass="com.ecc.emp.action.ZipFileAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="fileNameField" attrName="文件名数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放要压缩的文件路径的数据域。"/>
+			</attributes>
+			<document>对文件进行压缩处理的操作步骤。</document>
+		</Element>
+		<Element id="UnzipFileAction" name="文件解压" implClass="com.ecc.emp.action.UnzipFileAction" wrapperClass="com.ecc.ide.editor.visualflow.ActionElementWrapper" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=操作成功;1=异常;Other=其他;">
+						</attr>
+				<attr id="label" attrName="描述" desc= "显示在可视化编辑器中的名称。"/>
+				<attr id="fileNameField" attrName="文件名数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放需要解压缩的文件路径的数据域。"/>
+			</attributes>
+			<document>对文件进行解压缩处理的操作步骤。</document>
+		</Element>
+	</elementCatalog>
+</EditorProfile>

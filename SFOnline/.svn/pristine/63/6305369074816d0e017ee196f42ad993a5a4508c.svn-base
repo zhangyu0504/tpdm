@@ -1,0 +1,259 @@
+package core.schedule;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.SchedulerFactory;
+import org.quartz.Trigger;
+import org.quartz.impl.StdSchedulerFactory;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.log.EMPLog;
+import common.action.db.SqlExecAction;
+import common.exception.SFException;
+import common.services.PublicService;
+import common.util.SFConst;
+
+
+/**
+   * 调度服务，用于实例化 ScheduleServer ， 操作包括 启动 、停止 
+   * Serial NO: FINWARE_V3.5_TFS_2013120003 代码重构
+   * Date 2013-6-13 
+   * @author hh
+   * @version 1.0
+   */
+public class ScheduleServer {
+	private static ScheduleServer schServer = null;
+	
+	private SchedulerFactory sf = null;   //调度工厂
+	private Scheduler scheduler = null;   //调度器
+
+	private HashMap scheduleMap = new HashMap();		//用于存放以加入调度器的任务
+	
+	public static ScheduleServer getInstance()  {
+	    if(schServer ==null)
+	        schServer = new ScheduleServer();
+	    return schServer;
+	}
+ 
+	private ScheduleServer()  {
+	    try{
+	        sf = new StdSchedulerFactory();
+		    scheduler = sf.getScheduler();
+	    }catch (Exception e) {
+	    	EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "new schedule server error:" + e.getMessage(), e);
+		}
+	}
+	
+	/**
+	 * 开始调度器
+	 */
+	public void startServer(ContextData c){
+		try {	
+			if( scheduler==null || (scheduler.isStarted() && scheduler.isShutdown() ) ){ 		//如果启动过，但被SHUTDOWN了，则需重新生成实例
+			    if(sf == null)
+			        sf = new StdSchedulerFactory();
+				scheduler = sf.getScheduler();
+			}
+			
+			if(!scheduler.isStarted()){
+				scheduler.start();
+			}
+			
+			loadScheduleData(c);
+
+			//打印调度任务信息
+			debugSchedInfo();
+			
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "Scheduler Server Start........");
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "Start Scheduler Server failed:" + e.getMessage(), e);
+		}
+	}
+	
+	/**
+	 * 停止调度器服务
+	 * @param waitForJobsToComplete
+	 */
+	public void stopServer(boolean waitForJobsToComplete){
+		try {
+			scheduler.shutdown(waitForJobsToComplete);
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "Scheduler Server stoped.");
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "Stop Scheduler Server failed." + e.getMessage(), e);
+		}
+	}
+	
+	/**
+	 * 装载所有SCHEDULE ，并且启动自动任务
+	 */
+	public void loadScheduleData(ContextData c) throws SFException{
+		try {
+			String currentAppName = SFConst.SYS_SYSNAME; //ReadProperty.getInstance().getProperties("THIS_APP_NAME");
+			SFCompLocalMachineIpAction ipCompare = new SFCompLocalMachineIpAction();
+			Context context = c.EMPContext;
+			KeyedCollection scheduleSet = new KeyedCollection("SCHEDULE_SET");
+			scheduleSet.addDataField("SCHEDULE_NAME", "");
+//			scheduleSet.addDataField("SETS", "");
+			scheduleSet.addDataField("IP", "");
+			scheduleSet.addDataField("APP", "");
+			context.addDataElement(scheduleSet);
+			
+			String sqlId = "SQL_SCHEDULE_SET_S0001";
+			PublicService pubService = ((PublicService) context.getService((String) context.getDataValue(SFConst.SERVICE_PUBLICSERVICENAME)));
+			SqlExecAction sqlExecAction = pubService.getSQLExecAction(context);
+			sqlExecAction.setRefSQL(sqlId);
+			sqlExecAction.initialize();
+			
+		    ScheduleTaskFactory stf = ScheduleTaskFactory.getInstance();
+			ArrayList schedTaskList = stf.getAllScheduleTasks(c);
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.INFO, 0, "Schedule task list size : " + schedTaskList.size());
+			
+			for (int i = 0; i < schedTaskList.size(); i++) {
+				ScheduleTaskInfo  schTaskInfo = (ScheduleTaskInfo)schedTaskList.get(i);
+				if(scheduleMap.containsKey(schTaskInfo.getName())){
+					continue;
+				}
+				
+				Trigger trigger = schTaskInfo.getTrigger();
+				JobDetail jobDetail = schTaskInfo.getJobDetail();
+				
+			    String schTaskType = schTaskInfo.getSchTaskType();
+			    
+			    if((currentAppName != null && !"".equals(currentAppName.trim())) && schTaskType.equals( ScheduleTaskInfo.SCHEDULE_TYPE_Auto) ){
+			    	context.setDataValue("SCHEDULE_SET.SCHEDULE_NAME", schTaskInfo.getName());
+					String result = sqlExecAction.execute(context);
+					
+					if("0".equals(result)){
+						String ip = (String)context.getDataValue("SCHEDULE_SET.IP");
+						String app = (String)context.getDataValue("SCHEDULE_SET.APP");
+//						JSONObject jobj = (JSONObject)object;
+//						Object ip = jobj.get("IP");
+						if(ip != null){
+							if("ALL".equals(ip)){
+								if(currentAppName.equals(app) || "ALL".equals(app)){
+									scheduler.scheduleJob(jobDetail,trigger);
+								}
+								
+							}else{
+								ipCompare.setIpAddress(ip.toString());
+								result = ipCompare.execute(context);
+								if("0".equals(result)){
+									if(currentAppName.equals(app) || "ALL".equals(app)){
+										scheduler.scheduleJob(jobDetail,trigger);
+									}
+								}
+							}
+						}
+					
+						
+					}
+			    }
+			    
+			    if (!schTaskType.equals(ScheduleTaskInfo.SCHEDULE_TYPE_Forbidden)){
+			    	EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.INFO, 0, "addschedule:" + schTaskInfo.getName());
+			    	scheduleMap.put(schTaskInfo.getName() , schTaskInfo );
+			    }
+			    
+			}
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "loadScheduleData fail" + e.getMessage(), e);
+			throw new SFException(e);
+		}
+	}
+	
+	
+	/**
+	 * 启动调度任务
+	 */
+	public void startScheduleTask(ScheduleTaskInfo schTaskInfo) throws SFException{
+		try {		
+			Trigger trigger = schTaskInfo.getTrigger();
+			// 解决调度启动自动运行的问题  hh  设置Trigger开始时间
+			trigger.setStartTime(new Date());
+			// 解决调度启动自动运行的问题  hh  设置Trigger开始时间
+			JobDetail jobDetail = schTaskInfo.getJobDetail();
+			scheduler.scheduleJob(jobDetail,trigger);
+			
+			//[FinWare_V3.5_调度cron表达式修及时生效]_B xuh 2014-3-27 ---------------
+			scheduleMap.put(schTaskInfo.getName() , schTaskInfo );
+			//[FinWare_V3.5_调度cron表达式修及时生效]_E xuh 2014-3-27 ---------------
+			
+		    int triggerState = scheduler.getTriggerState(trigger.getName() , trigger.getGroup() );
+		    EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "===triggerState==="+triggerState + " "+trigger.getName() + "  "+trigger.getGroup());
+		    
+		    debugSchedInfo();
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "addSchedTask fail:" + e.getMessage(), e);
+			throw new SFException(e);
+		}
+	}	
+
+	/**
+	 * 除去一个调度任务
+	 * @param jobDetailName
+	 * @param grpName
+	 * @throws SFException
+	 */
+	public void stopScheduleTask(ScheduleTaskInfo schTaskInfo) throws SFException{
+		try {
+		    String schTaskName = schTaskInfo.getName();
+			
+			scheduler.pauseTrigger(schTaskName, ScheduleTaskInfo.GROUP); 
+			scheduler.unscheduleJob(schTaskName,ScheduleTaskInfo.GROUP); 
+			scheduler.deleteJob(schTaskName, ScheduleTaskInfo.GROUP); 
+		     
+		    //[FinWare_V3.5_调度cron表达式修及时生效]_B xuh 2014-3-27 ---------------
+			ScheduleTaskFactory sf = ScheduleTaskFactory.getInstance();
+			sf.schTaskCache.remove(schTaskName);
+            ParameterInfo.paramContain.remove(schTaskName);
+            //[FinWare_V3.5_调度cron表达式修及时生效]_E xuh 2014-3-27 ---------------
+            
+		    int triggerState = scheduler.getTriggerState( schTaskName , ScheduleTaskInfo.GROUP );
+		    EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "===triggerState==="+triggerState + " "+schTaskName + "  ");
+		    
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "stopScheduleTask fail:" + e.getMessage(), e);
+			throw new SFException(e);
+		}
+	}	
+
+	public int getScheduleState(String schTaskName) throws SchedulerException{
+	    int state = scheduler.getTriggerState( schTaskName , ScheduleTaskInfo.GROUP );
+	    EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "---getScheduleState--->"+schTaskName + " state:"+state);
+	    return state;
+	}
+
+	/**
+	 * 调试用,打印调度器组和工作记录
+	 */
+	public void debugSchedInfo(){
+		try {
+				String[] jobDetailNames = scheduler.getJobNames( ScheduleTaskInfo.GROUP );
+				for (int i = 0; i < jobDetailNames.length; i++) {
+					EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, i+" jobDetailName:" + jobDetailNames[i]);
+				}
+				String[] triggerNames = scheduler.getTriggerNames( ScheduleTaskInfo.GROUP );
+				for (int i = 0; i < triggerNames.length; i++) {
+					int triggerState = scheduler.getTriggerState( triggerNames[i]  , ScheduleTaskInfo.GROUP );
+					EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, i+" triggerName:" + triggerNames[i]  + " triggerState:" +triggerState);
+				}
+ 
+		} catch (Exception e) {
+		    EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "debugSchedInfo error:" + e.getMessage(), e);
+		}
+	}
+	
+
+    public HashMap getScheduleMap() {
+        return scheduleMap;
+    }
+    public void setScheduleMap(HashMap schMap) {
+        this.scheduleMap = schMap;
+    }
+}

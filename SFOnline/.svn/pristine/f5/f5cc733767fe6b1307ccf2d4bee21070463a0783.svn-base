@@ -1,0 +1,439 @@
+package core.schedule;
+
+import java.io.StringReader;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import javax.sql.DataSource;
+import net.sf.json.JSONObject;
+import org.quartz.Trigger;
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPConstance;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.data.DataElement;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.jdbc.ConnectionManager;
+import com.ecc.emp.jdbc.EMPJDBCException;
+import com.ecc.emp.jdbc.RecordNotFoundException;
+import com.ecc.emp.jdbc.sql.SQLParameter;
+import com.ecc.emp.log.EMPLog;
+import com.ecc.emp.transaction.EMPTransaction;
+import com.ecc.emp.transaction.EMPTransactionManager;
+import common.action.db.SqlExecAction;
+import common.exception.SFException;
+import common.services.PublicService;
+import common.services.SQLDefine;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+public class ScheduleUtils {
+	
+	@SuppressWarnings("unchecked")
+	public static String showAllSchedule() throws Exception {
+		JSONObject jsonObj = new JSONObject(); 					// 根据jqGrid对JSON的数据格式要求给jsonObj赋值
+		try {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.INFO, 0, "========showAllSchedule====start===");
+	        HashMap schTasks = new HashMap();
+	        String key;
+	        int i = 1;
+	        int m = 1;
+	        ScheduleServer ss = ScheduleServer.getInstance();
+	        HashMap scheduleMap = ss.getScheduleMap();
+	        ScheduleTaskInfo sti = null;
+			Iterator iter = scheduleMap.keySet().iterator();
+			
+			int currPageNum = 1;//Integer.valueOf(c.getFieldValue(DataDictConstants.JQGRID_PAGE)); // 查询的当前页
+	        int totalRecords = 0;
+	        int rowNum =  10;//Integer.valueOf(c.getFieldValue(DataDictConstants.JQGRID_ROWS));//每页记录数
+	        int totalPage = 1;
+	        
+			while (iter.hasNext() ) {
+			    HashMap schTask = new HashMap();
+				key = (String) iter.next();
+				sti = (ScheduleTaskInfo) scheduleMap.get(key);
+				String schTaskName= sti.getName() ;
+			
+				int state = ss.getScheduleState(schTaskName) ;
+				schTask.put("NAME" ,schTaskName );
+				schTask.put("PARAMCHDESC" , sti.getSchTaskDesc() );
+				schTask.put("SCHEDULESTATE" , state +"" );
+				
+				Trigger t = sti.getTrigger();
+				Date startTime = t.getStartTime() ;
+				Date nextTime = t.getFireTimeAfter(new Date() );
+				
+				if(state==0||state==4 ){			//出于运行状态，则有下次执行时间
+				    schTask.put("NEXTTIME" ,  DateUtil.getDateTime(nextTime)  );
+				    schTask.put("STARTTIME" , DateUtil.getDateTime(startTime)  );
+				}
+				
+				EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.INFO, 0, "schTask--->"+schTask);
+				if (i>(currPageNum-1)*rowNum && i<currPageNum*rowNum+1)	{
+					schTasks.put(""+m , schTask);
+					m++;
+				}
+				i++;
+					
+				}
+	        
+	        if (scheduleMap.size()>0) {
+	        	totalRecords = scheduleMap.size();
+	        	totalPage = (totalRecords / rowNum) + 1;
+	        }
+			jsonObj = SFUtil.hashMap2Json(schTasks , currPageNum, totalPage,totalRecords);
+			
+		    EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.INFO, 0, "========showAllSchedule====end===");
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, e.getMessage(), e);
+			throw new SFException(e);
+		}
+		
+		return jsonObj.toString();
+	}
+	
+	//启动某一调度
+	public static void startScheduleJob(Context context, String scheduleName) throws EMPException {
+		try {
+		    if(SFUtil.isNotEmpty(scheduleName)){
+		    	boolean canRun = isCanStart(context,scheduleName);
+		    	
+		    	EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.INFO, 0, scheduleName+" can run : "+canRun);
+		    	
+		    	if(canRun){
+		    		ScheduleTaskInfo sti = ScheduleTaskFactory.getInstance().getScheduleTask(scheduleName, new ContextData(context));
+			        ScheduleServer.getInstance().startScheduleTask(sti);
+		    	}
+		    }
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, e.getMessage(), e);
+			throw new EMPException(e);
+		}
+	}
+	
+	//停止某一调度
+	public static void stopScheduleJob(Context context, String scheduleName) throws EMPException {
+		try {
+		    if(SFUtil.isNotEmpty(scheduleName)){
+		    	ScheduleTaskInfo sti = ScheduleTaskFactory.getInstance().getScheduleTask(scheduleName, new ContextData(context));
+		        ScheduleServer.getInstance().stopScheduleTask(sti);
+		    }
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, e.getMessage(), e);
+			throw new EMPException(e);
+		}
+	}
+	
+	
+	private static boolean isCanStart(Context context,String scheduleName) throws EMPException {
+		boolean canRun = false;
+		SFCompLocalMachineIpAction ipCompare = new SFCompLocalMachineIpAction();
+		
+		String currentAppName = "";
+//		try {
+//			// ReadProperty.getInstance().getProperties("THIS_APP_NAME");
+//		} catch (UnsupportedEncodingException e) {
+//			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, e.getMessage(), e);
+//		}
+		currentAppName = SFConst.SYS_SYSNAME;
+		if(currentAppName == null || "".equals(currentAppName.trim())){
+			return canRun;
+		}
+		
+		String sqlId = "SQL_SCHEDULE_SET_S0001";
+		PublicService pubService = ((PublicService) context.getService((String) context.getDataValue(SFConst.SERVICE_PUBLICSERVICENAME)));
+		SqlExecAction sqlExecAction = pubService.getSQLExecAction(context);
+		sqlExecAction.setRefSQL(sqlId);
+		sqlExecAction.initialize();
+		
+		context.setDataValue("SCHEDULE_SET.SCHEDULE_NAME", scheduleName);
+		String result = sqlExecAction.execute(context);
+		
+		if("0".equals(result)){
+			
+
+			String ip = (String)context.getDataValue("SCHEDULE_SET.IP");
+			String app = (String)context.getDataValue("SCHEDULE_SET.APP");
+//			JSONObject jobj = (JSONObject)object;
+//			Object ip = jobj.get("IP");
+			if(ip != null){
+				if("ALL".equals(ip)){
+					if(currentAppName.equals(app) || "ALL".equals(app)){
+						canRun = true;
+					}
+					
+				}else{
+					ipCompare.setIpAddress(ip.toString());
+					result = ipCompare.execute(context);
+					if("0".equals(result)){
+						if(currentAppName.equals(app) || "ALL".equals(app)){
+							canRun = true;
+						}
+					}
+				}
+			}
+		
+			
+		
+			
+			
+//			Object obj = context.getDataValue("SCHEDULE_SET.SETS");
+//			if(obj !=  null && !obj.toString().trim().equals("")){
+//				JSONArray jarr = JSONArray.fromObject(obj);
+//				
+//				boolean continueFlag = true;
+//				for (Object object : jarr) {
+//					JSONObject jobj = (JSONObject)object;
+//					Object ip = jobj.get("IP");
+//					if(ip != null){
+//						String apps = jobj.getString("APPS");
+//						if("ALL".equals(ip)){
+//							JSONArray appsArr = JSONArray.fromObject(apps);
+//							for (Object tmp : appsArr) {
+//								JSONObject appJobj = (JSONObject)tmp;
+//								if(currentAppName.equals(appJobj.get("APP")) || "ALL".equals(appJobj.get("APP"))){
+//									canRun = true;
+//									continueFlag = false;
+//									break;
+//								}
+//							}
+//						}else{
+//							ipCompare.setIpAddress(ip.toString());
+//							result = ipCompare.execute(context);
+//							if("0".equals(result)){
+//								JSONArray appsArr = JSONArray.fromObject(apps);
+//								for (Object tmp : appsArr) {
+//									JSONObject appJobj = (JSONObject)tmp;
+//									if(currentAppName.equals(appJobj.get("APP")) || "ALL".equals(appJobj.get("APP"))){
+//										canRun = true;
+//										continueFlag = false;
+//										break;
+//									}
+//								}
+//							}
+//						}
+//						if(!continueFlag){
+//							break;
+//						}
+//					}
+//				}
+//			}
+		}
+		
+		return canRun;
+	}
+	
+	/**
+	 * 
+	 * @param context
+	 * @param schName 调度名称
+	 * @param startTime 开始时间
+	 * @param content 日志内容
+	 * @param status 状态：0.失败；1.成功
+	 * @param rollback 是否回滚事务：true回滚；false不回滚
+	 * @return
+	 * @throws EMPException
+	 */
+	public static void saveScheduleLog(Context context,String schName,Date startTime,String content,String status,boolean rollback){
+		EMPTransactionManager tm = null;
+        EMPTransaction tr = null;
+		KeyedCollection scheduleLog = null;
+		SQLDefine sqlDefInfo = (SQLDefine) context.getService("SQL_00BA_SCHEDULE_LOG_I0001");
+		
+		if(!context.containsKey("SCHEDULE_LOG")){
+			try {
+				scheduleLog = SFUtil.getTemplateKColl(context, "SCHEDULE_LOG");
+				context.addDataElement(scheduleLog);
+			} catch (Exception e) {
+				EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0,"KeyedCollection SCHEDULE_LOG在上下文已经存在：" + e.getMessage(), e);
+			}
+		}
+		try {
+			scheduleLog = (KeyedCollection)context.getDataElement("SCHEDULE_LOG");
+			scheduleLog.put("SCHEDULE_NAME", schName);
+			scheduleLog.put("START_TIME", DateUtil.getDataStringByFormat(startTime, "yyyyMMdd HH:mm:ss"));
+			scheduleLog.put("END_TIME", DateUtil.getDataStringByFormat(new Date(), "yyyyMMdd HH:mm:ss"));
+			scheduleLog.put("MEMO", content);
+			scheduleLog.put("LEVLE", "1");
+			scheduleLog.put("STATUS", status);
+			
+			if(rollback){
+				SqlExecAction.execute(context, sqlDefInfo);
+				/*String emailContent = null;
+				//^A^7$$无法解付汇入汇款通知书.pdf,"+pdfRemotePath+file_name2+"|"
+				emailContent = "^P^cust_nm1$$"+"张育早"+"|^P^date_2$$"+new Date()+"|^P^amount2$$"+"USD1000"+"|^P^ir_no4$$"+"IR0100101010101"+"|^P^date_5$$"+new Date()+"|^A^attach6$$汇款报文.pdf,"+""+"|";
+				FBSCompositISCAction.sendMail(context,emailContent,"ex_xtkfzx_zhangyz@pingan.com.cn","010001");*/
+			}else{
+				excuteWithTransaction(context,sqlDefInfo);
+			}
+		} catch (EMPException e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0,"保存调度日志失败：" + e.getMessage(), e);
+		}
+	}
+	
+	private static void excuteWithTransaction(Context context,SQLDefine sqlDefInfo) throws EMPException {
+		List inParams = sqlDefInfo.getInParamaters();
+		List outParams = sqlDefInfo.getOutParamaters();
+		String SQLStr = sqlDefInfo.getSQLStr();
+		String SqlName = sqlDefInfo.getName();
+		IndexedCollection iColl = null;
+		KeyedCollection kColl = null;
+		
+		String iCollName = sqlDefInfo.getICollName();
+		int maxRecords = sqlDefInfo.getMaxRecords();
+
+		PreparedStatement pState = null;
+		Connection connection = null;
+		DataSource dataSource = null;
+		try {
+			
+			dataSource = (DataSource) context.getService((String) context.getDataValue(SFConst.SERVICE_DATASOURCE));
+			connection = ConnectionManager.getConnection(dataSource);
+			pState = connection.prepareStatement(SQLStr);
+			connection.setAutoCommit(false);
+			int iCollFlag = 0;
+			DataElement dataElement = null;
+			if (iCollName != null)
+			{
+				dataElement = context.getDataElement(iCollName);
+				if (KeyedCollection.class.isAssignableFrom(dataElement.getClass()))
+					iCollFlag = 1;  //KCOLL标志，如果为1表示是KCOLL,否则表示ICOLL或者没有定义名称
+			}
+
+			//sql语句执行影响记录数
+			int effectRows = 0;
+
+			if (iCollName != null && iCollFlag == 0) // it's a IColl and circle to executeUpdate
+			{
+				iColl = (IndexedCollection) context.getDataElement(iCollName);
+				
+				for (int j = 0; j < iColl.size(); j++) {
+					kColl = (KeyedCollection) iColl.getElementAt(j);
+
+					//循环绑定输入变量
+					for (int i = 0; i < inParams.size(); i++) {
+						String value = null;
+						
+						SQLParameter aParam = (SQLParameter) inParams.get(i);
+						if (aParam.paramIdx <= 0)
+							continue;
+
+						value = (String) kColl.getDataValue(aParam.dataName);
+						//pengjizhou add by 2007-04-07
+						if(!aParam.validateType(value)){
+							throw new EMPException("Data type is not identical:paramIdx="+aParam.paramIdx+",dataName="+aParam.dataName+",dataValue="+value);
+						}
+						if (value != null)
+						{
+							if (aParam.dataType == Types.CHAR)
+								pState.setString(0-aParam.paramIdx, value);
+							else
+								pState.setObject(aParam.paramIdx, value);
+						}
+						else
+							pState.setNull(aParam.paramIdx, aParam.dataType);
+						EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.INFO, 0, "The column ["+aParam.paramIdx+"]:"+aParam.dataName+" = ["+value+"]", null);
+					}
+
+					effectRows += pState.executeUpdate();
+				}
+			}
+			else // KColl OR have no KCOLL 
+			{
+				//循环绑定输入变量
+				for (int i = 0; i < inParams.size(); i++) {
+					String value = null;
+					
+					SQLParameter aParam = (SQLParameter) inParams.get(i);
+					if (aParam.paramIdx <= 0)
+						continue;
+
+					if (iCollFlag == 1) //a KColl
+						value = (String) context.getDataValue(iCollName+"."+aParam.dataName);
+					else
+						value = (String) context.getDataValue(aParam.dataName);
+					//pengjizhou add by 2007-04-07
+					if(!aParam.validateType(value)){
+						throw new EMPException("Data type is not identical:paramIdx="+aParam.paramIdx+",dataName="+aParam.dataName+",dataValue="+value);
+					}
+					if (value != null)
+					{
+						if (aParam.dataType == Types.CHAR)
+							pState.setString(0-aParam.paramIdx, value);
+						else if (aParam.dataType == Types.LONGVARCHAR)
+							pState.setCharacterStream(aParam.paramIdx, new StringReader(value), value.length()); 
+						else
+							pState.setObject(aParam.paramIdx, value);
+					}
+					else
+						pState.setNull(aParam.paramIdx, aParam.dataType);
+					
+					EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.INFO, 0, "The column ["+aParam.paramIdx+"]:"+aParam.dataName+" = ["+value+"]", null);
+				}
+
+				effectRows = pState.executeUpdate();
+			}
+			
+			if (sqlDefInfo.getRowsDataName() != null)
+			{
+//				context.setDataValue(sqlDefInfo.getRowsDataName(), Integer.toString(effectRows));
+				if(context.containsKey(sqlDefInfo.getRowsDataName())){
+					context.setDataValue(sqlDefInfo.getRowsDataName(), Integer.toString(effectRows));
+				}else{
+					context.addDataField(sqlDefInfo.getRowsDataName(), Integer.toString(effectRows));
+				}
+			}
+			else {
+				if (context.containsKey(SFConst.SQLCA_SQLNROWS))	{
+					context.setDataValue(SFConst.SQLCA_SQLNROWS, Integer.toString(effectRows));
+				}
+				else {
+					context.addDataField(SFConst.SQLCA_SQLNROWS, Integer.toString(effectRows));
+				}
+			}
+
+			EMPLog.log(EMPConstance.EMP_JDBC, EMPLog.INFO, 0, "Effected record is  ["+effectRows+"]");
+			if (effectRows == 0) {
+				throw new RecordNotFoundException(
+						"No record is effected in execute SQL[" + SqlName + "][" + SQLStr + "]!");
+			}
+			connection.commit();
+		}catch(RecordNotFoundException re){
+			try {
+				connection.rollback();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			throw re;
+		}catch (SQLException se) {
+			try {
+				connection.rollback();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			throw new EMPJDBCException("Failed to execute SQL[" + SqlName + "][" + se.getErrorCode() + "][" + se.getMessage() + "]!", se);
+		} catch (Exception e) {
+			try {
+				connection.rollback();
+			} catch (SQLException se) {
+				se.printStackTrace();
+			}
+			throw new EMPJDBCException("JDBCSQLExecService[].execute", e);
+		} finally {
+			if (pState != null) {
+				try {
+					pState.close();
+					pState = null;
+				} catch (Exception e) {
+				}
+			}
+			
+			ConnectionManager.releaseConnection(dataSource, connection);
+		}
+	}
+}

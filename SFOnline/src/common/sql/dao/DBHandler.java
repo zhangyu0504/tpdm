@@ -1,0 +1,127 @@
+package common.sql.dao;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import javax.sql.DataSource;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.InvalidArgumentException;
+import com.ecc.emp.data.ObjectNotFoundException;
+import com.ecc.emp.jdbc.ConnectionManager;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.log.SFLogger;
+
+public class DBHandler {
+	/**
+	 * emp连接池获取数据源
+	 * 
+	 * @param context
+	 * @return
+	 * @throws SFException
+	 * @throws ObjectNotFoundException
+	 * @throws InvalidArgumentException
+	 */
+	public static Connection getConnection(Context context) throws SFException {
+		Connection connection = null;
+		try {
+			DataSource dataSource = (DataSource) context.getService((String) context.getDataValue(SFConst.SERVICE_DATASOURCE));
+			connection = ConnectionManager.getConnection(dataSource);
+			//SFLogger.info(context, String.format("开启数据库连接，连接编号为【%s】",connection.getTypeMap()));
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+		return connection;
+	}
+
+	/**
+	 * 开启事务
+	 * 
+	 * @param context
+	 *            ,con
+	 * @return
+	 * @throws SFException
+	 */
+	public static void beginTransaction(Context context, Connection con)
+			throws SFException {
+		if (con != null) {
+			try {
+				if (con.getAutoCommit()) {
+					con.setAutoCommit(false);
+				}
+			} catch (SQLException e) {
+				SFUtil.chkCond(context, "ST4895", e.getMessage());
+				throw new SFException("ST4895", e.getMessage(), e);
+			}
+		}
+	}
+
+	/**
+	 * 提交事务
+	 * 
+	 * @param context
+	 *            ,con
+	 * @return
+	 * @throws SFException
+	 */
+	public static void commitTransaction(Context context, Connection con)
+			throws SFException {
+		if (con != null) {
+			try {
+				if (!con.isClosed()&&!con.getAutoCommit()) {
+					con.commit();
+				}
+			} catch (SQLException e) {
+				SFUtil.chkCond(context, true, e.getMessage());
+			}
+		}
+	}
+
+	/**
+	 * 回滚事务
+	 * 
+	 * @param context
+	 *            ,con
+	 * @return
+	 * @throws SFException
+	 */
+	public static void rollBackTransaction(Context context, Connection con)
+			throws SFException {
+		if (con != null) {
+			try {
+				if (!con.isClosed()&&!con.getAutoCommit()) {
+					con.rollback();
+				}
+			} catch (SQLException e) {
+				SFUtil.chkCond(context, true, e.getMessage());
+			}
+		}
+	}
+	
+
+	/**
+	 * 释放数据库连接
+	 * 
+	 * @param connection
+	 * @param pState
+	 * @param rs
+	 * @throws SFException
+	 */
+	public static void releaseConnection(Context context, Connection connection) throws SFException {
+		try {
+			if (connection != null) {
+				DataSource dataSource = (DataSource) context.getService((String) context
+					.getDataValue(SFConst.SERVICE_DATASOURCE));
+				//SFLogger.info(context, String.format("释放数据库连接，连接编号为【%s】",connection.getCatalog()));
+				ConnectionManager.releaseConnection(dataSource, connection);
+			}
+		} catch (Exception e) {
+			SFUtil.chkCond(context, "ST4895", e.getMessage());
+			throw new SFException("ST4895", e.getMessage(), e);
+		}
+	}
+}

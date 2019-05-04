@@ -1,0 +1,969 @@
+package common.util;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
+/**
+ * 日期工具类
+ *
+ */
+public class DateUtil {
+
+	/**
+	 * 获取系统当前日期
+	 * 格式：yyyyMMdd
+	 */
+	public static String getMacDate() {
+		return getMacDate("yyyyMMdd");
+	}
+	
+	/**
+	 * 获取系统当前日期
+	 * 格式：yyyyMMdd
+	 */
+	public static String getMacDateShort() {
+		return getMacDate("yyyyMMdd");
+	}
+	
+	/**
+	 * 获取系统当前日期
+	 * 格式：yyMMdd
+	 */
+	public static String getDateShort() {
+		return getMacDate("yyMMdd");
+	}
+	
+	/**
+	 * 获取系统当前时间
+	 * 格式：HH:mm:ss
+	 */
+	public static String getMacTimeFormat() {
+		return getMacDate("HH:mm:ss");
+	}
+	
+	/**
+	 * 获取系统当前时间
+	 * 格式：HHmmss
+	 */
+	public static String getMacTime() {
+		return getMacDate("HHmmss");
+	}
+	
+	/**
+	 * 获取系统当前时间
+	 * 格式: yyyyMMddHHmmss
+	 */
+	public static String getMacDateTimeShort(){
+		return getMacDate("yyyyMMddHHmmss");
+	}
+	/**
+	 * 获取系统当前日期时间
+	 * 格式：yyyy/MM/dd HH:mm:ss
+	 */
+	public static String getMacDateTime() {
+		return getMacDate("yyyy/MM/dd HH:mm:ss");
+	}
+	
+	/**
+	 * 获取系统当前时间
+	 * 格式：HHmmssSSS
+	 */
+	public static String getMacTimeStamp(){
+		return getMacDate("HHmmssSSS");
+		
+	}
+	
+	/**
+	 * 获取系统当前日期时间
+	 * 格式：YYYYMMDD HH:MM:SS.ttt
+	 */
+	public static String getMacDateTimeFormat(){
+		return getMacDate("yyyyMMdd HH:mm:ss.SSS");
+	}
+	
+	/**
+	 * 根据指定格式获取系统当前日期/时间
+	 * @param format 日期/时间格式
+	 * @return 日期/时间
+	 */
+	private static  String getMacDate(String format) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(format);
+		return dateFormat.format(new Date());
+	}
+	
+	/**
+	 * 返回日期相差月份数
+	 */
+	public int getDayDiffInMonth(String start, String end) {
+		int sum = 0;
+		int beginYear = Integer.parseInt(start.substring(0, 4));
+		int beginMonth = Integer.parseInt(start.substring(5, 7));
+		int endYear = getCurrentYear(end);
+		int endMonth = getCurrentMonth(end);
+		sum = (endYear * 12 + endMonth) - (beginYear * 12 + beginMonth);
+		return sum;
+	}
+
+	/**
+	 * 得到当前月 格式是2008-9-25 *
+	 * @param dateStr String
+	 * @return int
+	 */
+	public static int getCurrentMonth(String dateStr) {
+		String date[] = dateStr.split("-");
+		return Integer.parseInt(date[1], 10);
+	}
+
+	/**
+	 * 得到月的天数 *
+	 * 
+	 * @param year int
+	 * @param month int
+	 * @return int
+	 */
+	public static int getMonthDays(int year, int month) {
+		int days = 1;
+		boolean isrn = (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)) ? true : false;
+		switch (month) {
+		case 1:
+			days = 31;
+			break;
+		case 2:
+			if (isrn)
+				days = 29;
+			else
+				days = 28;
+			break;
+		case 3:
+			days = 31;
+			break;
+		case 4:
+			days = 30;
+			break;
+		case 5:
+			days = 31;
+			break;
+		case 6:
+			days = 30;
+			break;
+		case 7:
+			days = 31;
+			break;
+		case 8:
+			days = 31;
+			break;
+		case 9:
+			days = 30;
+			break;
+		case 10:
+			days = 31;
+			break;
+		case 11:
+			days = 30;
+			break;
+		case 12:
+			days = 31;
+		}
+		return days;
+	}
+
+	/**
+	 * 得到当月月末最后一天日期 
+	 * @param inDate YYYY-MM-DD
+	 * @return int
+	 */
+	public String getMonthLLastDay(String inDate) {
+		int days = 1;
+		int year = Integer.parseInt(inDate.substring(0, 4));
+		int month = Integer.parseInt(inDate.substring(5, 7));
+		boolean isrn = (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)) ? true : false;
+		switch (month) {
+		case 1:
+			days = 31;
+			break;
+		case 2:
+			if (isrn)
+				days = 29;
+			else
+				days = 28;
+			break;
+		case 3:
+			days = 31;
+			break;
+		case 4:
+			days = 30;
+			break;
+		case 5:
+			days = 31;
+			break;
+		case 6:
+			days = 30;
+			break;
+		case 7:
+			days = 31;
+			break;
+		case 8:
+			days = 31;
+			break;
+		case 9:
+			days = 30;
+			break;
+		case 10:
+			days = 31;
+			break;
+		case 11:
+			days = 30;
+			break;
+		case 12:
+			days = 31;
+		}
+		return inDate.substring(0, 4) + "-" + inDate.substring(5, 7) + "-" + days;
+	}
+
+	/**
+	 * 判断当天是否为季度月份
+	 * @param inDate YYYY-MM-DD
+	 * @return int 0:是 1:否
+	 */
+	public boolean checkJiDu(String month) {
+		int monthint = 0;
+		boolean canday = false;
+		monthint = Integer.valueOf(month);
+		if (monthint % 3 == 0) {
+			canday = true;
+		}
+		return canday;
+	}
+
+	/**
+	 * 判断当前月的实际天数 
+	 * @param inDate YYYY-MM-DD
+	 * @return int
+	 */
+	public int chekDays(String StartDate) {
+		int days = 0;
+		int year = Integer.parseInt(StartDate.substring(0, 4));
+		int month = Integer.parseInt(StartDate.substring(5, 7));
+		boolean isrn = (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)) ? true : false;
+		if (month == 1 || month == 3 || month == 5 || month == 7 || month == 10 || month == 12 || month == 8) {
+			days = 31; //
+		} else if (isrn && month == 2) {
+			days = 29; 
+		} else if (!isrn && month == 2) {
+			days = 28; //
+		} else {
+			days = 30; 
+		}
+		return days;
+	}
+
+	/**
+	 * 判断当天是否为季度的几号
+	 * @param inDate YYYY-MM-DD
+	 * @return int 0:是 1:否
+	 */
+	public int getJiDuRunDay(String inDate, String day) {
+		int month = Integer.parseInt(inDate.substring(5, 7));
+		String curDay = this.getCurDayS(inDate);
+		switch (month) {
+		case 1:
+			return 1;
+		case 2:
+			return 1;
+		case 3:
+			if (curDay.equals(day)) {
+				return 0;
+			} else {
+				return 1;
+			}
+		case 4:
+			return 1;
+		case 5:
+			return 1;
+		case 6:
+			if (curDay.equals(day)) {
+				return 0;
+			} else {
+				return 1;
+			}
+		case 7:
+			return 1;
+		case 8:
+			return 1;
+		case 9:
+			if (curDay.equals(day)) {
+				return 0;
+			} else {
+				return 1;
+			}
+		case 10:
+			return 1;
+		case 11:
+			return 1;
+		case 12:
+			if (curDay.equals(day)) {
+				return 0;
+			} else {
+				return 1;
+			}
+		}
+		return 1;
+	}
+
+	/**
+	 * 判断是否为月末(当月最后一天) 
+     * param: curDate : YYYY-MM-DD 
+     * return: 0:是 1:否
+	 */
+	public int isLastMonthDay(String curDate) {
+		String tDate = this.getMonthLLastDay(curDate);
+		if (tDate.equals(curDate)) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+
+	/**
+	 * 判断是否为月末的倒数第二天 
+	 * param: curDate : YYYY-MM-DD 
+	 * return: 0:是 1:否
+	 */
+	public int isBefLastMonthDay(String curDate) {
+		String tDate = this.getMonthLLastDay(curDate);
+		int dayCount = this.getBetweenDays(curDate, tDate);
+		if (dayCount == 1) {
+			return 0;
+		} else {
+			return 1;
+		}
+	}
+
+	/**
+	 * 得到月的天数，包括当前月过的天数
+	 * @param currDate String
+	 * @param year int
+	 * @param month int
+	 * @return int
+	 */
+	public int getMonthDays(String currDate, int year, int month) {
+		int days = 1;
+		String date[] = currDate.split("-");
+		if (Integer.parseInt(date[0]) == year && Integer.parseInt(date[1]) == month) {
+			days = Integer.parseInt(date[2]);
+		} else {
+			days = getMonthDays(year, month);
+		}
+		return days;
+	}
+
+	/**
+	 * 得到当前年 格式是2017-08-25 *
+	 * @param dateStr String
+	 * @return int
+	 */
+	public static int getCurrentYear(String dateStr) {
+		String date[] = dateStr.split("-");
+		return Integer.parseInt(date[0], 10);
+	}
+
+	/**
+	 * 得到当前天数 格式是2017-08-25 *
+	 * @param dateStr String
+	 * @return int
+	 */
+	public static int getCurrentDay(String dateStr) {
+		String date[] = dateStr.split("-");
+		return Integer.parseInt(date[2], 10);
+	}
+
+	/**
+	 * 得到当前天数 格式是2017-08-25
+	 * @param dateStr String
+	 * @return int
+	 */
+	public String getCurDayS(String dateStr) {
+		return dateStr.substring(8, 10);
+	}
+
+	/**
+	 * 得到季度到现在的天数 格式是2017-08-25 *
+	 * @param dateStr String
+	 * @return int
+	 */
+	public int getJiDuDays(String dateStr) {
+		int days = 0;
+		String date[] = dateStr.split("-");
+		int day = Integer.parseInt(date[2], 10);
+		int yy = Integer.parseInt(date[0], 10);
+		boolean isrn = (((yy % 4 == 0) && (yy % 100 != 0)) || (yy % 400 == 0)) ? true : false;
+		switch (Integer.parseInt(date[1], 10)) {
+		case 1:
+			days = day;
+			break;
+		case 2:
+			days = 31 + day;
+			break;
+		case 3:
+			if (isrn)
+				days = 31 + 29 + day;
+			else
+				days = 31 + 28 + day;
+			break;
+		case 4:
+			days = day;
+			break;
+		case 5:
+			days = 30 + day;
+			break;
+		case 6:
+			days = 61 + day;
+			break;
+		case 7:
+			days = day;
+			break;
+		case 8:
+			days = 31 + day;
+			break;
+		case 9:
+			days = 62 + day;
+			break;
+		case 10:
+			days = day;
+			break;
+		case 11:
+			days = 31 + day;
+			break;
+		case 12:
+			days = 61 + day;
+			break;
+		}
+		return days;
+	}
+
+	/**
+	 * 得到现在到季度末的天数 格式是2017-08-25 *
+	 * @param dateStr String
+	 * @return int
+	 */
+	public int getJiDuDay(String dateStr) {
+		int days = 0;
+		String date[] = dateStr.split("-");
+		int day = Integer.parseInt(date[2], 10);
+		int yy = Integer.parseInt(date[0], 10);
+		boolean isrn = (((yy % 4 == 0) && (yy % 100 != 0)) || (yy % 400 == 0)) ? true : false;
+		switch (Integer.parseInt(date[1], 10)) {
+		case 1:
+			if (isrn)
+				days = 31 + 29 + day;
+			else
+				days = 31 + 28 + day;
+			break;
+		case 2:
+			days = 31 + day;
+			break;
+		case 3:
+			days = 31 - day;
+			break;
+		case 4:
+			days = 61 + day;
+			break;
+		case 5:
+			days = 30 + day;
+			break;
+		case 6:
+			days = 30 - day;
+			break;
+		case 7:
+			days = 61 + day;
+			break;
+		case 8:
+			days = 30 + day;
+			break;
+		case 9:
+			days = 30 - day;
+			break;
+		case 10:
+			days = 61 + day;
+			break;
+		case 11:
+			days = 31 + day;
+			break;
+		case 12:
+			days = 30 - day;
+			break;
+		}
+		return days;
+	}
+
+	/**
+	 * 返回两个日期间隔的天数 *
+	 * @param beginDate String
+	 * @param endDate String
+	 * @return int
+	 */
+	public static int getBetweenDays(String beginDate, String endDate) {
+		int sum = 0;
+		if (beginDate == null) {
+			return 0;
+		}
+		int beginYear = getCurrentYear(beginDate);
+		int beginMonth = getCurrentMonth(beginDate);
+		int beginDay = getCurrentDay(beginDate);
+		int endYear = getCurrentYear(endDate);
+		int endMonth = getCurrentMonth(endDate);
+		int endDay = getCurrentDay(endDate);
+		String startDateStr = String.valueOf(beginYear) + bZero(beginMonth) + "01";
+		int sumMonth = (endYear - beginYear + 1) * 12 - (beginMonth) - (12 - endMonth);
+		if (sumMonth >= 0) {
+			for (int i = 0; i < sumMonth; i++) {
+				String dateStr = getDateStr(startDateStr, i);
+				sum = sum + getMonthDays(getCurrentYear(dateStr), getCurrentMonth(dateStr));
+			}
+			sum = sum - beginDay + endDay;
+		} else {
+			sum = -1;
+		}
+		return sum;
+	}
+	
+	/**
+	 * 返回日期经过若干月后的日期 *
+	 * @param dateStr String
+	 * @param hkm int
+	 * @return String
+	 */
+	public static String getDateStr(String dateStr, int hkm) {
+		String reDateStr = "";
+		int yy = Integer.parseInt(dateStr.substring(0, 4), 10);
+		int mm = Integer.parseInt(dateStr.substring(4, 6), 10);
+		int dd = Integer.parseInt(dateStr.substring(6, 8), 10);
+		int yy2 = 0, mm2 = 0, dd2 = dd;
+		if ((mm + hkm) % 12 == 0) {
+			yy2 = yy + (mm + hkm) / 12 - 1;
+			mm2 = 12;
+		} else {
+			if ((mm + hkm) % 12 == 1) {
+				yy2 = yy + (mm + hkm) / 12;
+				mm2 = 1;
+			} else {
+				yy2 = yy + (mm + hkm) / 12;
+				mm2 = (mm + hkm) % 12;
+			}
+		}
+		reDateStr = String.valueOf(yy2) + "-" + bZero(mm2) + "-" + bZero(dd2);
+		return reDateStr;
+	}
+
+	/**
+	 * 返回两位数据字串 *
+	 * @param sz int
+	 * @return String
+	 */
+	public static String bZero(int sz) {
+		return (sz < 10 ? ("0" + String.valueOf(sz)) : String.valueOf(sz));
+	}
+
+
+	/**
+	 * 把日期型转化成字符串型 *
+	 * @param date Date
+	 * @return String
+	 */
+	public static String dateToStr(java.util.Date date) {
+		String str = "";
+		try {
+			java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
+			str = sdf.format(date);
+		} catch (Exception ex) {
+			str = "";
+		}
+		return str;
+	}
+
+	/**
+	 * 把日期型转化成字符串型 *
+	 * @param date Date
+	 * @return String
+	 */
+	public String dateToStr(java.util.Date date, String fgf) {
+		String str = "";
+		try {
+			java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy" + fgf + "MM" + fgf + "dd");
+			str = sdf.format(date);
+		} catch (Exception ex) {
+			str = "";
+		}
+		return str;
+	}
+
+
+	/**
+	 * @param
+	 * @return 返回指定日期对应的季度末月的日期 YYYY-MM-DD
+	 * @throws
+	 */
+	public String getLastDateOfQuarter(String date) {
+		String year = date.substring(0, 4);
+		String month = date.substring(5, 7);
+		String day = date.substring(7);
+		String quarter = "";
+
+		switch (Integer.parseInt(month)) {
+		case 1:
+		case 2:
+		case 3:
+			quarter = "03";
+			break;
+		case 4:
+		case 5:
+		case 6:
+			quarter = "06";
+			break;
+		case 7:
+		case 8:
+		case 9:
+			quarter = "09";
+			break;
+		case 10:
+		case 11:
+		case 12:
+			quarter = "12";
+			break;
+		}
+		return year + quarter + day;
+	}
+
+	/**
+	 * @param
+	 * @return 返回指定日期对应的季度日期 YYYY-MM-DD
+	 * @throws
+	 */
+	public String getLastDate(String date) {
+		String year = date.substring(0, 4);
+		String month = date.substring(5, 7);
+		String day = date.substring(8, 10);
+		String quarter = "";
+
+		switch (Integer.parseInt(month)) {
+		case 1:
+		case 2:
+		case 3:
+			quarter = "03";
+			day = "31";
+			break;
+		case 4:
+		case 5:
+		case 6:
+			quarter = "06";
+			day = "30";
+			break;
+		case 7:
+		case 8:
+		case 9:
+			quarter = "09";
+			day = "30";
+			break;
+		case 10:
+		case 11:
+		case 12:
+			quarter = "12";
+			day = "31";
+			break;
+		}
+		return year + "-" + quarter + "-" + day;
+	}
+
+	/**
+	 * 得到指定日期的当年年末月的日期
+	 * @param date YYYY-MM-DD
+	 * @return
+	 */
+	public String getLastDateOfYear(String date) {
+		String year = Integer.parseInt(date.substring(0, 4)) + "";
+		String day = date.substring(8);
+		return year + "12" + day;
+	}
+
+	/**
+	 * 获取明天
+	 * @param date
+	 * @return
+	 */
+	public String getTomorrow(String d) throws Exception {
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
+		Date date = sf.parse(d);
+		cal.setTime(date);
+		cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) + 1);
+		date = cal.getTime();
+		return sf.format(date);
+	}
+	
+	/**
+	 * 获取昨天
+	 * @param date
+	 * @return
+	 */
+	public String getYestoday(String d) throws Exception {
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
+		Date date = sf.parse(d);
+		cal.setTime(date);
+		cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) - 1);
+		date = cal.getTime();
+		return sf.format(date);
+	}
+	
+	/**
+	 * 根据日期基数向后(将来)推算指定天数
+	 * @param sourceDate 日期基数
+	 * @param days 推算天数
+	 * @return 计算后的日期(YYYY-MM-DD)
+	 * @author wuyong
+	 */
+	public String afterTheDate(String sourceDate, int days) throws Exception{
+		String theday = "";
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
+		Date date = sf.parse(sourceDate);
+		cal.setTime(date);
+		cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) + days);
+		date = cal.getTime();
+		theday = sf.format(date);
+		return theday;
+	}
+	
+	/**
+	 * 根据日期基数向前(过去)推算指定天数
+	 * @param sourceDate 日期基数
+	 * @param days 推算天数
+	 * @return 计算后的日期
+	 * @author wuyong
+	 */
+	public String beforeTheDate(String sourceDate, int days) throws Exception{
+		String theday = "";
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
+		Date date = sf.parse(sourceDate);
+		cal.setTime(date);
+		cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) - days);
+		date = cal.getTime();
+		theday = sf.format(date);
+		return theday;
+	}
+
+	/**
+	 * 获取15天后的日期(如果为临近季末则为季末日期)
+	 * @param date
+	 * @return
+	 */
+	public String get15Day(String d) throws Exception {
+		SimpleDateFormat sf = new SimpleDateFormat("yyyy-MM-dd");
+		Calendar cal = Calendar.getInstance();
+		Date date = sf.parse(d);
+		cal.setTime(date);
+		if (this.getJiDuDay(d) < 15) {
+			return this.getLastDate(d);
+		} else{
+			cal.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH) + 15);
+		}
+		date = cal.getTime();
+		return sf.format(date);
+	}
+
+	/**
+	 * 得到某年某月的这个月的最后一天
+	 * @param inDate YY-MM
+	 * @retrun day
+	 */
+	public int getMonthLLastDay2(String inDate) {
+		int days = 1;
+		int year = Integer.parseInt(inDate.substring(0, 4));
+		int month = Integer.parseInt(inDate.substring(5, 7));
+		boolean isrn = (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)) ? true : false;
+		switch (month) {
+		case 1:
+			days = 31;
+			break;
+		case 2:
+			if (isrn)
+				days = 29;
+			else
+				days = 28;
+			break;
+		case 3:
+			days = 31;
+			break;
+		case 4:
+			days = 30;
+			break;
+		case 5:
+			days = 31;
+			break;
+		case 6:
+			days = 30;
+			break;
+		case 7:
+			days = 31;
+			break;
+		case 8:
+			days = 31;
+			break;
+		case 9:
+			days = 30;
+			break;
+		case 10:
+			days = 31;
+			break;
+		case 11:
+			days = 30;
+			break;
+		case 12:
+			days = 31;
+		}
+		return days;
+	}
+
+	/**
+	 * 得到季度末的最后一天
+	 * @author liujt
+	 * @Param inDate YYYY-MM-DD
+	 * @return String
+	 */
+	public String getQuarterlyLastDay(String inDate) {
+		int year = Integer.parseInt(inDate.substring(0, 4));
+		int month = Integer.parseInt(inDate.substring(5, 7));
+		if (month >= 1 && month <= 3) {
+			return year + "-03-31";
+		} else if (month >= 4 && month <= 6) {
+			return year + "-06-30";
+		} else if (month >= 7 && month <= 9) {
+			return year + "-09-30";
+		} else {
+			return year + "-12-31";
+		}
+	}
+	
+	/**
+	 * 从指定的日期中获取年份/月份/日期
+	 * @param sourceDate 指定日期(YYYY-MM-DD)
+	 * @param type 返回内容:y-年,m-月,d-日
+	 * @return
+	 */
+	public String getYearMonthDay(String sourceDate, String type)throws Exception{
+		int length = sourceDate.length();
+		if(length != 8 && length != 10){
+			throw new Exception("指定日期格式不正确");
+		}else if(length == 8){
+			sourceDate = sourceDate.substring(0, 4) + "-" + sourceDate.substring(4, 6) + "-" + sourceDate.substring(6);
+		}
+		String date[] = sourceDate.split("-");
+		if(type.equalsIgnoreCase("y")){
+			return date[0];
+		}else if(type.equalsIgnoreCase("m")){
+			return date[1];
+		}else{
+			return date[2];
+		}
+		
+	}
+
+	/**
+	 * 得到本年年末
+	 * @author liujt
+	 * @param inDate YYYY-MM-DD
+	 * @return String
+	 */
+	public String getYearLastDay(String inDate) {
+		int year = Integer.parseInt(inDate.substring(0, 4));
+		return year + "-12-31";
+	}
+	
+	/**
+	 * 判断业务是否为半年期
+	 * @param month
+	 * @return
+	 */
+	public boolean checkIfHalfYear(String month){
+		if("6".equals(month) || "12".equals(month)){
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	
+
+	/**
+	 * 转化日期格式 
+	 * @param date   数据格式：yyyymmdd "to" yyyy-mm-dd
+	 * @return
+	 */
+	public static String formatToHyphenDate(String date){
+		String year = date.substring(0, 4) + "-";
+		String month = date.substring(4, 6) + "-"; 
+		String day = date.substring(6, 8);
+		String strDate = year + month + day;
+		return strDate;
+	}
+	
+	/**
+	 * 
+	 * 转化日期格式
+	 * 
+	 * @param args 数据格式：yyyy-mm-dd "to" yyyymmdd
+	 * @throws Exception
+	 */
+	public String delHyphenDate(String date){
+		String strDate = date.replace("-", "");
+		return strDate;
+	}
+	
+	/**
+	 * 获得当前年
+	 * @param date
+	 * @return
+	 */
+	public String getDateYear(String date){
+		String strDate = date.substring(0,4);
+		return strDate;
+	}
+	
+	/**
+	 * 获得当前月
+	 * @param date
+	 * @return
+	 */
+	public String getDateMonth(String date){
+		String strDate = date.substring(5,7);
+		return strDate;
+	}
+	
+	/**
+	 * 获取时间字符串
+	 * @param format
+	 * @return
+	 */
+	public static String getDateTime(String format) {
+		java.util.Calendar calendar = java.util.Calendar.getInstance();
+		java.util.Date date = calendar.getTime();
+		java.text.SimpleDateFormat formatter = new java.text.SimpleDateFormat(format);
+		return formatter.format(date);
+	}
+	
+	
+	
+	/**
+	 * 根据日期格式与日期字符串转换成日期类型
+	 * @param format 日期格式如：yyyyMMdd;yyyy/MM/dd;yyyy-MM-dd等
+	 * @param sDate 日期字符串
+	 * @return 
+	 */
+	public static Date strToDate(String format, String sDate) throws Exception{
+		SimpleDateFormat sdf = new SimpleDateFormat(format);
+		return sdf.parse(sDate);
+	}
+	
+}

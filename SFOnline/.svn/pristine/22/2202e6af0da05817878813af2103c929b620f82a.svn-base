@@ -1,0 +1,566 @@
+package core.communication.access.stzsecu;
+
+import java.sql.Connection;
+import java.util.Map;
+
+import module.bean.ErrorMap;
+import module.cache.ErrorMapCache;
+import module.trans.TranHandler;
+
+import com.ecc.emp.access.tcpip.EMPTCPIPRequest;
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPConstance;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.data.DataElement;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.format.FormatElement;
+import com.ecc.emp.transaction.EMPTransactionManager;
+import com.sscc.fdep.mrapi;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+import common.util.BizUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.cache.CacheMap;
+import core.communication.format.KeyedFormat;
+import core.communication.format.xml.XMLWrapFormat;
+import core.communication.util.AccessConstance;
+import core.log.SFLogger;
+
+public class SZTRequestHandler {
+	
+	private Map<String,String> tcpipService = null;
+	// 处理请求
+	public byte[] handleRequest(byte[] requestMsg) {
+		
+		EMPTCPIPRequest request = new EMPTCPIPRequest();
+		Context context = null;
+		try {
+			context = SFUtil.getRootContext();
+			
+			Connection connection = DBHandler.getConnection(context);
+			SFUtil.setDataValue(context, SFConst.PUBLIC_TRAN_CONNECTION, connection);
+			
+			
+//			SFLogger.info(context,
+//					"STZSocketPolling handleRequest start!");
+			request.setAttribute( EMPConstance.ATTR_CONTEXT, context );
+			KeyedCollection kColl = new KeyedCollection(AccessConstance.C_REQUEST_HEAD);
+			kColl.setAppend(true);
+			FormatElement requestHeadFormat = context
+					.getFormat(AccessConstance.C_REQUEST_HEAD);
+			if (requestHeadFormat.isBin())
+				requestHeadFormat.unFormat(requestMsg, kColl);
+			else{
+				requestHeadFormat.unFormat(new String(requestMsg), kColl);
+			}
+
+			if (kColl != null) {
+				// 去掉空格
+				for (int i = 0; i < kColl.size(); i++) {
+					String value = (String) kColl.getDataValue(kColl
+							.getDataElement(i).getName());
+					kColl.setDataValue(kColl.getDataElement(i).getName(),value.trim());
+				}
+			}
+			request.setAttribute("headData", kColl);
+			if (context.containsKey(AccessConstance.C_REQUEST_HEAD)) {
+				context.removeDataElement(AccessConstance.C_REQUEST_HEAD);
+			}
+			context.addDataElement(kColl);
+
+			KeyedFormat headFormat = (KeyedFormat) requestHeadFormat.getFormatElement();
+			int headLen = headFormat.getHeadLen();
+			byte[] buf = null;
+			if (headLen > 0) {
+				int length = requestMsg.length - headLen;
+				buf = new byte[length];
+				System.arraycopy(requestMsg, headLen, buf, 0, length);
+				request.setAttribute("reqData", buf);
+			} else{
+				request.setAttribute("reqData", requestMsg);
+			}
+
+			requestMsg = (byte[]) request.getAttribute("reqData");
+
+			String resData = "<?xml version=\"1.0\" encoding=\"GB18030\" ?>"+ new String(requestMsg);
+			
+			updateModel(resData.getBytes(), context, null);
+					
+			EMPTransactionManager transactionManager = null;
+			try {
+				transactionManager = (EMPTransactionManager) context.getService(EMPConstance.TRX_SVC_NAME);
+				// 私有处理逻辑
+				TranHandler.doHandle(context);
+				
+				if(SFConst.RET_RESP_NO.equals( SFUtil.getDataValue(context, SFConst.PUBLIC_IS_RET_RESP ))){
+					SFLogger.info(context, "不需要返回报文！");
+					return null;
+				}
+				
+				byte[] responMsg = handleResponse(context);
+				// commit the transaction if exist
+				if (transactionManager != null)
+					transactionManager.commit();
+				
+				
+				return responMsg;
+
+			} catch (Exception e) {
+				if (transactionManager != null){
+					transactionManager.rollback();
+				}
+				request.setAttribute(EMPConstance.ATTR_EXCEPTION, e);
+				throw e;
+			}
+
+		} catch (Exception e) {
+			try {
+				if(SFConst.RET_RESP_NO.equals( SFUtil.getDataValue(context, SFConst.PUBLIC_IS_RET_RESP ))){
+					return null;
+				}
+				
+				byte[] responMsg = handleExceptionResponse(context,e);
+				return responMsg;
+			} catch( SFException e1 ) {
+				SFLogger.error( SFConst.DEFAULT_TRXCODE, null, "Failed to process response package! ",e1);
+			}
+			SFLogger.error(context,"Failed to parse the requestMsg in SZTRequestHandler to get sessionId"+e);
+		}finally{
+			try {
+				//关闭连接
+				Connection connection = SFUtil.getDataValue(context, SFConst.PUBLIC_TRAN_CONNECTION);
+				DBHandler.releaseConnection(context, connection);
+			} catch (SFException e) {
+				SFLogger.error( SFConst.DEFAULT_TRXCODE, null, "Failed to process response package! ",e);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 具体的请求处理实现方法。
+	 * 
+	 * @param request
+	 *            TCP/IP请求
+	 * @param sessionContext
+	 *            Session Context
+	 * @return 返回内容，即打包好的报文体
+	 * @throws EMPException
+	 */
+
+	/**
+	 * 使用请求数据更新数据模型。
+	 * <p>
+	 * 使用EMP数据模型永久化处理器<tt>DataElementSerializer</tt>将请求报文转换成数据。
+	 * 
+	 * @param requestMsg
+	 *            请求报文包
+	 * @param context
+	 *            交易上下文
+	 * @param dataElementDef
+	 *            input定义
+	 * @throws EMPException
+	 */
+	public void updateModel(byte[] requestMsg, Context context,
+			DataElement dataElementDef) throws EMPException {
+		try {
+			if (dataElementDef == null) {
+				// 处理head信息
+				FormatElement headFormat = context.getFormat("MsgHdr");
+				if (headFormat == null) {
+					throw new EMPException("The format:[MsgHdr] not defined in context, please check the SFOnlineFormats.xml and settings.xml");
+				}
+
+				if (headFormat.isBin())
+					headFormat.unFormat(requestMsg, context);
+				else
+					headFormat.unFormat(new String(requestMsg), context);
+
+				
+				String serverId = SFUtil.getDataValue(context,"MsgHdr.InstrCd");
+				
+				if(SFUtil.isEmpty(serverId)){
+					throw new EMPException("MsgHdr.InstrCd is null!");
+				}
+				
+				Map<String,Map<String,String>> tcpipServiceMap =  CacheMap.getCache("SZT_TCPIPSERVICE");
+				tcpipService = tcpipServiceMap.get(serverId);
+				
+				
+				SFUtil.setDataValue(context, SFConst.PUBLIC_SERVER_ID, serverId);
+				
+				if(tcpipService ==null){					
+					throw new EMPException("tcpipService is null,please check SZTSecuChannel.xml");					
+				}
+				
+				String tranCode = tcpipService.get("tranCode");
+				String keyInputName = tcpipService.get("keyInputName");
+				/**
+				 * 设置公共上下文值
+				 */
+				//生成定长ID（系统初始流水号16位）
+				String logId=BizUtil.getInitSeqId(context);
+				SFUtil.setDataValue(context, SFConst.PUBLIC_LOG_ID, logId);
+				//交易号
+				SFUtil.setDataValue(context, SFConst.PUBLIC_TX_CODE, tranCode);
+				//keyInputName
+				SFUtil.setDataValue(context, SFConst.PUBLIC_KEY_INPUTNAME, keyInputName);
+				//发送响应报文标识
+				SFUtil.setDataValue(context, SFConst.PUBLIC_IS_RET_RESP, SFConst.RET_RESP_YES);
+				
+				SFUtil.setDataValue(context, SFConst.PUBLIC_INIT_SIDE, SFConst.INIT_SIDE_SECU);
+				
+				SFLogger.info(context, "深证通请求报文：[" + new String(requestMsg)+"]^");
+				
+				String className =  tcpipService.get("className");   //ReadProperty.getValue(tranCode);
+				// 设置调整class
+				context.addDataField("CLASS_NAME", className);
+
+				// 处理body信息
+				String inFormat = tcpipService.get("formatInput");//  ReadProperty.getValue(tranCode + "_I");
+
+				FormatElement msgFormat = context.getFormat(inFormat);
+				if (msgFormat == null) {
+					throw new EMPException("The format:["+ tranCode+ "_I"+ "] not defined in context, please check the SFOnlineFormats.xml and settings.xml");
+				}
+
+				if (msgFormat.isBin())
+					msgFormat.unFormat(requestMsg, context);
+				else
+					msgFormat.unFormat(new String(requestMsg), context);
+
+				String outFormat = tcpipService.get("formatOutput");// ReadProperty.getValue(tranCode + "_O");
+				msgFormat = context.getFormat(outFormat);
+				if (msgFormat == null) {
+					throw new EMPException("The format:["+ tranCode+ "_O"+ "] not defined in context, please check the SFOnlineFormats.xml and settings.xml");
+				}
+				// 增加输出字段到上下文
+				XMLWrapFormat tranCodeO = (XMLWrapFormat) msgFormat.getFormatElement();
+				tranCodeO.addFormatToContext(context);
+			}
+		} catch (EMPException e) {
+			throw e;
+		} catch (Exception e) {
+			throw new EMPException("Failed to update dataModel in SZTRequestHandler:", e);
+		}
+
+	}
+
+	/**
+	 * 获得返回报文体。
+	 * <p>
+	 * 使用EMP数据模型永久化处理器<tt>DataElementSerializer</tt>将数据转换成XML格式串。
+	 * 
+	 * @param context
+	 *            交易上下文
+	 * @param dataElement
+	 *            output定义
+	 * @return 返回报文体
+	 * @throws Exception
+	 */
+	protected byte[] handleResponse(Context context){
+		
+		FormatElement headFormat = null;
+		try {
+			// 根据报文头的返回码来判断是否需要加入报文体内容，只有返回"000000"成功时才返回报文体，这里涉及到MAC校验上送的消息块
+//			String tranCode = SFUtil.getDataValue(context,SFConst.CTX_PUBLIC_TX_CODE);
+			initResponsMsg(context);
+			
+			String outKcollName = tcpipService.get("formatOutput");
+			
+			outKcollName = outKcollName.replaceAll("\\.", "");
+			KeyedCollection outKcoll = SFUtil.getDataElement(context,outKcollName);
+			
+			KeyedCollection rstKcoll = SFUtil.getDataElement(context,outKcoll, "Rst");
+//			String retCode=SFUtil.getDataValue(context,rstKcoll,"RESP_CODE");
+//			
+//			//成功码转换
+//			if(SFConst.RESPCODE_SUCCCODE.equals(retCode) || "".equals(retCode)){
+//				SFUtil.setDataValue(context,rstKcoll,"RESP_CODE",SFConst.SZTSECU_RESPCODE_SUCCCODE);
+//			}
+//			
+			
+			//成功返回码转换
+	        String retCode = SFUtil.getDataValue(context,SFConst.CTX_ERRCODE);
+			String retMsg = SFUtil.getDataValue(context,SFConst.CTX_ERRMSG);
+			if(SFConst.RESPCODE_SUCCCODE.equals(retCode)||SFUtil.isEmpty(retCode)){ 
+				SFUtil.setDataValue(context,rstKcoll,"RESP_CODE",SFConst.RESPCODE_SUCCCODE_SZTSECU);
+				SFUtil.setDataValue(context,rstKcoll,"RESP_MSG",SFUtil.isEmpty(retMsg)?"交易成功":retMsg);
+				
+			}else{
+//				20180517-wanghua-modify for(正常返回错误报文信息)-s
+//				ErrorMap errorMap =ErrorMapCache.getSztValue(retCode);
+//				SFUtil.setDataValue(context,rstKcoll,"RESP_CODE",errorMap.getSztCode());
+//				SFUtil.setDataValue(context,rstKcoll,"RESP_MSG",errorMap.getErrExplain());				
+				ErrorMap errorMap =ErrorMapCache.getSdbValue(retCode);
+				if(errorMap!=null){
+//					if(SFUtil.isEmpty(retMsg)){
+//						retMsg = errorMap.getErrExplain();
+//					}
+					SFUtil.setDataValue(context,rstKcoll,"RESP_CODE",errorMap.getSztCode());
+					SFUtil.setDataValue( context, rstKcoll, "RESP_MSG", SFUtil.isNotEmpty( retMsg ) ? retMsg : errorMap.getErrExplain() );
+				}else{
+//					if(SFUtil.isEmpty(retMsg)){
+//						retMsg = "交易失败";
+//					}					
+					SFUtil.setDataValue(context,rstKcoll,"RESP_CODE",retCode);
+					SFUtil.setDataValue(context,rstKcoll,"RESP_MSG","交易失败");
+				}
+//				20180517-wanghua-modify for(正常返回错误报文信息)-e		
+			}
+	        
+			
+			
+			
+			headFormat = context.getFormat("MsgHdr");
+			String responseHeadData = (String) headFormat.format(context);
+			String bodyFormat = tcpipService.get("formatOutput");//  ReadProperty.getValue(tranCode + "_O");
+			FormatElement msgFormat = context.getFormat(bodyFormat);
+			String responseData = (String) msgFormat.format(context);
+			// 组装发送报文
+			StringBuffer sendData = new StringBuffer("");
+			responseData = responseData.trim();
+			int pos = responseData.indexOf(bodyFormat);
+			String resp1 = responseData.substring(pos-1,bodyFormat.length()+2);
+			String resp2 = responseData.substring(bodyFormat.length()+3);
+			String responseBodyData = resp1+responseHeadData+resp2;
+			
+			
+			//计算报文总长度
+			int msgLength=responseBodyData.getBytes().length;//报文体长度
+			msgLength=msgLength+105;//报文体加93个字符报文头长度
+			String strMsgLength=SFUtil.fixChar(String.valueOf(msgLength), 5, '0', "left");
+			// 报文头
+			sendData.append("<IFTS Len=\""+strMsgLength+"\" DataVer=\"1.0.0.1\" SeqNo=\"0\" Type=\"B\" Dup=\"N\" CheckSum=\"\"><MsgText>\r\n");
+			sendData.append(responseBodyData);
+			sendData.append("\r\n</MsgText></IFTS>");
+//			// 报文体
+//			sendData.append(responseHeadData + "\r\n" + responseData);
+//			sendData.append("\r\n</MsgText></IFTS>");
+			String resData = sendData.toString();
+			this.send(context,resData);
+			
+			
+			return resData.getBytes();
+			
+		} catch (Exception e) {
+			SFLogger.error(context, "深证通应答报文失败:",e);
+		}
+		
+		return null;
+	}
+	
+	
+	private void initResponsMsg(Context context) throws SFException{
+		
+		KeyedCollection msgHrdKcoll = SFUtil.getDataElement( context, "MsgHdr" );
+		KeyedCollection senderKcoll = SFUtil.getDataElement( context,msgHrdKcoll,"Sender" );
+		KeyedCollection recverKcoll = SFUtil.getDataElement( context, msgHrdKcoll,"Recver" );
+		
+		KeyedCollection refKcoll = SFUtil.getDataElement( context,msgHrdKcoll,"Ref" );
+		
+		String ref = SFUtil.getDataValue( context, refKcoll,"Ref" );
+		String issrType = SFUtil.getDataValue( context, refKcoll,"IssrType" );
+		String refIssr = SFUtil.getDataValue( context, refKcoll,"RefIssr" );
+		
+		if(msgHrdKcoll.containsKey( "RltdRef" )){
+			msgHrdKcoll.removeDataElement( "RltdRef" );
+		}
+		KeyedCollection rltdRefKcoll = new KeyedCollection("RltdRef");
+		SFUtil.addDataField( context, rltdRefKcoll,"Ref" ,ref);
+		SFUtil.addDataField( context, rltdRefKcoll,"IssrType" ,issrType);
+		SFUtil.addDataField( context, rltdRefKcoll,"RefIssr" ,refIssr);
+		
+		SFUtil.addDataElement( context, msgHrdKcoll, rltdRefKcoll);
+		
+		//券商发起销户结息流水号使用券商流水号
+		String txcode = SFUtil.getDataValue( context, SFConst.PUBLIC_TX_CODE );
+		if(SFUtil.isNotEmpty( txcode ) && "100105".equals( txcode )){
+			String secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" );
+			if(SFUtil.isNotEmpty( secCompCode ) && SFConst.SECU_PINGANZQ.equals( secCompCode )){
+				SFUtil.setDataValue( context, refKcoll,"Ref" ,ref);
+			}else{
+				SFUtil.setDataValue( context, refKcoll,"Ref" ,"");
+			}
+			
+			//券商发起签到\签退流水号 为空
+		}else if(SFUtil.isNotEmpty( txcode ) && "100120".equals( txcode )){
+			SFUtil.setDataValue( context, refKcoll,"Ref" ,"");
+			
+			//其余券商端交易使用16位流水号
+		}else{
+			//上下文获取交易流水号，如果不存在重新生成交易流水号
+			String seqNo = SFUtil.getDataValue( context, SFConst.PUBLIC_LOG_ID );
+			if(SFUtil.isEmpty( seqNo )){
+				SFUtil.setDataValue( context, refKcoll,"Ref" ,BizUtil.getSubTxSeqId(BizUtil.getInitSeqId(context)));	
+			}else{
+				SFUtil.setDataValue( context, refKcoll,"Ref" ,BizUtil.getSubTxSeqId(seqNo ));
+			}
+		}
+		SFUtil.setDataValue( context, refKcoll,"IssrType" ,"B");
+		
+		String instType = SFUtil.getDataValue( context, senderKcoll,"InstType" );
+		String instId = SFUtil.getDataValue( context, senderKcoll,"InstId" );
+		String insBranchId = SFUtil.getDataValue( context, senderKcoll,"BrchId");
+		String recverInstType = SFUtil.getDataValue( context, recverKcoll,"InstType" );
+		String recverInstId = SFUtil.getDataValue( context, recverKcoll,"InstId" );
+		String recverBranchId = SFUtil.getDataValue( context, recverKcoll,"BrchId" );
+		String secCompCode = SFUtil.getReqDataValue( context, "SEC_COMP_CODE" );
+		
+		SFUtil.setDataValue( context, senderKcoll,"InstType" ,recverInstType);
+		SFUtil.setDataValue( context, senderKcoll,"InstId" ,recverInstId);
+		SFUtil.setDataValue( context, senderKcoll,"BrchId" ,recverBranchId);
+		SFUtil.setDataValue( context, recverKcoll,"InstType" ,instType);
+		SFUtil.setDataValue( context, recverKcoll,"InstId" ,instId);
+		SFUtil.setDataValue( context, recverKcoll,"BrchId" ,insBranchId);
+
+		
+		// 银河证券 或 五矿证券 需要回送SecCompCode、BrchId字段
+		if(SFUtil.isNotEmpty( txcode ) && ("100100".equals( txcode ) || 
+			 "100101".equals( txcode ) || "100104".equals( txcode ) ||
+			 "100105".equals( txcode ) || "100200".equals( txcode ) ||
+			 "100201".equals( txcode ) || "100202".equals( txcode ) ||
+			 "100203".equals( txcode ) || "100301".equals( txcode ))){
+			if( SFConst.SECU_YINHEZQ.equals( secCompCode ) || SFConst.SECU_WUKUANGZQ.equals( secCompCode ) ) {
+				SFUtil.setDataValue( context, recverKcoll, "BrchId" ,SFUtil.objectToString( SFUtil.getDataValue( context, "SEC_BRCH_ID" ) ));
+			}
+		}
+		
+		SFUtil.setDataValue( context, msgHrdKcoll,"LstFrag" ,"Y");
+		
+	}
+
+	/**
+	 * 获得异常返回报文体。
+	 * <p>
+	 * 使用EMP数据模型永久化处理器<tt>DataElementSerializer</tt>将数据转换成XML格式串。
+	 * 
+	 * @param context
+	 *            交易上下文
+	 * @param dataElement
+	 *            output定义
+	 * @return 返回报文体
+	 * @throws Exception
+	 */
+	protected byte[] handleExceptionResponse(Context context,Exception e){
+		
+		FormatElement headFormat = null;
+		try {
+			// 根据报文头的返回码来判断是否需要加入报文体内容，只有返回"000000"成功时才返回报文体，这里涉及到MAC校验上送的消息块
+//			String tranCode = SFUtil.getDataValue(context,SFConst.PUBLIC_TX_CODE);
+			
+			initResponsMsg(context);
+			
+			
+			String outKcollName = tcpipService.get("formatOutput");
+			outKcollName = outKcollName.replaceAll("\\.", "");
+			KeyedCollection outKcoll = SFUtil.getDataElement(context,outKcollName);
+			KeyedCollection rstKcoll = SFUtil.getDataElement(context,outKcoll, "Rst");
+			//成功返回码转换
+	        String retCode = null;
+			
+			if(e instanceof SFException){
+				SFException sfe = (SFException)e;
+				retCode = sfe.getErrorCode();
+				String errMsg =  sfe.getMessage();
+				ErrorMap errorMap =ErrorMapCache.getSdbValue(retCode);
+				if(errorMap!=null){
+					if(SFUtil.isEmpty(errMsg)){
+						errMsg = errorMap.getErrExplain();
+					}
+					SFUtil.setDataValue(context,rstKcoll,"RESP_CODE",errorMap.getSztCode());
+					SFUtil.setDataValue(context,rstKcoll,"RESP_MSG",errMsg);
+				}else{
+					if(SFUtil.isEmpty(errMsg)){
+						errMsg = "交易失败";
+					}
+					
+					SFUtil.setDataValue(context,rstKcoll,"RESP_CODE",retCode);
+					SFUtil.setDataValue(context,rstKcoll,"RESP_MSG",errMsg);
+				}
+				
+			}else{
+				SFUtil.setDataValue(context,rstKcoll,"RESP_CODE",SFConst.RESPCODE_FAILCODE_SZTSECU);
+				SFUtil.setDataValue(context,rstKcoll,"RESP_MSG","交易失败");
+			}
+			
+			
+			headFormat = context.getFormat("MsgHdr");
+
+			String responseHeadData = (String) headFormat.format(context);
+
+			String bodyFormat = tcpipService.get("formatOutput"); //ReadProperty.getValue(tranCode + "_O");
+
+			FormatElement msgFormat = context.getFormat(bodyFormat);
+
+			String responseData = (String) msgFormat.format(context);
+			// 组装发送报文
+			StringBuffer sendData = new StringBuffer("");
+			responseData = responseData.trim();
+			int pos = responseData.indexOf(bodyFormat);
+			String resp1 = responseData.substring(pos-1,bodyFormat.length()+2);
+			String resp2 = responseData.substring(bodyFormat.length()+3);
+			String responseBodyData = resp1+responseHeadData+resp2;
+			int bodyLen = responseBodyData.length();
+			String len = "00000"+bodyLen;
+			len = len.substring(len.length()-5, len.length());
+			// 报文头
+			sendData.append("<IFTS Len=\""+len+"\" DataVer=\"1.0.0.1\" SeqNo=\"0\" Type=\"B\" Dup=\"N\" CheckSum=\"\"><MsgText>\r\n");
+			sendData.append(responseBodyData);
+			sendData.append("\r\n</MsgText></IFTS>");
+			//
+			String resData = sendData.toString();
+			this.send(context,resData);
+			return resData.getBytes();
+			
+		} catch (Exception e1) {
+			SFLogger.error( SFConst.DEFAULT_TRXCODE, null, "获得异常返回报文体失败 ",e1);
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * 主动发送报文
+	 * @param sendData
+	 * @return
+	 * @throws EMPException
+	 */
+	private String send(Context context,String sendData) throws EMPException{
+		SFLogger.info( context, "深证通应答报文=[" + sendData + "]" );
+		/*
+		 * 初始化:联接深证通服务器
+		 */
+		String sourcePkId = SFUtil.getDataValue( context, "C_REQUEST_HEAD.pkID" );
+		String sourceUserId = SFUtil.getDataValue( context, "C_REQUEST_HEAD.sourceUserID" );
+		String sourceAppId = SFUtil.getDataValue( context, "C_REQUEST_HEAD.sourceAppID" );
+		
+		/*
+		 * 缓存中获取发送配置
+		 */
+		SZTAccessParam sztParam = CacheMap.getCache( "SZT_ACCESS_PARAM" );		
+		String destAppId = sztParam.getServerDestAppId();
+		String destUserId = sztParam.getServerDestUserId();
+
+		byte[] input = sendData.getBytes();
+		/*
+		 *  发送消息，得到消息包标识pkgid
+		 *  <br>
+		 *  对应响应报文时Mr2Send方法:
+		 *  1、SourceUserId=配置的ServerDestAppId
+		 *  2、SourceAppId=配置的ServerDestUserId
+		 *  3、DestUserId=原请求报文中的SourceUserId
+		 *  4、DestAppId=原请求报文中的SourceAppId
+		 */
+		String pkgId = mrapi.Mr2Send( input, destUserId, destAppId, sourceUserId, sourceAppId, "", sourcePkId, "", "", "", ( byte )0, ( byte )0, ( byte )0, ( byte )0, 2000 );
+		// 如果pkgid字符串为空，代表发送失败。
+		if( pkgId == null ) {
+			SFLogger.info( context, "响应失败：调用深证通 Mr2Send方法失败!" );
+			throw new EMPException( "响应失败：调用深证通 Mr2Send方法失败!" );
+		}
+		// mrapi.MrDestroy("app2");
+		return pkgId;
+	}
+}

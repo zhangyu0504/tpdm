@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="GB2312" ?>
+
+
+<HostPackageProfile>
+<package id="ESB-XML" fmtGenClass="core.communication.format.esb.BBCPESBXMLFormatBuilder">
+      <document/>
+      <attributes/>
+      <dataAttributes>
+      	<attr id="isESB" name="是否ESB字段"  mustSet="true" valueList="1=是;2=否;" defaultValue="1">
+            <document>是否ESB字段</document>
+         </attr>
+      	 <attr id="tag" name="标签名字"  mustSet="true" mustInputFormula="$isESB='1'" enableFormula="$isESB='1'">
+            <document>ESB报文字段标签名字</document>
+         </attr>
+         <attr id="type" name="类型" mustInputFormula="$isESB='1'" enableFormula="$isESB='1'" defaultValue="STRING" valueList="STRING=STRING;INT=INT;LONG=LONG;FLOAT=FLOAT;DOUBLE=DOUBLE;" mustSet="true">
+            <document>类型</document>
+         </attr>
+         <attr id="len" name="长度" mustInputFormula="$isESB='1'" enableFormula="$isESB='1'" mustSet="true">
+            <document>长度</document>
+         </attr>
+         <attr id="scale" name="字段精度" mustInputFormula="$isESB='1'" enableFormula="$isESB='1'" mustSet="true" defaultValue="0">
+            <document>字段精度</document>
+         </attr>
+         <attr id="headType" name="报文结构类型" mustInputFormula="$isESB='1'" enableFormula="$isESB='1'" valueList="SYS_HEAD=SYS_HEAD;APP_HEAD=APP_HEAD;LOCAL_HEAD=LOCAL_HEAD;BODY=BODY;" mustSet="true">
+            <document>字段的报文结构父节点</document>
+         </attr>
+         <attr id="nullCheck" name="是否检查空值" enableFormula="$isESB='1'" valueList="true=true;false=false;" defaultValue="false">
+            <document>是否检查空值</document>
+         </attr>
+         <attr id="constant" name="是否常量"  enableFormula="$isESB='1'" valueList="true=true;false=false;" defaultValue="false">
+            <document>是否常量</document>
+         </attr>
+         <attr id="value" name="常量省缺" enableFormula="$constant='true'" mustInputFormula="$constant='true'">
+            <document>常量省缺</document>
+         </attr>
+         <attr id="hasCalculate" name="是否需要数字运算" enableFormula="$isESB='1'" valueList="true=true;false=false;" defaultValue="false">
+            <document>是否需要数字运算</document>
+         </attr>
+         <attr id="amountValue" name="乘除单位" enableFormula="$hasCalculate='true'" mustInputFormula="$hasCalculate='true'">
+            <document>必须为正整数</document>
+         </attr>
+         <attr id="flag" name="乘除方向" enableFormula="$hasCalculate='true'" mustInputFormula="$hasCalculate='true'" valueList="0=乘;1=除;">
+            <document>乘除方向</document>
+         </attr>
+         <attr id="per" name="数字精度" enableFormula="$hasCalculate='true'" defaultValue="0">
+            <document>数字精度</document>
+         </attr>
+      </dataAttributes>
+      <groupAttributes/>
+      <iCollAttributes>
+      	 <attr id="tag" name="标签名字"  mustSet="true">
+            <document>ESB报文字段标签名字</document>
+         </attr>
+         <attr id="headType" name="报文结构类型" valueList="SYS_HEAD=SYS_HEAD;APP_HEAD=APP_HEAD;LOCAL_HEAD=LOCAL_HEAD;BODY=BODY;CHILDICOLL=CHILDICOLL;" mustSet="true">
+            <document>字段的报文结构父节点</document>
+         </attr>
+      </iCollAttributes>
+   </package>
+      <package id="JSON" fmtGenClass="com.sdb.common.format.json.BBCPJSONFormatBuilder">
+   		<document/>
+   		<attributes/>
+   		<dataAttributes>
+   			<attr id="tag" name="标签名字"  mustSet="true">
+	        	<document>JSON报文字段标签名字</document>
+	        </attr>
+	        <attr id="type" name="类型" mustSet="true" defaultValue="STRING" valueList="STRING=STRING;INT=INT;LONG=LONG;FLOAT=FLOAT;DOUBLE=DOUBLE;" >
+	        	<document>类型</document>
+	        </attr>
+	        <attr id="nullCheck" name="是否检查空值" valueList="true=true;false=false;" defaultValue="false">
+	            <document>是否检查空值</document>
+	         </attr>
+	         <attr id="constant" name="是否常量" valueList="true=true;false=false;" defaultValue="false">
+	            <document>是否常量</document>
+	         </attr>
+	         <attr id="value" name="常量省缺" enableFormula="$constant='true'" mustInputFormula="$constant='true'">
+	            <document>常量省缺</document>
+	         </attr>
+	         <attr id="hasCalculate" name="是否需要数字运算" valueList="true=true;false=false;" defaultValue="false">
+	            <document>是否需要数字运算</document>
+	         </attr>
+	         <attr id="amountValue" name="乘除单位" enableFormula="$hasCalculate='true'" mustInputFormula="$hasCalculate='true'">
+	            <document>必须为正整数</document>
+	         </attr>
+	         <attr id="flag" name="乘除方向" enableFormula="$hasCalculate='true'" mustInputFormula="$hasCalculate='true'" valueList="0=乘;1=除;">
+	            <document>乘除方向</document>
+	         </attr>
+	         <attr id="per" name="数字精度" enableFormula="$hasCalculate='true'" defaultValue="0">
+	            <document>数字精度</document>
+	         </attr>
+   		</dataAttributes>
+   		<groupAttributes/>
+   		<iCollAttributes>
+   			<attr id="tag" name="标签名字"  mustSet="true">
+	            <document>JSON报文字段标签名字</document>
+	         </attr>
+   		</iCollAttributes>
+   	</package>  
+</HostPackageProfile>

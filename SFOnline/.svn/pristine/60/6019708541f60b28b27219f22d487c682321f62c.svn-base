@@ -1,0 +1,433 @@
+<?xml version="1.0" encoding="GBK" ?>
+
+<EditorProfile rootElement="Services">
+	<elementCatalog id="rootCatalog" name="rootCatalog">
+		<Element id="Services" name="Services">
+			<childElements>
+				<child id="FBSSqlExecService" allowedCount="*" desc="FBSSqlExecService"/>
+				<child id="FBSSqlDefine" allowedCount="*" desc="FBSSqlDefine"/>
+				<child id="FBSGenContextBySql" allowedCount="*" desc="FBSGenContextBySql"/>
+				<child id="FBSExpressCalculate" allowedCount="*" desc="FBSExpressCalculate"/>
+				<child id="FBSWorkflowService" allowedCount="*" desc="FBSWorkflowService"/>
+				<child id="FBSPublicService" allowedCount="*" desc="FBSPublicService"/>
+				<child id="FBSChargeService" allowedCount="*" desc="FBSChargeService"/>
+				<child id="FBSVoucherService" allowedCount="*" desc="FBSVoucherService"/>
+				<child id="FBSFinancePoolService" allowedCount="*" desc="FBSFinancePoolService"/>
+				<child id="FBSBalanceService" allowedCount="*" desc="FBSBalanceService"/>
+				<child id="FBSSwfMsgService" allowedCount="*" desc="FBSSwfMsgService"/>
+				<child id="FBSProcedureAccessService" allowedCount="*" desc="FBSProcedureAccessService"/>
+				<child id="FBSJDBCProcedureDefine" allowedCount="*" desc="FBSJDBCProcedureDefine"/>
+				<child id="FBSGMService" allowedCount="*" desc="FBSGMService"/>
+				<child id="FBSReversalController" allowedCount="*" desc="FBSReversalController"/>
+				<child id="FBSFinalHandler" allowedCount="*" desc="FBSFinalHandler"/>
+				<child id="FBSBankService" allowedCount="*" desc="FBSBankService"/>
+				<child id="FBSJNDIDataSource" allowedCount="*" desc="FBSJNDIDataSource"/>
+				<child id="FBSPooledJDBCDriverDataSource" allowedCount="*" desc="FBSPooledJDBCDriverDataSource"/>
+				<child id="FBSNoTransPooledJDBCDriverDataSource" allowedCount="*" desc="FBSNoTransPooledJDBCDriverDataSource"/>
+				<child id="FBSNoTransJNDIDataSource" allowedCount="*" desc="FBSNoTransJNDIDataSource"/>
+				<child id="ExpressCalculateService" allowedCount="*" desc="ExpressCalculateService"/>
+				<child id="FtpFileService" allowedCount="*" desc="FtpFileService"/>
+				<child id="GenContextBySql" allowedCount="*" desc="GenContextBySql"/>
+				<child id="PublicService" allowedCount="*" desc="PublicService"/>
+				<child id="QueryCfgDefine" allowedCount="*" desc="QueryCfgDefine"/>
+				<child id="SQLDefine" allowedCount="*" desc="SQLDefine"/>
+				<child id="SqlExecService" allowedCount="*" desc="SqlExecService"/>
+				<!--<child id="SystemCacheMangerImpl" allowedCount="*" desc="SystemCacheMangerImpl"/>
+				--><child id="CacheManagerService" allowedCount="*" desc="CacheManagerService"/>
+				<child id="BusinessService" allowedCount="*" desc="BusinessService"/>
+				<child id="NoTransJNDIDataSource" allowedCount="*" desc="NoTransJNDIDataSource"/>
+				<child id="NoTransPooledDataSource" allowedCount="*" desc="NoTransPooledDataSource"/>
+				<child id="PooledDataSource" allowedCount="*" desc="PooledDataSource"/>
+				<child id="SFJNDIDataSource" allowedCount="*" desc="SFJNDIDataSource"/>
+				<child id="JDBCProcedureDefine" allowedCount="*" desc="JDBCProcedureDefine"/>
+				<child id="ProcedureAccessService" allowedCount="*" desc="ProcedureAccessService"/>
+				<child id="#comment" allowedCount="*" desc="#comment"/>
+			</childElements>
+			<document/>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="FBSExtendServices" name="FBS扩展服务">
+		<Element id="FBSPooledJDBCDriverDataSource" name="带缓冲池JDBC数据源" implClass="com.sdb.fbs.jdbc.FBSEMPPooledDataSource" iconName="/images/genAction.gif" wizardClass="com.ecc.ide.editor.wizard.jdbc.JDBCDataSourceWizard">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+				<attr id="driverName" attrName="jdbc驱动名称" mustSet="true" desc= "jdbc驱动名称。"/>
+				<attr id="dbURL" attrName="数据库地址" mustSet="true" desc= "数据库地址。"/>
+				<attr id="userName" attrName="用户名" mustSet="true" desc= "用户名。"/>
+				<attr id="password" attrName="密码" mustSet="true" desc= "密码。"/>
+				<attr id="size" attrName="缓冲池大小" mustSet="true" desc= "缓冲池大小"/>
+			</attributes>
+			<document>基于JDBC的数据库连接数据源，在申请数据库联接时将直接建立新的连接。</document>
+		</Element>
+		<Element id="FBSNoTransPooledJDBCDriverDataSource" name="带缓冲池无事务JDBC数据源" implClass="com.sdb.fbs.jdbc.FBSNoTransPooledDataSource" iconName="/images/genAction.gif" wizardClass="com.ecc.ide.editor.wizard.jdbc.JDBCDataSourceWizard">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+				<attr id="driverName" attrName="jdbc驱动名称" mustSet="true" desc= "jdbc驱动名称。"/>
+				<attr id="dbURL" attrName="数据库地址" mustSet="true" desc= "数据库地址。"/>
+				<attr id="userName" attrName="用户名" mustSet="true" desc= "用户名。"/>
+				<attr id="password" attrName="密码" mustSet="true" desc= "密码。"/>
+				<attr id="size" attrName="缓冲池大小" mustSet="true" desc= "缓冲池大小"/>
+			</attributes>
+			<document>基于JDBC的数据库连接数据源，在申请数据库联接时将直接建立新的连接。</document>
+		</Element>
+		<Element id="FBSJNDIDataSource" name="FBSJNDI数据源" implClass="com.sdb.fbs.jdbc.FBSJNDIDataSource" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+				<attr id="jndiName" attrName="jndiName" mustSet="true">
+						</attr>
+				<attr id="initialContextFactory">
+						</attr>
+				<attr id="securityProncipal">
+						</attr>
+				<attr id="securityCredentials">
+						</attr>
+				<attr id="urlPkgPrefixes">
+						</attr>
+				<attr id="providerUrl">
+						</attr>
+			</attributes>
+			<document>基于JNDI的数据源访问。</document>
+		</Element>
+		<Element id="FBSNoTransJNDIDataSource" name="FBSJNDI数据源" implClass="com.sdb.fbs.jdbc.FBSNoTransJNDIDataSource" iconName="/images/genAction.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="access" valueList="common;session;private;">
+						</attr>
+				<attr id="jndiName" attrName="jndiName" mustSet="true">
+						</attr>
+				<attr id="initialContextFactory">
+						</attr>
+				<attr id="securityProncipal">
+						</attr>
+				<attr id="securityCredentials">
+						</attr>
+				<attr id="urlPkgPrefixes">
+						</attr>
+				<attr id="providerUrl">
+						</attr>
+			</attributes>
+			<document>基于JNDI的数据源访问。</document>
+		</Element>
+		<Element id="FBSProcedureAccessService" name="访问存储过程服务" implClass="com.sdb.fbs.jdbc.procedure.FBSProcedureAccessService" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="id" attrName="id">
+						</attr>
+				<attr id="opClass" attrName="辅助类" mustSet="true" editorClass="com.ecc.ide.editor.ClassNamePropertyEditor" desc= "对于不同数据库，选择访问存储过程的辅助类。"/>
+			</attributes>
+			<document>访问存储过程服务，调用并执行本地数据库的存储过程。</document>
+		</Element>
+		<Element id="FBSJDBCProcedureDefine" name="存储过程定义服务" implClass="com.sdb.fbs.jdbc.procedure.FBSJDBCProcedureDefine" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.jdbc.JDBCProcedureServiceWizard">
+			<attributes>
+				<attr id="id" attrName="id">
+						</attr>
+				<attr id="procedureName" attrName="存储过程名称" mustSet="true" desc= "要执行的存储过程名称。"/>
+				<attr id="iCollName" attrName="iColl名称" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "批量执行存储过程的源数据集合名称。"/>
+				<attr id="isBatch" attrName="批量执行" defaultValue="disable" valueList="batch=批量;disable=不批量;" desc= "批量执行存储过程的标识，若为批量执行则遇到错误就停止。"/>
+				<attr id="retCodeName" attrName="返回值数据域" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存储过程返回值在结果定义中对应的数据域名称。"/>
+			</attributes>
+			<childElements>
+				<child id="input" allowedCount="1"/>
+				<child id="output" allowedCount="1"/>
+				<child id="resultSet" allowedCount="*"/>
+			</childElements>
+			<document>存储过程定义服务，定义了存储过程的输入和返回数据集。</document>
+		</Element>
+		<Element id="FBSSqlDefine" name="SQL定义服务" implClass="com.sdb.fbs.service.FBSSqlDefine" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.jdbc.renewal.SQLDefineWizard">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="SQLStr" attrName="SQL语句" desc= "待执行的SQL语句。"/>
+				<attr id="iCollName" attrName="iColl/KColl名称" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "输出结果集所对应的IndexedCollection或者KeyedCollection名称。"/>
+				<attr id="errorCode" attrName="错误码" desc= "该SQL出错时的产生的错误码。"/>
+				<attr id="errorMessage" attrName="错误信息" desc= "该SQL出错时的产生的错误信息。"/>
+				<attr id="sqlType" attrName="操作类型" mustSet="true" valueList="insert=添加;delete=删除;update=更新;select=查询;" desc= "SQL语句的操作类型。"/>
+				<attr id="maxRecords" attrName="最大记录数" desc= "返回数据集合的最大记录数限制。"/>
+				<attr id="rowsDataName" attrName="更新记录条数存放字段名" desc= "SQL语句执行影响的数据库记录数存放的字段名。"/>
+			</attributes>
+			<childElements>
+				<child id="input" allowedCount="1"/>
+				<child id="output" allowedCount="1"/>
+			</childElements>
+			<document>执行SQL语句服务的下属标签，定义一条SQL语句。</document>
+		</Element>
+		<Element id="FBSReversalController" name="FBS冲正控制器" implClass="com.sdb.fbs.reversal.FBSReversalController" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="id" attrName="id">
+						</attr>
+				<attr id="factoryName" attrName="组件工厂名称" desc= "组件工厂名称"/>
+			</attributes>
+			<childElements>
+				<child id="FBSReversalHandler" allowedCount="*"/>
+			</childElements>
+			<document/>
+		</Element>
+		<Element id="FBSReversalHandler" name="FBS冲正控制器接口" implClass="com.sdb.fbs.reversal.FBSReversalHandler" iconName="/images/table.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="hostId" attrName="冲正主机Id" desc= "冲正主机Id"/>
+				<attr id="bizId" attrName="冲正逻辑构件bizId" desc= "冲正逻辑构件bizId"/>
+				<attr id="opId" attrName="冲正逻辑构件opId" desc= "冲正逻辑构件opId"/>
+				<attr id="reversalFormulaStr" attrName="反交易条件" desc= "反交易条件"/>
+				<attr id="globalReversalFormulaStr" attrName="发起其它交易的反交易条件" desc= "发起其它交易的反交易条件"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSFinalHandler" name="FBS交易善后处理器" implClass="com.sdb.fbs.service.FBSFinalHandler" iconName="/images/newElement.gif" wizardClass="com.ecc.ide.editor.wizard.ServiceXMLDefineWizard">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="bizId" attrName="构件bizId" desc= "构件bizId"/>
+				<attr id="opId" attrName="构件opId" desc= "构件opId"/>
+				<attr id="factoryName" attrName="组件工厂名称" desc= "组件工厂名称"/>
+				<attr id="finalFormulaStr" attrName="执行条件" desc= "执行条件"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSSqlExecService" name="FBS执行SQL语句服务" implClass="com.sdb.fbs.service.FBSSqlExecService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="alarmOpened" attrName="超时警告" attrType="boolean">
+						</attr>
+				<attr id="alarmResponseTime" attrName="超时时间" attrType="int">
+						</attr>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSGenContextBySql" name="由SQL生成上下文" implClass="com.sdb.fbs.service.FBSGenContextBySql" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSExpressCalculate" name="BEANSHELL表达式计算" implClass="com.sdb.fbs.service.FBSExpressCalculate" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSWorkflowService" name="工作流公共服务" implClass="com.sdb.fbs.service.FBSWorkflowService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSPublicService" name="FBS公共服务" implClass="com.sdb.fbs.service.FBSPublicService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSChargeService" name="FBS计费服务" implClass="com.sdb.fbs.service.FBSChargeService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSVoucherService" name="FBS传票服务" implClass="com.sdb.fbs.service.FBSVoucherService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSFinancePoolService" name="FBS融资池服务" implClass="com.sdb.fbs.service.FBSFinancePoolService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSBalanceService" name="FBS国际收支服务" implClass="com.sdb.fbs.service.FBSBalanceService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSSwfMsgService" name="FBS报文服务" implClass="com.sdb.fbs.service.FBSSwfMsgService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document/>
+		</Element>
+		<Element id="FBSGMService" name="FBS保证金服务" implClass="com.sdb.fbs.service.FBSGMService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document>FBS保证金服务</document>
+		</Element>
+		<Element id="FBSBankService" name="银行信息服务" implClass="com.sdb.fbs.service.FBSBankService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="id">
+						</attr>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document>取得银行资料信息、账户行账号信息、头寸信息等</document>
+		</Element>
+		<Element id="input" name="输入" implClass="com.ecc.emp.jdbc.sql.SQLParameterCollection" iconName="/images/table_column.gif">
+			<childElements>
+				<child id="param" allowedCount="*"/>
+			</childElements>
+			<document>SQL或存储过程的输入定义。</document>
+		</Element>
+		<Element id="output" name="输出" implClass="com.ecc.emp.jdbc.sql.SQLParameterCollection" iconName="/images/table_column.gif">
+			<childElements>
+				<child id="param" allowedCount="*"/>
+			</childElements>
+			<document>SQL或存储过程的输出定义。</document>
+		</Element>
+		<Element id="param" name="数据域与字段映射" implClass="core.jdbc.sql.SQLParameter" iconName="/images/table_column.gif">
+			<attributes>
+				<attr id="idx" attrName="序号" mustSet="true" desc= "参数序号，与SQL语句中的?以及结果字段依次对应。"/>
+				<attr id="dataName" attrName="数据域" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "该条映射的数据域名称。"/>
+				<attr id="dataType" attrName="字段类型" defaultValue="VARCHAR" valueList="CHAR;VARCHAR;LONGVARCHAR;INTEGER;DECIMAL;" desc= "该条映射的字段类型。"/>
+			</attributes>
+			<document>
+				EMP数据域与数据库表字段映射(input,output,resultSet用)。
+			</document>
+		</Element>
+		<Element id="resultSet" name="结果集" implClass="com.sdb.fbs.jdbc.procedure.FBSResultSetDefine" iconName="/images/table_column.gif">
+			<attributes>
+				<attr id="idx" attrName="序号" mustSet="true" desc= "参数序号，与存储过程返回值为游标的字段位置的?对应。"/>
+				<attr id="iCollName" attrName="iColl名称" mustSet="true" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor" desc= "存放结果集的iColl数据集合名称。"/>
+				<attr id="isAppend" attrName="追加" attrType="boolean" desc= "将结果集追加到iColl或覆盖原有内容。"/>
+			</attributes>
+			<childElements>
+				<child id="param" allowedCount="*"/>
+			</childElements>
+			<document>存储过程的结果集定义。</document>
+		</Element>
+	</elementCatalog>
+	<elementCatalog id="extendedElements" name="extendedElements">
+		<Element id="ExpressCalculateService" name="ExpressCalculateService" implClass="common.services.ExpressCalculateService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="FtpFileService" name="FtpFileService" implClass="common.services.FtpFileService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="GenContextBySql" name="GenContextBySql" implClass="common.services.GenContextBySql" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="PublicService" name="PublicService" implClass="common.services.PublicService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="QueryCfgDefine" name="QueryCfgDefine" implClass="common.services.QueryCfgDefine" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SQLDefine" name="SQLDefine" implClass="common.services.SQLDefine" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SqlExecService" name="SqlExecService" implClass="common.services.SqlExecService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SystemCacheMangerImpl" name="SystemCacheMangerImpl" implClass="core.cache.SystemCacheMangerImpl" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="NoTransJNDIDataSource" name="NoTransJNDIDataSource" implClass="core.jdbc.NoTransJNDIDataSource" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="NoTransPooledDataSource" name="NoTransPooledDataSource" implClass="core.jdbc.NoTransPooledDataSource" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="PooledDataSource" name="PooledDataSource" implClass="core.jdbc.PooledDataSource" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="SFJNDIDataSource" name="SFJNDIDataSource" implClass="core.jdbc.SFJNDIDataSource" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="JDBCProcedureDefine" name="JDBCProcedureDefine" implClass="core.jdbc.procedure.JDBCProcedureDefine" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+				<attr id="isBatch" attrName="是否批量执行" defaultValue="false" valueList="true=批量;false=不批量" desc= "批量执行存储过程的标识，若为批量执行则遇到错误就停止"/>
+				<attr id="ICollName" attrName="输入数据集合名" editorClass="com.ecc.ide.editor.transaction.DataNamePropertyEditor">
+						</attr>
+			</attributes>
+			<document></document>
+		</Element>
+		<Element id="ProcedureAccessService" name="ProcedureAccessService" implClass="core.jdbc.procedure.ProcedureAccessService" iconName="/images/newElement.gif">
+			<attributes>
+				<attr id="states" editable="false" valueList="0=成功;" desc= ""/>
+				<attr id="label" attrName="描述" desc= "描述"/>
+			</attributes>
+			<document></document>
+		</Element>
+	</elementCatalog>
+</EditorProfile>

@@ -1,0 +1,910 @@
+package module.bean;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
+import common.exception.SFException;
+import common.sql.bean.SQLStruct;
+
+/**
+ * 交易流水表实体类
+ * @author 申双江
+ *
+ */
+public class AcctJour {
+	
+	private String txDate;
+	private String initSide;
+	private String userId;
+	private String txSeqId;
+	private String revTxSeqId;
+	private String secSeqId;
+	private String subTxSeqId;
+	private String invType;
+	private String invName;
+	private String idType;
+	private String invIdCode;
+	private String oldInvName;
+	private String oldIdType;
+	private String oldInvIdCode;
+	private String secAcct;
+	private int secAcctSeq;
+	private String secCompCode;
+	private String capAcct;
+	private String acctId;
+	private String savAcct;
+	private String openDepId;
+	private String openBranchId;
+	private String oldAcctId;
+	private String curCode;
+	private String dcFlag;
+	private double txAmount;
+	private double acctBal;
+	private String abst;// 对应TRDACCTJOUR表abstract字段
+	private String abstractStr;
+	private String jourFlag;
+	private String txCode;
+	private String busiType;
+	private String txTime;
+	private String depId;
+	private String branchId;
+	private String unitTellerId;
+	private String cashRemitFlag;
+	private String acctDealId;
+	private String acctHostSeqId;
+	private String preSeqId;
+	private String acctDealDate;
+	private String bankSeqId;
+	private String productType;
+	private String colFlag;
+	private String abortFlag;
+	private int abnDealTimes;
+	private String abnDealTxTime;
+	private String memo;
+	private String respCode;
+	private String respMsg;
+	private String tranSeqId;
+	private String busiSeqId;
+	private String chlSeqId;
+	private String chlTranSeqId;
+	private String UMId;
+	private String ybStatus;
+	
+	private boolean initSideChanged = false;
+	private boolean userIdChanged = false;
+	private boolean txSeqIdChanged = false;
+	private boolean revTxSeqIdChanged = false;
+	private boolean secSeqIdChanged = false;
+	private boolean invTypeChanged = false;
+	private boolean invNameChanged = false;
+	private boolean idTypeChanged = false;
+	private boolean invIdCodeChanged = false;
+	private boolean oldInvNameChanged = false;
+	private boolean oldIdTypeChanged = false;
+	private boolean oldInvIdCodeChanged = false;
+	private boolean secAcctChanged = false;
+	private boolean secAcctSeqChanged = false;
+	private boolean secCompCodeChanged = false;
+	private boolean capAcctChanged = false;
+	private boolean acctIdChanged = false;
+	private boolean savAcctChanged = false;
+	private boolean openDepIdChanged = false;
+	private boolean openBranchIdChanged = false;
+	private boolean oldAcctIdChanged = false;
+	private boolean curCodeChanged = false;
+	private boolean dcFlagChanged = false;
+	private boolean txAmountChanged = false;
+	private boolean acctBalChanged = false;
+	private boolean abstChanged = false;
+	private boolean abstractStrChanged = false;
+	private boolean jourFlagChanged = false;
+	private boolean txCodeChanged = false;
+	private boolean busiTypeChanged = false;
+	private boolean txTimeChanged = false;
+	private boolean depIdChanged = false;
+	private boolean branchIdChanged = false;
+	private boolean unitTellerIdChanged = false;
+	private boolean cashRemitFlagChanged = false;
+	private boolean acctDealIdChanged = false;
+	private boolean acctHostSeqIdChanged = false;
+	private boolean preSeqIdChanged = false;
+	private boolean acctDealDateChanged = false;
+	private boolean bankSeqIdChanged = false;
+	private boolean productTypeChanged = false;
+	private boolean colFlagChanged = false;
+	private boolean abortFlagChanged = false;
+	private boolean abnDealTimesChanged = false;
+	private boolean abnDealTxTimeChanged = false;
+	private boolean memoChanged = false;
+	private boolean respCodeChanged = false;
+	private boolean respMsgChanged = false;
+	private boolean tranSeqIdChanged = false;
+	private boolean busiSeqIdChanged = false;
+	private boolean chlSeqIdChanged = false;
+	private boolean chlTranSeqIdChanged = false;
+	private boolean UMIdChanged = false;
+	private boolean ybStatusChanged = false;
+
+	public String getTxDate() {
+		return txDate;
+	}
+
+	public void setTxDate(String txDate) {
+		this.txDate = txDate;
+		}
+
+	public String getInitSide() {
+		return initSide;
+	}
+
+	public void setInitSide(String initSide) {
+		this.initSide = initSide;
+		this.initSideChanged = true;
+	}
+
+	public String getUserId() {
+		return userId;
+	}
+
+	public void setUserId(String userId) {
+		this.userId = userId;
+		this.userIdChanged = true;
+	}
+
+	public String getTxSeqId() {
+		return txSeqId;
+	}
+
+	public void setTxSeqId(String txSeqId) {
+		this.txSeqId = txSeqId;
+		this.txSeqIdChanged = true;
+	}
+
+	public String getRevTxSeqId() {
+		return revTxSeqId;
+	}
+
+	public void setRevTxSeqId(String revTxSeqId) {
+		this.revTxSeqId = revTxSeqId;
+		this.revTxSeqIdChanged = true;
+	}
+
+	public String getSecSeqId() {
+		return secSeqId;
+	}
+
+	public void setSecSeqId(String secSeqId) {
+		this.secSeqId = secSeqId;
+		this.secSeqIdChanged = true;
+	}
+
+	public String getSubTxSeqId() {
+		return subTxSeqId;
+	}
+
+	public void setSubTxSeqId(String subTxSeqId) {
+		this.subTxSeqId = subTxSeqId;
+	}
+
+	public String getInvType() {
+		return invType;
+	}
+
+	public void setInvType(String invType) {
+		this.invType = invType;
+		this.invTypeChanged = true;
+	}
+
+	public String getInvName() {
+		return invName;
+	}
+
+	public void setInvName(String invName) {
+		this.invName = invName;
+		this.invNameChanged = true;
+	}
+
+	public String getIdType() {
+		return idType;
+	}
+
+	public void setIdType(String idType) {
+		this.idType = idType;
+		this.idTypeChanged = true;
+	}
+
+	public String getInvIdCode() {
+		return invIdCode;
+	}
+
+	public void setInvIdCode(String invIdCode) {
+		this.invIdCode = invIdCode;
+		this.invIdCodeChanged = true;
+	}
+
+	public String getOldInvName() {
+		return oldInvName;
+	}
+
+	public void setOldInvName(String oldInvName) {
+		this.oldInvName = oldInvName;
+		this.oldInvNameChanged = true;
+	}
+
+	public String getOldIdType() {
+		return oldIdType;
+	}
+
+	public void setOldIdType(String oldIdType) {
+		this.oldIdType = oldIdType;
+		this.oldIdTypeChanged = true;
+	}
+
+	public String getOldInvIdCode() {
+		return oldInvIdCode;
+	}
+
+	public void setOldInvIdCode(String oldInvIdCode) {
+		this.oldInvIdCode = oldInvIdCode;
+		this.oldInvIdCodeChanged = true;
+	}
+
+	public String getSecAcct() {
+		return secAcct;
+	}
+
+	public void setSecAcct(String secAcct) {
+		this.secAcct = secAcct;
+		this.secAcctChanged = true;
+	}
+
+	public int getSecAcctSeq() {
+		return secAcctSeq;
+	}
+
+	public void setSecAcctSeq(int secAcctSeq) {
+		this.secAcctSeq = secAcctSeq;
+		this.secAcctSeqChanged = true;
+	}
+
+	public String getSecCompCode() {
+		return secCompCode;
+	}
+
+	public void setSecCompCode(String secCompCode) {
+		this.secCompCode = secCompCode;
+		this.secCompCodeChanged = true;
+	}
+
+	public String getCapAcct() {
+		return capAcct;
+	}
+
+	public void setCapAcct(String capAcct) {
+		this.capAcct = capAcct;
+		this.capAcctChanged = true;
+	}
+
+	public String getAcctId() {
+		return acctId;
+	}
+
+	public void setAcctId(String acctId) {
+		this.acctId = acctId;
+		this.acctIdChanged = true;
+	}
+
+	public String getSavAcct() {
+		return savAcct;
+	}
+
+	public void setSavAcct(String savAcct) {
+		this.savAcct = savAcct;
+		this.savAcctChanged = true;
+	}
+
+	public String getOpenDepId() {
+		return openDepId;
+	}
+
+	public void setOpenDepId(String openDepId) {
+		this.openDepId = openDepId;
+		this.openDepIdChanged = true;
+	}
+
+	public String getOpenBranchId() {
+		return openBranchId;
+	}
+
+	public void setOpenBranchId(String openBranchId) {
+		this.openBranchId = openBranchId;
+		this.openBranchIdChanged = true;
+	}
+
+	public String getOldAcctId() {
+		return oldAcctId;
+	}
+
+	public void setOldAcctId(String oldAcctId) {
+		this.oldAcctId = oldAcctId;
+		this.oldAcctIdChanged = true;
+	}
+
+	public String getCurCode() {
+		return curCode;
+	}
+
+	public void setCurCode(String curCode) {
+		this.curCode = curCode;
+		this.curCodeChanged = true;
+	}
+
+	public String getDcFlag() {
+		return dcFlag;
+	}
+
+	public void setDcFlag(String dcFlag) {
+		this.dcFlag = dcFlag;
+		this.dcFlagChanged = true;
+	}
+
+	public double getTxAmount() {
+		return txAmount;
+	}
+
+	public void setTxAmount(double txAmount) {
+		this.txAmount = txAmount;
+		this.txAmountChanged = true;
+	}
+
+	public double getAcctBal() {
+		return acctBal;
+	}
+
+	public void setAcctBal(double acctBal) {
+		this.acctBal = acctBal;
+		this.acctBalChanged = true;
+	}
+
+	public String getAbst() {
+		return abst;
+	}
+
+	public void setAbst(String abst) {
+		this.abst = abst;
+		this.abstChanged = true;
+	}
+
+	public String getAbstractStr() {
+		return abstractStr;
+	}
+
+	public void setAbstractStr(String abstractStr) {
+		this.abstractStr = abstractStr;
+		this.abstractStrChanged = true;
+	}
+
+	public String getJourFlag() {
+		return jourFlag;
+	}
+
+	public void setJourFlag(String jourFlag) {
+		this.jourFlag = jourFlag;
+		this.jourFlagChanged = true;
+	}
+
+	public String getTxCode() {
+		return txCode;
+	}
+
+	public void setTxCode(String txCode) {
+		this.txCode = txCode;
+		this.txCodeChanged = true;
+	}
+
+	public String getBusiType() {
+		return busiType;
+	}
+
+	public void setBusiType(String busiType) {
+		this.busiType = busiType;
+		this.busiTypeChanged = true;
+	}
+
+	public String getTxTime() {
+		return txTime;
+	}
+
+	public void setTxTime(String txTime) {
+		this.txTime = txTime;
+		this.txTimeChanged = true;
+	}
+
+	public String getDepId() {
+		return depId;
+	}
+
+	public void setDepId(String depId) {
+		this.depId = depId;
+		this.depIdChanged = true;
+	}
+
+	public String getBranchId() {
+		return branchId;
+	}
+
+	public void setBranchId(String branchId) {
+		this.branchId = branchId;
+		this.branchIdChanged = true;
+	}
+
+	public String getUnitTellerId() {
+		return unitTellerId;
+	}
+
+	public void setUnitTellerId(String unitTellerId) {
+		this.unitTellerId = unitTellerId;
+		this.unitTellerIdChanged = true;
+	}
+
+	public String getCashRemitFlag() {
+		return cashRemitFlag;
+	}
+
+	public void setCashRemitFlag(String cashRemitFlag) {
+		this.cashRemitFlag = cashRemitFlag;
+		this.cashRemitFlagChanged = true;
+	}
+
+	public String getAcctDealId() {
+		return acctDealId;
+	}
+
+	public void setAcctDealId(String acctDealId) {
+		this.acctDealId = acctDealId;
+		this.acctDealIdChanged = true;
+	}
+
+	public String getAcctHostSeqId() {
+		return acctHostSeqId;
+	}
+
+	public void setAcctHostSeqId(String acctHostSeqId) {
+		this.acctHostSeqId = acctHostSeqId;
+		this.acctHostSeqIdChanged = true;
+	}
+
+	public String getPreSeqId() {
+		return preSeqId;
+	}
+
+	public void setPreSeqId(String preSeqId) {
+		this.preSeqId = preSeqId;
+		this.preSeqIdChanged = true;
+	}
+
+	public String getAcctDealDate() {
+		return acctDealDate;
+	}
+
+	public void setAcctDealDate(String acctDealDate) {
+		this.acctDealDate = acctDealDate;
+		this.acctDealDateChanged = true;
+	}
+
+	public String getBankSeqId() {
+		return bankSeqId;
+	}
+
+	public void setBankSeqId(String bankSeqId) {
+		this.bankSeqId = bankSeqId;
+		this.bankSeqIdChanged = true;
+	}
+
+	public String getProductType() {
+		return productType;
+	}
+
+	public void setProductType(String productType) {
+		this.productType = productType;
+		this.productTypeChanged = true;
+	}
+
+	public String getColFlag() {
+		return colFlag;
+	}
+
+	public void setColFlag(String colFlag) {
+		this.colFlag = colFlag;
+		this.colFlagChanged = true;
+	}
+
+	public String getAbortFlag() {
+		return abortFlag;
+	}
+
+	public void setAbortFlag(String abortFlag) {
+		this.abortFlag = abortFlag;
+		this.abortFlagChanged = true;
+	}
+
+	public int getAbnDealTimes() {
+		return abnDealTimes;
+	}
+
+	public void setAbnDealTimes(int abnDealTimes) {
+		this.abnDealTimes = abnDealTimes;
+		this.abnDealTimesChanged = true;
+	}
+
+	public String getAbnDealTxTime() {
+		return abnDealTxTime;
+	}
+
+	public void setAbnDealTxTime(String abnDealTxTime) {
+		this.abnDealTxTime = abnDealTxTime;
+		this.abnDealTxTimeChanged = true;
+	}
+
+	public String getMemo() {
+		return memo;
+	}
+
+	public void setMemo(String memo) {
+		this.memo = memo;
+		this.memoChanged = true;
+	}
+
+	public String getRespCode() {
+		return respCode;
+	}
+
+	public void setRespCode(String respCode) {
+		this.respCode = respCode;
+		this.respCodeChanged = true;
+	}
+
+	public String getRespMsg() {
+		return respMsg;
+	}
+
+	public void setRespMsg(String respMsg) {
+		this.respMsg = respMsg;
+		this.respMsgChanged = true;
+	}
+
+	public String getTranSeqId() {
+		return tranSeqId;
+	}
+
+	public void setTranSeqId(String tranSeqId) {
+		this.tranSeqId = tranSeqId;
+		this.tranSeqIdChanged = true;
+	}
+
+	public String getBusiSeqId() {
+		return busiSeqId;
+	}
+
+	public void setBusiSeqId(String busiSeqId) {
+		this.busiSeqId = busiSeqId;
+		this.busiSeqIdChanged = true;
+	}
+
+	public String getChlSeqId() {
+		return chlSeqId;
+	}
+
+	public void setChlSeqId(String chlSeqId) {
+		this.chlSeqId = chlSeqId;
+		this.chlSeqIdChanged = true;
+	}
+
+	public String getChlTranSeqId() {
+		return chlTranSeqId;
+	}
+
+	public void setChlTranSeqId(String chlTranSeqId) {
+		this.chlTranSeqId = chlTranSeqId;
+		this.chlTranSeqIdChanged = true;
+	}
+
+	public String getUMId() {
+		return UMId;
+	}
+
+	public void setUMId(String UMId) {
+		this.UMId = UMId;
+		this.UMIdChanged = true;
+	}
+
+	public String getYbStatus() {
+		return ybStatus;
+	}
+
+	public void setYbStatus(String ybStatus) {
+		this.ybStatus = ybStatus;
+		this.ybStatusChanged = true;
+	}
+	
+	
+	public Object[] getFieldValues() throws SFException {
+		Field[] fields = this.getClass().getDeclaredFields();
+		List<Object> fieldValueList = new ArrayList<Object>();
+
+		for (Field f : fields) {
+			try {
+				if (f.getModifiers() > 2||f.get(this) instanceof Boolean) {
+					continue;
+				}
+				fieldValueList.add(f.get(this));
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new SFException(e);
+			} 
+		}
+		return fieldValueList.toArray();
+	}
+	
+	/**
+	 * 保存流水
+	 * @return
+	 * @throws SFException
+	 */
+	public SQLStruct getSaveAcctJourSQLStruct(String tableName) throws SFException {
+		StringBuffer buffer = new StringBuffer();
+		Object[] valueObj = this.getFieldValues();
+		
+		buffer.append("MERGE INTO " + tableName + " T1");
+		buffer.append(" USING (SELECT ? as TXDATE, ? as INITSIDE, ? as USERID, ? as TXSEQID, ? as REVTXSEQID, ? as SECSEQID, ? as SUBTXSEQID, ? as INVTYPE,");
+		buffer.append(" ? as INVNAME, ? as IDTYPE, ? as INVIDCODE, ? as OLDINVNAME, ? as OLDIDTYPE, ? as OLDINVIDCODE, ? as SECACCT, ? as SECACCTSEQ, ? as SECCOMPCODE,");
+		buffer.append(" ? as CAPACCT, ? as ACCTID, ? as SAVACCT, ? as OPENDEPID, ? as OPENBRANCHID, ? as OLDACCTID, ? as CURCODE, ? as DCFLAG, ? as TXAMOUNT, ? as ACCTBAL,");
+		buffer.append(" ? as ABSTRACT, ? as ABSTRACTSTR, ? as JOURFLAG, ? as TXCODE, ? as BUSITYPE, ? as TXTIME, ? as DEPID, ? as BRANCHID, ? as UNITTELLERID, ? as CASHREMITFLAG,");
+		buffer.append(" ? as ACCTDEALID, ? as ACCTHOSTSEQID, ? as PRESEQID, ? as ACCTDEALDATE, ? as BANKSEQID, ? as PRODUCTTYPE, ? as COLFLAG, ? as ABORTFLAG, ? as ABNDEALTIMES,");
+		buffer.append(" ? as ABNDEALTXTIME, ? as MEMO, ? as RESPCODE, ? as RESPMSG, ? as TRANSEQID, ? as BUSISEQID, ? as CHLSEQID, ? as CHLTRANSEQID, ? as UMID, ? as YBSTATUS");
+		buffer.append(" FROM DUAL) T2");
+		buffer.append(" ON (T1.TXDATE = T2.TXDATE and T1.SUBTXSEQID = T2.SUBTXSEQID)");
+		buffer.append(" WHEN MATCHED THEN");
+		buffer.append(" UPDATE SET ");
+		if (initSideChanged) {
+			buffer.append("T1.INITSIDE = T2.INITSIDE,");
+		}
+		if (userIdChanged) {
+			buffer.append("T1.USERID = T2.USERID,");
+		}
+		if (txSeqIdChanged) {
+			buffer.append("T1.TXSEQID = T2.TXSEQID,");
+		}
+		if (revTxSeqIdChanged) {
+			buffer.append("T1.REVTXSEQID = T2.REVTXSEQID,");
+		}
+		if (secSeqIdChanged) {
+			buffer.append("T1.SECSEQID = T2.SECSEQID,");
+		}
+		if (invTypeChanged) {
+			buffer.append("T1.INVTYPE = T2.INVTYPE,");
+		}
+		if (invNameChanged) {
+			buffer.append("T1.INVNAME = T2.INVNAME,");
+		}
+		if (idTypeChanged) {
+			buffer.append("T1.IDTYPE = T2.IDTYPE,");
+		}
+		if (invIdCodeChanged) {
+			buffer.append("T1.INVIDCODE = T2.INVIDCODE,");
+		}
+		if (oldInvNameChanged) {
+			buffer.append("T1.OLDINVNAME = T2.OLDINVNAME,");
+		}
+		if (oldIdTypeChanged) {
+			buffer.append("T1.OLDIDTYPE = T2.OLDIDTYPE,");
+		}
+		if (oldInvIdCodeChanged) {
+			buffer.append("T1.OLDINVIDCODE = T2.OLDINVIDCODE,");
+		}
+		if (secAcctChanged) {
+			buffer.append("T1.SECACCT = T2.SECACCT,");
+		}
+		if (secAcctSeqChanged) {
+			buffer.append("T1.SECACCTSEQ = T2.SECACCTSEQ,");
+		}
+		if (secCompCodeChanged) {
+			buffer.append("T1.SECCOMPCODE = T2.SECCOMPCODE,");
+		}
+		if (capAcctChanged) {
+			buffer.append("T1.CAPACCT = T2.CAPACCT,");
+		}
+		if (acctIdChanged) {
+			buffer.append("T1.ACCTID = T2.ACCTID,");
+		}
+		if (savAcctChanged) {
+			buffer.append("T1.SAVACCT = T2.SAVACCT,");
+		}
+		if (openDepIdChanged) {
+			buffer.append("T1.OPENDEPID = T2.OPENDEPID,");
+		}
+		if (openBranchIdChanged) {
+			buffer.append("T1.OPENBRANCHID = T2.OPENBRANCHID,");
+		}
+		if (oldAcctIdChanged) {
+			buffer.append("T1.OLDACCTID = T2.OLDACCTID,");
+		}
+		if (curCodeChanged) {
+			buffer.append("T1.CURCODE = T2.CURCODE,");
+		}
+		if (dcFlagChanged) {
+			buffer.append("T1.DCFLAG = T2.DCFLAG,");
+		}
+		if (txAmountChanged) {
+			buffer.append("T1.TXAMOUNT = T2.TXAMOUNT,");
+		}
+		if (acctBalChanged) {
+			buffer.append("T1.ACCTBAL = T2.ACCTBAL,");
+		}
+		if (abstChanged) {
+			buffer.append("T1.ABSTRACT = T2.ABSTRACT,");
+		}
+		if (abstractStrChanged) {
+			buffer.append("T1.ABSTRACTSTR = T2.ABSTRACTSTR,");
+		}
+		if (jourFlagChanged) {
+			buffer.append("T1.JOURFLAG = T2.JOURFLAG,");
+		}
+		if (txCodeChanged) {
+			buffer.append("T1.TXCODE = T2.TXCODE,");
+		}
+		if (busiTypeChanged) {
+			buffer.append("T1.BUSITYPE = T2.BUSITYPE,");
+		}
+		if (txTimeChanged) {
+			buffer.append("T1.TXTIME = T2.TXTIME,");
+		}
+		if (depIdChanged) {
+			buffer.append("T1.DEPID = T2.DEPID,");
+		}
+		if (branchIdChanged) {
+			buffer.append("T1.BRANCHID = T2.BRANCHID,");
+		}
+		if (unitTellerIdChanged) {
+			buffer.append("T1.UNITTELLERID = T2.UNITTELLERID,");
+		}
+		if (cashRemitFlagChanged) {
+			buffer.append("T1.CASHREMITFLAG = T2.CASHREMITFLAG,");
+		}
+		if (acctDealIdChanged) {
+			buffer.append("T1.ACCTDEALID = T2.ACCTDEALID,");
+		}
+		if (acctHostSeqIdChanged) {
+			buffer.append("T1.ACCTHOSTSEQID = T2.ACCTHOSTSEQID,");
+		}
+		if (preSeqIdChanged) {
+			buffer.append("T1.PRESEQID = T2.PRESEQID,");
+		}
+		if (acctDealDateChanged) {
+			buffer.append("T1.ACCTDEALDATE = T2.ACCTDEALDATE,");
+		}
+		if (bankSeqIdChanged) {
+			buffer.append("T1.BANKSEQID = T2.BANKSEQID,");
+		}
+		if (productTypeChanged) {
+			buffer.append("T1.PRODUCTTYPE = T2.PRODUCTTYPE,");
+		}
+		if (colFlagChanged) {
+			buffer.append("T1.COLFLAG = T2.COLFLAG,");
+		}
+		if (abortFlagChanged) {
+			buffer.append("T1.ABORTFLAG = T2.ABORTFLAG,");
+		}
+		if (abnDealTimesChanged) {
+			buffer.append("T1.ABNDEALTIMES = T2.ABNDEALTIMES,");
+		}
+		if (abnDealTxTimeChanged) {
+			buffer.append("T1.ABNDEALTXTIME = T2.ABNDEALTXTIME,");
+		}
+		if (memoChanged) {
+			buffer.append("T1.MEMO = T2.MEMO,");
+		}
+		if (respCodeChanged) {
+			buffer.append("T1.RESPCODE = T2.RESPCODE,");
+		}
+		if (respMsgChanged) {
+			buffer.append("T1.RESPMSG = T2.RESPMSG,");
+		}
+		if (tranSeqIdChanged) {
+			buffer.append("T1.TRANSEQID = T2.TRANSEQID,");
+		}
+		if (busiSeqIdChanged) {
+			buffer.append("T1.BUSISEQID = T2.BUSISEQID,");
+		}
+		if (chlSeqIdChanged) {
+			buffer.append("T1.CHLSEQID = T2.CHLSEQID,");
+		}
+		if (chlTranSeqIdChanged) {
+			buffer.append("T1.CHLTRANSEQID = T2.CHLTRANSEQID,");
+		}
+		if (UMIdChanged) {
+			buffer.append("T1.UMID = T2.UMID,");
+		}
+		if (ybStatusChanged) {
+			buffer.append("T1.YBSTATUS = T2.YBSTATUS");
+		}
+		if (buffer.substring(buffer.length() - 1).equals(",")) {
+			buffer = buffer.deleteCharAt(buffer.length() - 1);
+		}
+		buffer.append(" WHEN NOT MATCHED THEN");
+		buffer.append(" insert(TXDATE,INITSIDE,USERID,TXSEQID,REVTXSEQID,SECSEQID,SUBTXSEQID,INVTYPE,INVNAME,IDTYPE,INVIDCODE,OLDINVNAME,OLDIDTYPE,");
+		buffer.append("OLDINVIDCODE,SECACCT,SECACCTSEQ,SECCOMPCODE,CAPACCT,ACCTID,SAVACCT,OPENDEPID,OPENBRANCHID,OLDACCTID,CURCODE,DCFLAG,TXAMOUNT,");
+		buffer.append("ACCTBAL,ABSTRACT,ABSTRACTSTR,JOURFLAG,TXCODE,BUSITYPE,TXTIME,DEPID,BRANCHID,UNITTELLERID,CASHREMITFLAG,ACCTDEALID,ACCTHOSTSEQID,");
+		buffer.append("PRESEQID,ACCTDEALDATE,BANKSEQID,PRODUCTTYPE,COLFLAG,ABORTFLAG,ABNDEALTIMES,ABNDEALTXTIME,MEMO,RESPCODE,RESPMSG,TRANSEQID,BUSISEQID,");
+		buffer.append("CHLSEQID,CHLTRANSEQID,UMID,YBSTATUS)");
+		buffer.append(" values(T2.TXDATE,T2.INITSIDE,T2.USERID,T2.TXSEQID,T2.REVTXSEQID,T2.SECSEQID,T2.SUBTXSEQID,T2.INVTYPE,T2.INVNAME,T2.IDTYPE,T2.INVIDCODE,");
+		buffer.append("T2.OLDINVNAME,T2.OLDIDTYPE,T2.OLDINVIDCODE,T2.SECACCT,T2.SECACCTSEQ,T2.SECCOMPCODE,T2.CAPACCT,T2.ACCTID,T2.SAVACCT,T2.OPENDEPID,T2.OPENBRANCHID,");
+		buffer.append("T2.OLDACCTID,T2.CURCODE,T2.DCFLAG,T2.TXAMOUNT,T2.ACCTBAL,T2.ABSTRACT,T2.ABSTRACTSTR,T2.JOURFLAG,T2.TXCODE,T2.BUSITYPE,T2.TXTIME,T2.DEPID,T2.BRANCHID,");
+		buffer.append("T2.UNITTELLERID,T2.CASHREMITFLAG,T2.ACCTDEALID,T2.ACCTHOSTSEQID,T2.PRESEQID,T2.ACCTDEALDATE,T2.BANKSEQID,T2.PRODUCTTYPE,T2.COLFLAG,T2.ABORTFLAG,");
+		buffer.append("T2.ABNDEALTIMES,T2.ABNDEALTXTIME,T2.MEMO,T2.RESPCODE,T2.RESPMSG,T2.TRANSEQID,T2.BUSISEQID,T2.CHLSEQID,T2.CHLTRANSEQID,T2.UMID,T2.YBSTATUS)");
+
+		return new SQLStruct(buffer.toString(), valueObj);
+
+	}
+	/**
+	 * 重置所有changeFlag
+	 */
+	public void resetChangedFlag() {
+		this.initSideChanged = false;
+		this.userIdChanged = false;
+		this.txSeqIdChanged = false;
+		this.revTxSeqIdChanged = false;
+		this.secSeqIdChanged = false;
+		this.invTypeChanged = false;
+		this.invNameChanged = false;
+		this.idTypeChanged = false;
+		this.invIdCodeChanged = false;
+		this.oldInvNameChanged = false;
+		this.oldIdTypeChanged = false;
+		this.oldInvIdCodeChanged = false;
+		this.secAcctChanged = false;
+		this.secAcctSeqChanged = false;
+		this.secCompCodeChanged = false;
+		this.capAcctChanged = false;
+		this.acctIdChanged = false;
+		this.savAcctChanged = false;
+		this.openDepIdChanged = false;
+		this.openBranchIdChanged = false;
+		this.oldAcctIdChanged = false;
+		this.curCodeChanged = false;
+		this.dcFlagChanged = false;
+		this.txAmountChanged = false;
+		this.acctBalChanged = false;
+		this.abstChanged = false;
+		this.abstractStrChanged = false;
+		this.jourFlagChanged = false;
+		this.txCodeChanged = false;
+		this.busiTypeChanged = false;
+		this.txTimeChanged = false;
+		this.depIdChanged = false;
+		this.branchIdChanged = false;
+		this.unitTellerIdChanged = false;
+		this.cashRemitFlagChanged = false;
+		this.acctDealIdChanged = false;
+		this.acctHostSeqIdChanged = false;
+		this.preSeqIdChanged = false;
+		this.acctDealDateChanged = false;
+		this.bankSeqIdChanged = false;
+		this.productTypeChanged = false;
+		this.colFlagChanged = false;
+		this.abortFlagChanged = false;
+		this.abnDealTimesChanged = false;
+		this.abnDealTxTimeChanged = false;
+		this.memoChanged = false;
+		this.respCodeChanged = false;
+		this.respMsgChanged = false;
+		this.tranSeqIdChanged = false;
+		this.busiSeqIdChanged = false;
+		this.chlSeqIdChanged = false;
+		this.chlTranSeqIdChanged = false;
+		this.UMIdChanged = false;
+		this.ybStatusChanged = false;
+	}
+
+}

@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+
+<servletContext>
+	<classMap>
+		<map id="fmtDef" class="core.communication.format.PBankFormatElement"/>
+		<map id="record" class="core.communication.format.KeyedFormat"/>
+		<map id="iColl" class="core.communication.format.IndexedFormat"/>
+		<map id="fString" class="core.communication.format.string.StringFormat"/>
+		<map id="nullCheck" class="core.communication.format.string.NullCheck"/>
+		<map id="delim" class="core.communication.format.string.Delimiter"/>
+		<map id="xmlWrap" class="com.ecc.emp.format.xml.XMLWrapFormat"/>
+		<map id="xmlHead" class="com.ecc.emp.format.xml.XMLHeadTagFormat"/>
+		<map id="xmlIColl" class="com.ecc.emp.format.xml.XMLIndexedFormat"/>
+		<map id="xmlFullTag" class="com.ecc.emp.format.xml.XMLFullTagFormat"/>
+		<map id="xmlTag" class="com.ecc.emp.format.xml.XMLTagFormat"/>
+		<map id="xmlConstantTag" class="com.ecc.emp.format.xml.XMLConstantTagFormat"/>
+		<map id="ISO8583PkgFmt" class="com.ecc.emp.format.ISO8583.ISO8583Format"/>
+		<map id="ISO8583Field" class="com.ecc.emp.format.ISO8583.ISO8583Field"/>
+		<map id="FixedLenFormat" class="core.communication.format.string.FixedLenFormat"/>
+		<map id="IDStringFormat" class="core.communication.format.string.IDStringFormat"/>
+		<map id="ConstantFormat" class="core.communication.format.string.ConstantFormat"/>
+		<map id="ESBCD" class="core.communication.format.paesb.ESBCDFormat"/>
+		<map id="ESBArray" class="core.communication.format.paesb.ESBArrayFormat"/>
+		<map id="ESBField" class="core.communication.format.paesb.ESBFieldFormat"/>
+		<map id="ESBFieldFlt" class="core.communication.format.paesb.ESBFieldFloatFormat"/>
+		<map id="XMLHead" class="core.communication.format.xml.XMLHeadFormat"/>
+		<map id="XMLKC" class="core.communication.format.xml.XMLWrapFormat"/>
+		<map id="XMLArray" class="core.communication.format.xml.XMLArrayFormat"/>
+		<map id="XMLField" class="core.communication.format.xml.XMLFieldFormat"/>
+		<map id="RequestHeadFormat" class="core.communication.format.PBankFormatElement"/>
+		<map id="ResponseHeadFormat" class="core.communication.format.PBankFormatElement"/>
+		<map id="Map" class="java.util.HashMap"/>
+		<map id="MapEntry" class="com.ecc.emp.component.xml.MapEntry"/>
+		<map id="TCPIPService" class="core.communication.access.zlsecu.PBankTCPIPDataSerializerService"/>
+		<map id="accessManager" class="com.ecc.emp.accesscontrol.EMPAccessManager"/>
+	</classMap>
+	<accessManager id="accessManager">
+		<logInterceptor componentIdPrefix="PBank" appendUniqId="true" uniqIdLen="6" class="core.log.SFLogInertceptor">
+			<logInstance class="com.ecc.emp.log.EMPLog4jLog"/>
+		</logInterceptor> 
+	</accessManager>
+	<sessionManager class="com.ecc.emp.session.EMPSessionManager" name="SFOnlineTCPIPChannel" sessionTimeOut="36000000" sessionCheckInterval="3600000"/>
+	<TCPIPServerService name="a" class="core.communication.tcpip.TCPIPServerService" keepAlive="false" dual="true">
+		<ListenPort name="ListenPort" port="17777" maxConnection="2" poolThread="true" class="core.communication.tcpip.ListenPort" poolSize="5" keepAlive="false"/>
+		<CommProcessor name="CommProcessor" class="core.communication.access.zlsecu.TCPIPCommProcessor" lengthHeadLen="0"/>
+	</TCPIPServerService>
+	<TCPIPServerService name="b" class="core.communication.tcpip.TCPIPServerService" keepAlive="false" dual="true">
+		<ListenPort name="ListenPort" port="17778" maxConnection="2" poolThread="true" class="core.communication.tcpip.ListenPort" poolSize="5" keepAlive="false"/>
+		<CommProcessor name="CommProcessor" class="core.communication.access.zlsecu.TCPIPCommProcessor" lengthHeadLen="0"/>
+	</TCPIPServerService>
+	<TCPIPRequestHandler appendReqHead="true" serviceIdField="TXCODE" encoding="GBK" class="core.communication.access.zlsecu.PBankTCPIPRequestHandler" appendRepHead="true"/>
+	<TCPIPService id="6021" tranCode='100100' className="module.trans.secu2sf.T100100"  serviceType="normal" checkSession="false"/>
+	<TCPIPService id="6023" tranCode='100101' className="module.trans.secu2sf.T100101"  serviceType="normal" checkSession="false"/>
+	<TCPIPService id="6025" tranCode='100100' className="module.trans.secu2sf.T100100"  serviceType="normal" checkSession="false"/>
+	<TCPIPService id="6026" tranCode='100104' className="module.trans.secu2sf.T100104"  serviceType="normal" checkSession="false"/>
+	<TCPIPService id="6028" tranCode='100100' className="module.trans.secu2sf.T100100"  serviceType="normal" checkSession="false"/>
+	<TCPIPService id="6045" tranCode='100105' className="module.trans.secu2sf.T100105"  serviceType="normal" checkSession="false"/>
+	<TCPIPService id="6065" tranCode='100120' className="module.trans.secu2sf.T100120"  serviceType="normal" checkSession="false"/>
+	<TCPIPService id="6027" tranCode='100301' className="module.trans.secu2sf.T100301"  serviceType="normal" checkSession="false"/>
+	<TCPIPService id="6042" tranCode='100200' className="module.trans.secu2sf.T100200"  serviceType="normal" checkSession="false"/>
+	<TCPIPService id="6041" tranCode='100201' className="module.trans.secu2sf.T100201"  serviceType="normal" checkSession="false"/>
+	<TCPIPService id="6044" tranCode='100203' className="module.trans.secu2sf.T100203"  serviceType="normal" checkSession="false"/>
+	<TCPIPService id="6043" tranCode='100202' className="module.trans.secu2sf.T100202"  serviceType="normal" checkSession="false"/>
+	
+	<TCPIPService id="6166" tranCode='6166' transformatId ="906166_01" isTranSpond="Y" serviceType="normal" checkSession="false" />
+	<TCPIPService id="6167" tranCode='6167' transformatId ="906167_01" isTranSpond="Y" serviceType="normal" checkSession="false" />
+	<TCPIPService id="6168" tranCode='6168' transformatId ="906168_01" isTranSpond="Y" serviceType="normal" checkSession="false" />
+	<TCPIPService id="6169" tranCode='6169' transformatId ="906169_01" isTranSpond="Y" serviceType="normal" checkSession="false" />
+	<!-- 
+	<TCPIPService connectWaitTime="200000" timeOut="200000" id="6042" tranCode='6042' className = "module.trans.secu2sf.T6042"  serviceType="normal" checkSession="false" encoding="GBK" inOutDataArea="KCOLL1;KCOLL2|RKCOLL1;RKCOLL2"/>
+	-->
+</servletContext>

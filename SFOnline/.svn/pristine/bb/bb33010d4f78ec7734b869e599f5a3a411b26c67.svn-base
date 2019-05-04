@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="GB18030" ?>
+
+
+<servletContext>
+	<classMap>
+		<map id="fmtDef" class="core.communication.format.PBankFormatElement"/>
+		<map id="record" class="core.communication.format.KeyedFormat"/>
+		<map id="iColl" class="core.communication.format.IndexedFormat"/>
+		<map id="fString" class="core.communication.format.string.StringFormat"/>
+		<map id="nullCheck" class="core.communication.format.string.NullCheck"/>
+		<map id="delim" class="core.communication.format.string.Delimiter"/>
+		<map id="xmlWrap" class="com.ecc.emp.format.xml.XMLWrapFormat"/>
+		<map id="xmlHead" class="com.ecc.emp.format.xml.XMLHeadTagFormat"/>
+		<map id="xmlIColl" class="com.ecc.emp.format.xml.XMLIndexedFormat"/>
+		<map id="xmlFullTag" class="com.ecc.emp.format.xml.XMLFullTagFormat"/>
+		<map id="xmlTag" class="com.ecc.emp.format.xml.XMLTagFormat"/>
+		<map id="xmlConstantTag" class="com.ecc.emp.format.xml.XMLConstantTagFormat"/>
+		<map id="ISO8583PkgFmt" class="com.ecc.emp.format.ISO8583.ISO8583Format"/>
+		<map id="ISO8583Field" class="com.ecc.emp.format.ISO8583.ISO8583Field"/>
+		<map id="FixedLenFormat" class="core.communication.format.string.FixedLenFormat"/>
+		<map id="IDStringFormat" class="core.communication.format.string.IDStringFormat"/>
+		<map id="ConstantFormat" class="core.communication.format.string.ConstantFormat"/>
+		<map id="ESBCD" class="core.communication.format.paesb.ESBCDFormat"/>
+		<map id="ESBArray" class="core.communication.format.paesb.ESBArrayFormat"/>
+		<map id="ESBField" class="core.communication.format.paesb.ESBFieldFormat"/>
+		<map id="ESBFieldFlt" class="core.communication.format.paesb.ESBFieldFloatFormat"/>
+		<map id="XMLHead" class="core.communication.format.xml.XMLHeadFormat"/>
+		<map id="XMLKC" class="core.communication.format.xml.XMLWrapFormat"/>
+		<map id="XMLArray" class="core.communication.format.xml.XMLArrayFormat"/>
+		<map id="XMLField" class="core.communication.format.xml.XMLFieldFormat"/>
+		<map id="RequestHeadFormat" class="core.communication.format.PBankFormatElement"/>
+		<map id="ResponseHeadFormat" class="core.communication.format.PBankFormatElement"/>
+		<map id="Map" class="java.util.HashMap"/>
+		<map id="MapEntry" class="com.ecc.emp.component.xml.MapEntry"/>
+		<map id="TCPIPService" class="core.communication.access.tcpip.PBankTCPIPDataSerializerService"/>
+		<map id="accessManager" class="com.ecc.emp.accesscontrol.EMPAccessManager"/>
+	</classMap>
+	<accessManager id="accessManager">
+		<logInterceptor componentIdPrefix="PBank" appendUniqId="true" uniqIdLen="6" class="core.log.SFLogInertceptor">
+			<logInstance class="com.ecc.emp.log.EMPLog4jLog"/>
+		</logInterceptor> 
+	</accessManager>
+	<sessionManager class="com.ecc.emp.session.EMPSessionManager" name="SFOnlineTCPIPChannel" sessionTimeOut="36000000" sessionCheckInterval="3600000"/>
+	<TCPIPServerService name="a" class="core.communication.tcpip.TCPIPServerService" keepAlive="false" dual="true">
+		<ListenPort name="ListenPort" port="18200" maxConnection="1000"  idleCheck="true" idleTimeOut="40000" poolThread="true" class="core.communication.tcpip.ListenPort" poolSize="20" keepAlive="false"/>
+		<CommProcessor name="CommProcessor" class="core.communication.access.tcpip.TCPIPCommProcessor" lengthHeadLen="4"/>
+	</TCPIPServerService>
+		<TCPIPServerService name="b" class="core.communication.tcpip.TCPIPServerService" keepAlive="false" dual="true">
+		<ListenPort name="ListenPort" port="18100" maxConnection="80"  idleCheck="true" idleTimeOut="40000" poolThread="true" class="core.communication.tcpip.ListenPort" poolSize="5" keepAlive="false"/>
+		<CommProcessor name="CommProcessor" class="core.communication.access.tcpip.TCPIPCommProcessor" lengthHeadLen="0"/>
+	</TCPIPServerService>
+	<TCPIPRequestHandler appendReqHead="true" serviceIdField="serviceId" encoding="GBK" class="core.communication.access.tcpip.PBankTCPIPRequestHandler" appendRepHead="true"/>
+	
+	<TCPIPService connectWaitTime="200000" timeOut="200000" id="810010" tranCode='810010' className = "module.trans.cobank2sf.T810010"  serviceType="normal" checkSession="false" encoding="GBK" inOutDataArea="KCOLL1;KCOLL2|RKCOLL1;RKCOLL2"/>
+	<TCPIPService id="810010" tranCode="300200" className = "module.trans.cobank2sf.T300200"   checkSession="false"/>
+	<TCPIPService id="810008" tranCode="300304" className = "module.trans.cobank2sf.T300304"   checkSession="false"/>
+	<TCPIPService id="810005" tranCode="300300" className = "module.trans.cobank2sf.T300300"   checkSession="false"/>
+	<TCPIPService id="810007" tranCode="300100" className = "module.trans.cobank2sf.T300100"   checkSession="false"/>
+	<TCPIPService id="810006" tranCode="300104" className = "module.trans.cobank2sf.T300104"   checkSession="false"/>
+	<TCPIPService id="810009" tranCode="300120" className = "module.trans.cobank2sf.T300120"   checkSession="false"/>
+	<TCPIPService id="810011" tranCode="300204" className = "module.trans.cobank2sf.T300204"   checkSession="false"/>
+	<TCPIPService id="810010" tranCode="300200" className = "module.trans.cobank2sf.T300200"   checkSession="false"/>
+	<TCPIPService id="810002" tranCode="300201" className = "module.trans.cobank2sf.T300201"   checkSession="false"/>
+	<TCPIPService id="810001" tranCode="300301" className = "module.trans.cobank2sf.T300301"   checkSession="false"/>
+	<TCPIPService id="810003" tranCode="300302" className = "module.trans.cobank2sf.T300302"   checkSession="false"/>
+	<TCPIPService id="810004" tranCode="300102" className = "module.trans.cobank2sf.T300102"   checkSession="false"/>
+	<TCPIPService id="812436" tranCode="300313" className = "module.trans.cobank2sf.T300313"   checkSession="false"/>
+	<TCPIPService id="812431" tranCode="300310" className = "module.trans.cobank2sf.T300310"   checkSession="false"/><!-- 行E通发起查询合作行信息-->
+	<TCPIPService id="812432" tranCode="300311" className = "module.trans.cobank2sf.T300311"   checkSession="false"/><!-- 行E通发起查询下级机构信息-->
+	<TCPIPService id="812434" tranCode="300312" className = "module.trans.cobank2sf.T300312"   checkSession="false"/><!-- 行E通发起查询流水处理情况交易-->
+	
+	
+	<TCPIPService id="810016" tranCode="300307" transformatId ="90810016_01" isTranSpond="Y"   checkSession="false"/>
+	<TCPIPService id="810017" tranCode="300308" transformatId ="90810017_01" isTranSpond="Y"   checkSession="false"/>
+	
+</servletContext>

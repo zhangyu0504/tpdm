@@ -1,0 +1,332 @@
+package common.util;
+
+import java.sql.Connection;
+import java.util.Map;
+
+import module.bean.TransAlertLog;
+import module.dao.SystemDao;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+import common.exception.SFException;
+import common.sql.dao.DBHandler;
+
+import core.cache.CacheMap;
+import core.log.SFLogger;
+
+
+public class TransflowLimit {
+	/**
+	 * 合作行请求限流缓存MAP对象
+	 */
+	public static final String COBANK_REQ_FLOW="COBANK_REQ_FLOW"; 
+	/**
+	 * 直连券商请求限流缓存MAP对象
+	 */
+	public static final String ZLSECU_REQ_FLOW="ZLSECU_REQ_FLOW"; 
+	/**
+	 * 深证通券商请求限流缓存MAP对象
+	 */
+	public static final String SZTSECU_REQ_FLOW="SZTSECU_REQ_FLOW"; 
+	/**
+	 * 合作行调用限流缓存MAP对象
+	 */
+	public static final String COBANK_SEND_FLOW="COBANK_SEND_FLOW"; 
+	/**
+	 * 
+	 *接收合作行请求限流控制
+	 *1、对所有合作行总请求数限流
+	 *2、对单个合作行请求数限流
+	 * @param context
+	 * @param bankNo  合作行号
+	 * @return
+	 * @throws SFException
+	 */
+	public static void coBankReqFlow( Context context,String bankNo) throws SFException{
+		try {
+			Map<String,Map<String,Integer>> mapTrad=CacheMap.getCache(SFConst.FLOW_CACHE_TRAD);
+			Map<String, Integer> flowLimitMap = mapTrad.get(COBANK_REQ_FLOW);//合作行请求限流缓存对象
+			synchronized (flowLimitMap) {
+				Integer tradReqNum = flowLimitMap.get("FLOW_LIMIT_NUM");//所有合作行请求记录数
+				Integer coBankReqNum = flowLimitMap.get(bankNo);//单合作行请求记录数
+				
+				if(coBankReqNum!=null){
+					coBankReqNum=coBankReqNum+1;
+				}else{
+					coBankReqNum=1;
+				}
+				if(tradReqNum!=null){
+					tradReqNum=tradReqNum+1;
+				}else{
+					tradReqNum=1;
+				}
+				flowLimitMap.put(bankNo, coBankReqNum);//增加请求记录数
+				flowLimitMap.put("FLOW_LIMIT_NUM", tradReqNum);//增加总记录数
+				mapTrad.put(COBANK_REQ_FLOW, flowLimitMap);
+				
+				Integer dbFlowLimit = 20;//所有合作行请求限流总阀值
+				String value1 = BizUtil.getParamValue1(context, "COBANK", "FLOW_LIMIT");
+				if (value1!=null){
+					dbFlowLimit = Integer.parseInt(value1);
+				}
+				Integer dbCoBankNoFlowLimit = 10;//单个合作行请求限流阀值
+				value1 = BizUtil.getParamValue1(context, "COBANK", "FLOW_LIMIT"+"_"+bankNo);
+				if (value1!=null){
+					dbCoBankNoFlowLimit = Integer.parseInt(value1);
+				}
+				
+				SFLogger.info(context,String.format("全合作行交易请求队列数【%s】,本合作行【%s】交易请求队列数【%s】",tradReqNum,bankNo,coBankReqNum));
+				
+				if (tradReqNum>dbFlowLimit || coBankReqNum>dbCoBankNoFlowLimit) {
+					SFUtil.setDataValue(context,SFConst.PUBLIC_RET_FLAG, SFConst.RET_FAILURE);
+					String errMsg = null;
+					if (tradReqNum>dbFlowLimit){
+						errMsg = String.format("全合作行交易请求队列数【%s】超过限流阀值【%s】",tradReqNum,dbFlowLimit) ;
+					} else {
+						errMsg = String.format("本合作行【%s】请求队列数【%s】超过限流阀值【%s】",bankNo,coBankReqNum,dbCoBankNoFlowLimit) ;
+					}
+					SFLogger.error(context,errMsg);
+					
+					try {
+						/*
+						 * 插入 限流预警日志
+						 */
+						String txCode=SFUtil.getDataValue(context, SFConst.PUBLIC_TX_CODE);//获取交易编码
+						String logId=SFUtil.getDataValue(context, SFConst.PUBLIC_LOG_ID);//获取系统日志号
+						Connection connection = SFUtil.getDataValue( context, SFConst.PUBLIC_TRAN_CONNECTION );
+						
+						TransAlertLog alertLog=new TransAlertLog();
+						alertLog.setMacCode(BizUtil.getMacCode(context));
+						alertLog.setTxCode(txCode);
+						alertLog.setLogId(logId);
+						alertLog.setType("31");//31-合作行发起交易限流
+						alertLog.setTxDate(DateUtil.dateToString(DateUtil.getDate(),"yyyyMMdd"));
+						alertLog.setTxTime(DateUtil.dateToString(DateUtil.getDate(),"HHmmss"));
+						alertLog.setMome(errMsg);
+						SystemDao dao=new SystemDao();
+						dao.saveTransAlertLog(context, connection, alertLog);
+						DBHandler.commitTransaction(context, connection);//提交事务
+					} catch (Exception e) {//插入数据库失败捕获异常，不影响后续流程
+						SFLogger.error(context,e);
+					}
+					SFUtil.chkCond( context, "ST5798",String.format("目前交易量较大银行实施交易限流，请稍后重试"));
+				}
+			}
+		} catch( SFException e ) {
+			throw e;
+		} catch (Exception e) {
+			SFLogger.error(context, String.format("统计限流记录数失败,%s", e.getMessage()));
+		}
+	}
+	
+	/**
+	 * 
+	 * 接收券商请求限流控制 
+	 * 1、对所有券商总请求数限流
+	 * 2、对单个券商请求数限流
+	 * @param context
+	 * @param secCompCode  券商编号
+	 * @return
+	 * @throws SFException
+	 */
+	public  static void secuReqFlow( Context context,String secCompCode ) throws SFException{
+		try {
+			Map<String,Map<String,Integer>> mapTrad=CacheMap.getCache(SFConst.FLOW_CACHE_TRAD);
+			String sztFlag = SFUtil.getDataValue(context, SFConst.PUBLIC_SECU_TYPE);//券商类型 1-深证通 0-直联
+			String secuFlowType = null;
+			String secuFlagName = null;
+			String secuFlagType = null;
+			if (SFConst.SECU_SZT.equals(sztFlag)) {//深证通
+				secuFlowType = SZTSECU_REQ_FLOW;
+				secuFlagName="深证通";
+				secuFlagType ="SZT";
+			} else {
+				secuFlowType = ZLSECU_REQ_FLOW;
+				secuFlagName="直连";
+				secuFlagType ="ZL";
+			}
+			Map<String, Integer> flowLimitMap = mapTrad.get(secuFlowType);//券商请求限流缓存对象
+			synchronized (flowLimitMap) {
+				Integer tradReqNum = flowLimitMap.get("FLOW_LIMIT_NUM");//所有券商请求记录数
+				Integer secuReqNum = flowLimitMap.get(secCompCode);//单券商请求记录数
+				
+				if(secuReqNum!=null){
+					secuReqNum=secuReqNum+1;
+				}else{
+					secuReqNum=1;
+				}
+				if(tradReqNum!=null){
+					tradReqNum=tradReqNum+1;
+				}else{
+					tradReqNum=1;
+				}
+				flowLimitMap.put(secCompCode, secuReqNum);//增加请求记录数
+				flowLimitMap.put("FLOW_LIMIT_NUM", tradReqNum);//增加总记录数
+				mapTrad.put(secuFlowType, flowLimitMap);
+				
+				Integer dbFlowLimit = 50;//所有券商限流总阀值
+				String value1 = BizUtil.getParamValue1(context, secuFlagType, "FLOW_LIMIT");
+				if (value1!=null){
+					dbFlowLimit = Integer.parseInt(value1);
+				}
+				Integer dbSecuflowLimit = 10;//单个券商限流阀值
+				value1 = BizUtil.getParamValue1(context, secuFlagType, "FLOW_LIMIT"+"_"+secCompCode);
+				if (value1!=null){
+					dbSecuflowLimit = Integer.parseInt(value1);
+				}
+				
+				SFLogger.info(context,String.format("全【%s】券商交易请求队列数【%s】,本券商【%s】交易请求队列数【%s】",secuFlagName,tradReqNum,secCompCode,secuReqNum));
+				
+				if (tradReqNum>dbFlowLimit || secuReqNum>dbSecuflowLimit) {
+					SFUtil.setDataValue(context,SFConst.PUBLIC_RET_FLAG, SFConst.RET_FAILURE);
+					String errMsg = null;
+					if (tradReqNum>dbFlowLimit ){
+						errMsg = String.format("全【%s】券商交易请求队列数【%s】超过限流阀值【%s】",secuFlagName,tradReqNum,dbFlowLimit);
+					} else {
+						errMsg = String.format("本券商【%s】请求队列数【%s】超过限流阀值【%s】",secCompCode,secuReqNum,dbSecuflowLimit);
+					}
+					SFLogger.error(context,errMsg);
+					
+					try {
+						/*
+						 * 插入 限流预警日志
+						 */
+						String txCode=SFUtil.getDataValue(context, SFConst.PUBLIC_TX_CODE);//获取交易编码
+						String logId=SFUtil.getDataValue(context, SFConst.PUBLIC_LOG_ID);//获取系统日志号
+						Connection connection = SFUtil.getDataValue( context, SFConst.PUBLIC_TRAN_CONNECTION );
+						
+						TransAlertLog alertLog=new TransAlertLog();
+						alertLog.setMacCode(BizUtil.getMacCode(context));
+						alertLog.setTxCode(txCode);
+						alertLog.setLogId(logId);
+						alertLog.setType("11");//11-券商发起交易限流
+						alertLog.setTxDate(DateUtil.dateToString(DateUtil.getDate(),"yyyyMMdd"));
+						alertLog.setTxTime(DateUtil.dateToString(DateUtil.getDate(),"HHmmss"));
+						alertLog.setMome(errMsg);
+						SystemDao dao=new SystemDao();
+						dao.saveTransAlertLog(context, connection, alertLog);
+						DBHandler.commitTransaction(context, connection);//提交事务
+					} catch (Exception e) {//插入数据库失败捕获异常，不影响后续流程
+						SFLogger.error(context, e);
+					}
+					SFUtil.chkCond( context, "ST5798",String.format("目前交易量较大银行实施交易限流，请稍后重试"));
+				}
+			}
+		} catch( SFException e ) {
+			throw e;
+		} catch (Exception e) {
+			SFLogger.error(context, String.format("统计限流记录数失败,%s", e.getMessage()));
+		} 
+	}
+	
+	/**
+	 * 
+	 *增加调用合作行限流控制 20180604 
+	 *1、对所有合作行总请求数限流
+	 *2、对单个合作行请求数限流
+	 * @param context
+	 * @param bankNo  合作行号
+	 * @return
+	 * @throws SFException
+	 */
+	public static Context sendCoBankFlow( Context context,String bankNo ) throws SFException{
+		try {
+			Map<String,Map<String,Integer>> mapTrad=CacheMap.getCache(SFConst.FLOW_CACHE_TRAD);
+			Map<String, Integer> flowLimitMap = mapTrad.get(COBANK_SEND_FLOW);//调用合作行限流缓存对象
+			synchronized (flowLimitMap) {
+				Integer tradReqNum = flowLimitMap.get("FLOW_LIMIT_NUM");//所有合作行请求记录数
+				Integer bankReqNum = flowLimitMap.get(bankNo);//单合作行请求记录数
+				if(bankReqNum!=null){
+					bankReqNum=bankReqNum+1;
+				}else{
+					bankReqNum=1;
+				}
+				if(tradReqNum!=null){
+					tradReqNum=tradReqNum+1;
+				}else{
+					tradReqNum=1;
+				}
+				flowLimitMap.put(bankNo, bankReqNum);//增加请求记录数
+				flowLimitMap.put("FLOW_LIMIT_NUM", tradReqNum);//增加总记录数
+				mapTrad.put(COBANK_SEND_FLOW, flowLimitMap);
+				
+				Integer dbFlowLimit = 20;//所有合作行限流总阀值
+				String value = BizUtil.getParamValue(context, "COBANK", "FLOW_LIMIT");
+				if (value!=null){
+					dbFlowLimit = Integer.parseInt(value);
+				}
+				Integer dbCoBankNoflowLimit = 10;//单个合作行限流阀值
+				value = BizUtil.getParamValue(context, "COBANK", "FLOW_LIMIT"+"_"+bankNo);
+				if (value!=null){
+					dbCoBankNoflowLimit = Integer.parseInt(value);
+				}
+				
+				SFLogger.info(context,String.format("全合作行交易队列数【%s】,本合作行【%s】交易队列数【%s】",tradReqNum,bankNo,bankReqNum));
+				
+				if (tradReqNum>dbFlowLimit || bankReqNum>dbCoBankNoflowLimit) {
+					SFUtil.setDataValue(context,SFConst.PUBLIC_RET_FLAG, SFConst.RET_FAILURE);
+					String errMsg = null;
+					if (tradReqNum>dbFlowLimit) {
+						 errMsg = String.format("全合作行交易队列数【%s】超过限流阀值【%s】",tradReqNum,dbFlowLimit);
+					} else {
+						errMsg = String.format("本合作行【%s】请求队列数【%s】超过限流阀值【%s】",bankNo,bankReqNum,dbCoBankNoflowLimit);
+					}
+					SFLogger.error(context,errMsg);
+					/*
+					 * 回写错误
+					 */
+					KeyedCollection kColl=SFUtil.getDataElement(context,"A_RESPONSE_HEAD");
+					if(kColl == null){
+						kColl=new KeyedCollection("A_RESPONSE_HEAD");
+						SFUtil.addDataField(context,kColl,"RESPCODE",SFConst.RESPCODE_FAILCODE_COBANK);
+						SFUtil.addDataField(context,kColl,"RESPMSG",String.format("目前交易量较大银行实施交易限流，请稍后重试"));
+						SFUtil.addDataElement(context, kColl);
+					}else{
+						SFUtil.setDataValue(context,kColl,"RESPCODE",SFConst.RESPCODE_FAILCODE_COBANK);
+						SFUtil.setDataValue(context,kColl,"RESPMSG",String.format("目前交易量较大银行实施交易限流，请稍后重试"));
+					}
+					SFUtil.setDataValue(context, SFConst.CTX_ERRCODE, SFConst.RESPCODE_FAILCODE_COBANK);
+					SFUtil.setDataValue(context, SFConst.CTX_ERRMSG, String.format("目前交易量较大银行实施交易限流，请稍后重试"));
+				}
+			}
+		} catch (Exception e) {
+			SFLogger.error(context, String.format("统计限流记录数失败,%s", e.getMessage()));
+		}
+		return context;
+	}
+	
+	/**
+	 *释放流量计录数
+	 * @param context
+	 * @param flowName  合作行号或券商代码
+	 * @param flowType  COBANK_REQ_FLOW/ZLSECU_REQ_FLOW/SZTSECU_REQ_FLOW/COBANK_SEND_FLOW
+	 * @throws SFException
+	 */
+	public  static void  releaseFlowLimit( Context context, String flowName,String flowType) throws SFException{
+		try {
+			Map<String,Map<String,Integer>> mapTrad=CacheMap.getCache(SFConst.FLOW_CACHE_TRAD);
+			Map<String, Integer> flowLimitMap = mapTrad.get(flowType);//限流缓存对象
+			synchronized (flowLimitMap) {
+				Integer initSideReqNum=flowLimitMap.get(flowName);//请求记录数
+				Integer tradReqNum = flowLimitMap.get("FLOW_LIMIT_NUM");//总请求记录数
+				if(tradReqNum!=null&&tradReqNum>1){//释放总记录数
+					tradReqNum=tradReqNum-1;
+				}else{
+					tradReqNum=0;
+				}
+				if(initSideReqNum!=null&&initSideReqNum>1){//释放单个记录数
+					initSideReqNum=initSideReqNum-1;
+				}else{
+					initSideReqNum=0;
+				}
+				flowLimitMap.put(flowName, initSideReqNum);//更新单个记录数
+				flowLimitMap.put("FLOW_LIMIT_NUM", tradReqNum);//更新总记录数
+				mapTrad.put(flowType, flowLimitMap);
+			}
+			
+		} catch (Exception e) {
+			SFLogger.error(context, String.format("释放限流记录数失败,%s", e.getMessage()));
+		}
+		
+	}
+}

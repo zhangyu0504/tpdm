@@ -1,0 +1,719 @@
+package core.communication.access.http;
+
+import java.sql.SQLException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.dc.eai.data.CompositeData;
+import com.dcfs.esb.client.converter.PackUtil;
+import com.ecc.emp.access.http.EMPHTTPRequestService;
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPConstance;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.data.DataElement;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.flow.EMPFlow;
+import com.ecc.emp.format.FormatElement;
+import com.ecc.emp.log.EMPLog;
+import com.ecc.emp.transaction.EMPTransactionManager;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+import core.action.database.PBankSqlExecAction;
+import core.communication.format.PBankFormatElement;
+import core.communication.format.paesb.ESBCDFormat;
+import core.service.PBankGenContextBySql;
+
+/**
+ * PBank提供的HTTP渠道接入访问服务的另一种实现。
+ * <p>
+ * 可将EMP业务逻辑构件开放为供HTTP渠道接入访问的服务，
+ * 使得通过HTTP渠道接入的系统可以通过定义输出输出报文的方式访问EMP的业务处理逻辑。
+ * 与<tt>EMPHTTPRequestService</tt>不同的是，它不使用报文格式解析器，
+ * 而是固定采用PAB ESB解析器对数据进行XML格式打包解包.
+ * <p>
+ * 可以有一个或多个定义包含在HttpAccessServletContext配置文件中，参数如下：
+ * <p>
+ * id：HTTP Service的id，通过指定此id对Service进行访问<br>
+ * serviceName：id的等价参数<br>
+ * serviceType：Service访问类型，可选项有session(创建会话)、endSession(结束会话)以及其它(默认，普通请求)<br>
+ * sessionContextName：当serviceType为session时有效，指定要创建会话的业务逻辑Context名称<br>
+ * checkSession：该请求是否检查会话，可选项true(默认)、false<br>
+ * EMPFlowId：该Service对应的EMP业务逻辑构件名<br>
+ * opId：该Service对应的EMP业务逻辑构件中的Operation ID<br>
+ * description：描述信息<br>
+ * enabled：该Service是否启用，可选项true(默认)、false<br>
+ * 
+ * @author zhongmc
+ * @version 2.1
+ * @since 1.0 2006-12-26
+ * @lastmodified 2008-6-11
+ * @emp:name HTTP渠道接入访问服务(DS)
+ * @emp:document PBank提供的HTTP渠道接入访问服务，可访问EMP业务逻辑构件
+ */
+public class PBankHTTPRequestService extends EMPHTTPRequestService {
+
+	/**
+	 * 该Service对应的TranCode
+	 */
+	protected String tranCode = null;
+
+	public String getTranCode() {
+		return tranCode;
+	}
+
+	public void setTranCode(String tranCode) {
+		this.tranCode = tranCode;
+	}
+
+	/**
+	 * 该请求是否先返回应答，然后执行业务逻辑
+	 */
+	protected boolean responseFirst = false;
+
+	/**
+	 * 获得该请求是否先返回应答
+	 * 
+	 * @return 该请求是否先返回应答
+	 */
+	public boolean isResponseFirst() {
+		return responseFirst;
+	}
+
+	/**
+	 * 设置该请求是否先返回应答
+	 * 
+	 * @param responseFirst 该请求是否先返回应答，可选项true(默认)、false
+	 * @emp:isAttribute true
+	 * @emp:name 是否先返回应答
+	 * @emp:desc 该请求是否先返回应答
+	 * @emp:defaultValue false
+	 */
+	public void setResponseFirst(boolean responseFirst) {
+		this.responseFirst = responseFirst;
+	}
+
+	/**
+	 * 该Service对应的PBank系统TranCode，如果该TRAN_CODE配置有交易码，将要加载跟交易相关的数据
+	 */
+	protected String fbsTranCode = null;
+
+	public String getFbsTranCode() {
+		return fbsTranCode;
+	}
+
+	public void setFbsTranCode(String fbsTranCode) {
+		this.fbsTranCode = fbsTranCode;
+	}
+	
+	/**
+	 * 该ESB是否写ESB_INFO信息表
+	 */
+	protected boolean isLog = false;
+
+	public boolean getIsLog() {
+		return isLog;
+	}
+
+	public void setIsLog(boolean isLog) {
+		this.isLog = isLog;
+	}
+
+	/**
+	 * 该接口所处理的输入输出KeyedCollection。
+	 */
+	protected String inOutDataArea = null;
+
+	/**
+	 * 注入该接口输入输出的数据区域(KeyedCollection)的名称。
+	 * 
+	 * @param inOutDataArea输入输出的数据区域(KeyedCollection)的名称
+	 */
+	public void setInOutDataArea(String inOutDataArea)
+	{
+		this.inOutDataArea = inOutDataArea;
+	}
+
+	/**
+	 * 获取该接口输入输出的数据区域(KeyedCollection)的名称。
+	 * 
+	 */
+	public String getInOutDataArea()
+	{
+		return this.inOutDataArea;
+	}
+
+	/**
+	 * 该Service对应的EMP业务逻辑构件名
+	 */
+	protected String errBizId = null;
+
+	/**
+	 * 该Service对应的EMP业务逻辑构件中的Operation ID
+	 */
+	protected String errOpId = null;
+
+	/**
+	 * 获得该Service对应的异常处理的业务逻辑构件名。
+	 * 
+	 * @return 异常处理的业务逻辑构件名
+	 */
+	public String getErrBizId() {
+		return errBizId;
+	}
+	
+	/**
+	 * 获得该Service对应的EMP业务逻辑op id。
+	 * 
+	 * @return 业务逻辑op id
+	 */
+	public String getErrOpId() {
+		return errOpId;
+	}
+
+	/**
+	 * 在ESB接入配置文件httpchannel.xml增加连个属性：
+	 * 1：主要是用于判重，属性名可以为：mutexKey：判重关键字，mutexFlag:0交易，1：查询
+	 * 2：根据这个配置公共自动写入ESB_MUTEX_CONTROL表：
+	 *	A：mutexFlag=0处理逻辑：
+	 *	交易时直接插入互斥表，由于该表用于互斥，交易数据插入和查询插入在同一个主键下会产生等待，为了交易超时之后，查询能够尽快返回，避免查询又产生等待超时，交易的插入尽量放到程序快结束的尾部，保证插入之后就将很快提交业务了，该数据与业务数据一起提交。
+	 *	B：mutexFlag=1处理逻辑：
+	 *	B1：插入一条查询记录到互斥表，如果主键重复，返回存在记录，如果插入成功，返回无数据
+	 */
+	protected String mutexKey = null;
+
+	/**
+	 * 判重关键字。
+	 * 
+	 * @return 判重关键字
+	 */
+	public String getMutexKey() {
+		return mutexKey;
+	}
+	
+	/**
+	 * 判重关键字。
+	 * 
+	 * @return 
+	 */
+	public void setMutexKey(String mutexKey) {
+		this.mutexKey = mutexKey;
+	}
+	/**
+	 * mutexFlag:0交易，1：查询
+	 */
+	protected String mutexFlag = null;
+
+	/**
+	 * mutexFlag:0交易，1：查询
+	 * 
+	 * @return mutexFlag:0交易，1：查询
+	 */
+	public String geMutexFlag() {
+		return mutexFlag;
+	}
+	
+	/**
+	 * mutexFlag:0交易，1：查询。
+	 * 
+	 * @return 
+	 */
+	public void setMutexFlag(String mutexFlag) {
+		this.mutexFlag = mutexFlag;
+	}
+
+	/**
+	 * 设置该Service对应的EMP业务逻辑op id。
+	 * 
+	 * @param opId 业务逻辑op id
+	 * @emp:isAttribute true
+	 * @emp:name 业务逻辑op id
+	 * @emp:desc 要开放为HTTP Service的业务逻辑构件中的Operation id
+	 * @emp:mustSet true
+	 */
+	public void setErrOpId(String errOpId) {
+		this.errOpId = errOpId;
+	}
+
+	/**
+	 * 设置该Service对应的异常处理的EMP业务逻辑构件名。
+	 * 
+	 * @param bizId 异常处理业务逻辑构件名
+	 * @emp:isAttribute true
+	 * @emp:name 异常处理业务逻辑构件名
+	 * @emp:desc 要开放为HTTP Service的业务逻辑构件id
+	 * @emp:mustSet true
+	 */
+	public void setErrBizId(String errBizId) {
+		this.errBizId = errBizId;
+	}
+
+
+	/**
+	 * 该Service对应的先返回应答EMP业务逻辑构件名
+	 */
+	protected String finalBizId = null;
+
+	/**
+	 * 该Service对应的先返回应答EMP业务逻辑构件中的Operation ID
+	 */
+	protected String finalOpId = null;
+
+	/**
+	 * 获得该Service对应的先返回应答处理的业务逻辑构件名。
+	 * 
+	 * @return 先返回应答的业务逻辑构件名
+	 */
+	public String getFinalBizId() {
+		return finalBizId;
+	}
+	
+	/**
+	 * 获得该Service对应的先返回应答EMP业务逻辑op id。
+	 * 
+	 * @return 先返回应答业务逻辑op id
+	 */
+	public String getFinalOpId() {
+		return finalOpId;
+	}
+
+	/**
+	 * 设置该Service对应的先返回应答之后的EMP业务逻辑op id。
+	 * 
+	 * @param finalOpId 先返回应答业务逻辑之后的op id
+	 * @emp:isAttribute true
+	 * @emp:name 先返回应答业务逻辑op id
+	 * @emp:desc 要开放为HTTP Service的先返回应答业务逻辑构件中的Operation id
+	 * @emp:mustSet true
+	 */
+	public void setFinalOpId(String finalOpId) {
+		this.finalOpId = finalOpId;
+	}
+
+	/**
+	 * 设置该Service对应的先返回应答处理的EMP业务逻辑构件名。
+	 * 
+	 * @param finalBizId 先返回应答处理业务逻辑构件名
+	 * @emp:isAttribute true
+	 * @emp:name 先返回应答处理业务逻辑构件名
+	 * @emp:desc 要开放为HTTP Service的业务逻辑构件id
+	 * @emp:mustSet true
+	 */
+	public void setFinalBizId(String finalBizId) {
+		this.finalBizId = finalBizId;
+	}
+	
+	public PBankHTTPRequestService() {
+		super();
+		this.setCheckSession(false);//不检查session
+	}
+
+	/**
+	 * 具体的请求处理实现方法。
+	 * 
+	 * @param request HTTP请求
+	 * @param response HTTP响应
+	 * @param sessionContext Session Context
+	 * @param sessionId SessionId
+	 * @return 返回内容，即打包好的报文体
+	 * @throws EMPException
+	 */
+	public String handleRequest(HttpServletRequest request,	HttpServletResponse response, 
+			Context sessionContext,	String sessionId) throws EMPException {
+
+		EMPFlow flow = null;
+		Context flowContext = null;
+		PBankSqlExecAction sqlExecAction = null;
+		//PBankSqlExecAction sqlExecAction_SEL = null;
+
+		EMPLog.log(EMPConstance.EMP_HTTPACCESS, EMPLog.INFO, 0, 
+				"EMPHTTPService [" + serviceName + "][" + this.getBizId() + "." + this.getOpId() + "] receive request :[" + 
+				PackUtil.packXmlStr((CompositeData)request.getAttribute("reqData")) + "]");
+		
+		try {
+			flow = this.factory.getEMPFlow(getEMPFlowId());
+
+			if (flow == null)
+				throw new EMPException("Flow named " + getEMPFlowId() + " not defined!");
+
+			flowContext = (Context) flow.getContext().clone();
+
+			if (flowContext.getParent() == null && sessionContext != null)
+				flowContext.chainedTo(sessionContext);
+
+			request.setAttribute(EMPConstance.ATTR_CONTEXT, flowContext);
+
+			String opName = getOpId();
+
+			DataElement outputData = null;
+			DataElement inputDataDef = flow.getInput(opName);
+			
+			KeyedCollection headData = (KeyedCollection)request.getAttribute("headData");
+			if(headData != null){
+				for (int i=0; i<headData.size(); i++) {
+					DataElement dataElement = headData.getDataElement(i);
+					if (((KeyedCollection)inputDataDef).containsKey(dataElement.getName())) {
+						flowContext.removeDataElement(dataElement.getName());
+						flowContext.addDataElement(dataElement);
+					}
+				}
+			}
+			
+			updateModel(request, response, flowContext, inputDataDef);
+
+			EMPTransactionManager transactionManager = null;
+
+			try {
+				transactionManager = (EMPTransactionManager) flowContext.getService(EMPConstance.TRX_SVC_NAME);
+
+				EMPLog.log(EMPConstance.EMP_HTTPACCESS, EMPLog.INFO, 0,
+						"execute the Flow: " + getEMPFlowId() + "." + getOpId() + "...");
+
+				String retValue = flow.execute(flowContext, opName);
+
+				outputData = flow.getOutput(flowContext, opName);
+
+				EMPLog.log(EMPConstance.EMP_HTTPACCESS, EMPLog.INFO, 0,
+						"execute the Flow: " + getEMPFlowId() + " retValue:" + retValue);
+				
+				//提交之前写入ESB_INFO信息表
+				if (this.isLog){
+					sqlExecAction = new PBankSqlExecAction();
+					sqlExecAction.setDataSource((String)flowContext.getDataValue(SFConst.SERVICE_DATASOURCE));
+					sqlExecAction.setSqlService((String)flowContext.getDataValue(SFConst.SERVICE_SQL));
+					sqlExecAction.setRefSQL("sqlEsbInfoInsert");
+					sqlExecAction.initialize();
+
+					if (sqlExecAction.execute(flowContext) != "0")
+					{
+						EMPLog.log("PBankHTTPRequestService", EMPLog.ERROR, 0, "PBankHTTPRequestService：写入ESB_INFO信息表失败(sqlEsbInfoInsert)");
+						throw new SFException("P0006O001","PBankHTTPRequestService：写入ESB_INFO信息表失败!");
+					}
+				}
+				
+				/* Dongjie Shen Add for ESB Mutext Ctrol 机制 20170614 Begin */
+				/**
+				 * 在ESB接入配置文件httpchannel.xml增加连个属性：
+				 * 1：主要是用于判重，属性名可以为：mutexKey：判重关键字，mutexFlag:0交易，1：查询
+				 * 2：根据这个配置公共自动写入ESB_MUTEX_CONTROL表：
+				 *	A：mutexFlag=0处理逻辑：
+				 *	交易时直接插入互斥表，由于该表用于互斥，交易数据插入和查询插入在同一个主键下会产生等待，为了交易超时之后，查询能够尽快返回，避免查询又产生等待超时，交易的插入尽量放到程序快结束的尾部，保证插入之后就将很快提交业务了，该数据与业务数据一起提交。
+				 *	B：mutexFlag=1处理逻辑：
+				 *	B1：插入一条查询记录到互斥表，如果主键重复，返回存在记录，如果插入成功，返回无数据
+				 */
+				if (null != this.mutexFlag && null != this.mutexKey){
+					if (flowContext.containsKey("_ESB_MUTEX_CHECK_RESULT")) {
+						flowContext.setDataValue("_ESB_MUTEX_CHECK_RESULT", "F");
+					}
+					else {
+						flowContext.addDataField("_ESB_MUTEX_CHECK_RESULT", "F");
+					}
+
+					sqlExecAction = new PBankSqlExecAction();
+					sqlExecAction.setDataSource((String)flowContext.getDataValue(SFConst.SERVICE_DATASOURCE));
+					sqlExecAction.setSqlService((String)flowContext.getDataValue(SFConst.SERVICE_SQL));
+					sqlExecAction.setRefSQL("sqlEsbMutextInsert");
+					sqlExecAction.initialize();
+					Context tmpContext = ((PBankGenContextBySql) flowContext.getService((String) flowContext
+							.getDataValue(SFConst.SERVICE_GENCONTEXTBYSQL))).getContext(flowContext, "sqlEsbMutextInsert");
+					
+					tmpContext.setDataValue("SEQ_NO", flowContext.getDataValue(this.mutexKey));
+					tmpContext.setDataValue("STATUS", this.mutexFlag);
+					try {
+						if (sqlExecAction.execute(flowContext, tmpContext) != "0")
+						{
+							EMPLog.log("PBankHTTPRequestService", EMPLog.ERROR, 0, "PBankHTTPRequestService：写入ESB_INFO信息表失败(sqlEsbInfoInsert)");
+							throw new SFException("P0006O001","PBankHTTPRequestService：写入ESB_INFO信息表失败!");
+						}
+					} catch (Exception e) {
+						if ("1".equals(this.mutexFlag) && SQLException.class.isAssignableFrom(e.getCause().getClass())) {
+							SQLException aSqlException = (SQLException)e.getCause();
+							if (1 == aSqlException.getErrorCode() && "23000".equals(aSqlException.getSQLState())) {
+								EMPLog.log("PBankHTTPRequestService", EMPLog.ERROR, 0, "PBankHTTPRequestService：写入ESB_INFO信息表失败(sqlEsbInfoInsert),主键重复");
+								flowContext.setDataValue("_ESB_MUTEX_CHECK_RESULT", "S");
+							}
+						}
+						else {
+							throw e;
+						}
+					}
+				}
+				/* Dongjie Shen Add for ESB Mutext Ctrol 机制 20170614 End */
+
+				// commit the
+				// transaction if exist
+				if (transactionManager != null)
+					transactionManager.commit();
+
+				String retMsg = this.getResponseMessage(request, response, flowContext, outputData);
+
+				EMPLog.log(EMPConstance.EMP_HTTPACCESS, EMPLog.INFO, 0,
+						"EMPHTTPService [" + serviceName + "] received, return :" + retMsg);
+
+				return retMsg;
+
+			} catch (Exception e) {
+				if (transactionManager != null)
+					transactionManager.rollback();
+				
+				/* 
+				 * 以下为PBank PAESB新增部分,如果失败可以调用一个善后的biz.20120520
+				 */
+				if (this.errBizId != null && this.errOpId != null)
+				{
+					EMPLog.log(EMPConstance.EMP_HTTPACCESS, EMPLog.INFO, 0,
+							"EMPHTTPService [" + serviceName + 
+							"] cause exception, call error biz:[" + errBizId + "]" + "[" + errOpId + "]");
+
+					EMPFlow errFlow = this.factory.getEMPFlow(errBizId);
+					errFlow.execute(flowContext, errOpId);
+					if (transactionManager != null)
+						transactionManager.commit();
+
+					String retMsg = this.getResponseMessage(request, response, flowContext, outputData);
+
+					EMPLog.log(EMPConstance.EMP_HTTPACCESS, EMPLog.INFO, 0,
+							"EMPHTTPService [" + serviceName + "] received, return :" + retMsg);
+
+					return retMsg;
+				}
+				else
+				{
+					throw e;
+				}
+				/* 
+				 * 以上为PBank PAESB新增部分,如果失败可以调用一个善后的biz.20120520
+				 */
+			}
+		} catch (EMPException ee) {
+			throw ee;
+		} catch (Exception e) {
+			throw new EMPException("Failed to process http service " + this.toString(), e);
+		} finally {
+			// if( flowContext != null )
+			//flowContext.terminate();
+		}
+	}
+
+	/**
+	 * 具体的请求处理实现方法。
+	 * 
+	 * @param request HTTP请求
+	 * @param response HTTP响应
+	 * @param sessionContext Session Context
+	 * @param sessionId SessionId
+	 * @return 返回内容，即打包好的报文体
+	 * @throws EMPException
+	 */
+	public void handleRequestForFinalBiz(HttpServletRequest request, HttpServletResponse response, 
+			Context sessionContext,	String sessionId) throws EMPException {
+
+		EMPFlow flow = null;
+		Context flowContext = null;
+
+		try {
+			flow = this.factory.getEMPFlow(getFinalBizId());
+
+			if (flow == null)
+				throw new EMPException("Flow named " + getFinalBizId() + " not defined!");
+
+			flowContext = (Context) flow.getContext().clone();
+
+			if (flowContext.getParent() == null && sessionContext != null)
+				flowContext.chainedTo(sessionContext);
+
+			/* Shendongjie Delete for FinalFlow execute 20120727 begin
+			request.setAttribute(EMPConstance.ATTR_CONTEXT, flowContext);
+			Shendongjie Delete for FinalFlow execute 20120727 end */
+
+			String opName = getFinalOpId();
+
+			DataElement outputData = null;
+			DataElement inputDataDef = flow.getInput(opName);
+			
+			KeyedCollection headData = (KeyedCollection)request.getAttribute("headData");
+			if(headData != null){
+				for (int i=0; i<headData.size(); i++) {
+					DataElement dataElement = headData.getDataElement(i);
+					if (((KeyedCollection)inputDataDef).containsKey(dataElement.getName())) {
+						flowContext.removeDataElement(dataElement.getName());
+						flowContext.addDataElement(dataElement);
+					}
+				}
+			}
+			
+			updateModel(request, response, flowContext, inputDataDef);
+
+			EMPTransactionManager transactionManager = null;
+
+			try {
+				transactionManager = (EMPTransactionManager) flowContext.getService(EMPConstance.TRX_SVC_NAME);
+
+				EMPLog.log(EMPConstance.EMP_HTTPACCESS, EMPLog.INFO, 0,
+						"execute the Flow: " + getFinalBizId() + "." + getFinalOpId() + "...");
+
+				String retValue = flow.execute(flowContext, opName);
+
+				outputData = flow.getOutput(flowContext, opName);
+
+				EMPLog.log(EMPConstance.EMP_HTTPACCESS, EMPLog.INFO, 0,
+						"execute the Flow: " + getFinalBizId() + " retValue:" + retValue);
+				
+				// commit the
+				// transaction if exist
+				if (transactionManager != null)
+					transactionManager.commit();
+
+				/* ShenDongjie Delete for response flow execute 20120727 begin
+				String retMsg = this.getResponseMessage(request, response, flowContext, outputData);
+
+				EMPLog.log(EMPConstance.EMP_HTTPACCESS, EMPLog.INFO, 0,
+						"EMPHTTPService [" + serviceName + "] received, return :" + retMsg);
+
+				return retMsg;
+				ShenDongjie Delete for response flow execute 20120727 end */
+
+			} catch (Exception e) {
+				if (transactionManager != null)
+					transactionManager.rollback();
+				throw e;
+			}
+		} catch (EMPException ee) {
+			throw ee;
+		} catch (Exception e) {
+			throw new EMPException("Failed to process http service " + this.toString(), e);
+		} finally {
+			if (flowContext != null)
+				 flowContext.terminate();
+		}
+	}
+	
+	/**
+	 * 使用请求数据更新数据模型。
+	 * <p>
+	 * 使用EMP数据模型永久化处理器<tt>DataElementSerializer</tt>将请求报文转换成数据。
+	 * 
+	 * @param request HTTP请求
+	 * @param response HTTP响应
+	 * @param context 交易上下文
+	 * @param dataElementDef input定义
+	 * @throws EMPException
+	 */
+	public void updateModel(HttpServletRequest request,	HttpServletResponse response, 
+			Context context, DataElement dataElementDef) throws EMPException {
+		
+		CompositeData reqCD = (CompositeData) request.getAttribute("reqData");
+		if (reqCD == null)
+			return;
+		
+		try {
+			initPubMsgHead(context);
+			FormatElement esbHeadFormat = context.getFormat("PAESBHEAD_I");
+			esbHeadFormat.unFormat(reqCD, context);
+			
+			initMsgHead(0, context);
+			FormatElement msgFormat = context.getFormat(tranCode + "_I");
+			msgFormat.unFormat(reqCD, context);	
+			
+			updatePBankPublicData(context);
+		}
+		catch (EMPException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw new SFException("PHTTPO001", "反格式化报文失败!", e);
+		}
+	}
+	
+	/**
+	 * 获得返回报文体。
+	 * <p>
+	 * 
+	 * @param request HTTP请求
+	 * @param response HTTP响应
+	 * @param context 交易上下文
+	 * @param dataElement output定义
+	 * @return 返回报文体
+	 * @throws Exception
+	 */
+	protected String getResponseMessage(HttpServletRequest request,	HttpServletResponse response, 
+			Context context, DataElement dataElement) throws Exception {
+		
+		initMsgHead(1, context);
+		FormatElement msgFormat = context.getFormat(tranCode + "_O");
+		PBankFormatElement cdFormat = (ESBCDFormat)msgFormat.getFormatElement();
+		CompositeData responseCD = (CompositeData)cdFormat.format(context);
+		return PackUtil.packXmlStr(responseCD);
+	}
+	
+	/**
+	 * 初始化报文头内容。
+	 * 
+	 */
+	public void initMsgHead(int type, Context context) throws Exception
+	{
+		String[] tmpStrings = null;
+		String tmpName = null;
+		
+		for (int i = 0; i < 16; i++) {
+			context.remove("_ESB_PARAM_" + i);
+			context.addDataField("_ESB_PARAM_" + i, "");
+		}
+
+		int index = inOutDataArea.indexOf('|');
+		if (type == 0) {
+			//输入参数初始化
+			if (inOutDataArea.length() > index && index > 0)
+				tmpName = inOutDataArea.substring(0, index);
+		}
+		else {
+			//输出参数初始化
+			if (inOutDataArea.length() > index && index > 0)
+				tmpName = inOutDataArea.substring(index+1);
+		}
+		tmpStrings = tmpName.split(";");
+
+		for (int i = 0; i < tmpStrings.length; i++) {
+			context.remove("_ESB_PARAM_" + i);
+			context.addDataField("_ESB_PARAM_" + i, tmpStrings[i]);
+		}
+	}
+	
+	/**
+	 * 初始化ESB公共报文头内容。
+	 * 
+	 */
+	public void initPubMsgHead(Context context) throws Exception
+	{
+		String[] tmpStrings = null;
+		String tmpName = null;
+		
+		for (int i = 0; i < 16; i++) {
+			context.remove("_ESB_PARAM_" + i);
+			context.addDataField("_ESB_PARAM_" + i, "");
+		}
+		
+		tmpName = "_ESB_HEAD;_ESB_HEAD;;";
+		tmpStrings = tmpName.split(";");
+
+		for (int i = 0; i < tmpStrings.length; i++) {
+			context.remove("_ESB_PARAM_" + i);
+			context.addDataField("_ESB_PARAM_" + i, tmpStrings[i]);
+		}
+		
+		//添加_ESB_HEAD公共KCOLL
+		context.addDataElement(SFUtil.getTemplateKColl(context, "_ESB_HEAD"));
+	}
+	
+	/**
+	 * 根据PBank交易定义将PBank的国际收支，传票，费用，工作流等公共数据更新到Context中。
+	 * @param request HTTP请求
+	 * @param context 交易上下文
+	 */
+	private void updatePBankPublicData(Context context) throws EMPException {
+
+	}
+
+}

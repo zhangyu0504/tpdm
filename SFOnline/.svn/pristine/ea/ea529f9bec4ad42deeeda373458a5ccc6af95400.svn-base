@@ -1,0 +1,356 @@
+package core.schedule;
+
+import java.net.InetAddress;
+import java.sql.Connection;
+import java.util.Date;
+import java.util.HashMap;
+
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
+
+import com.ecc.emp.component.factory.EMPFlowComponentFactory;
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPConstance;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.data.DuplicatedDataNameException;
+import com.ecc.emp.data.InvalidArgumentException;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.flow.EMPFlow;
+import com.ecc.emp.log.EMPLog;
+import com.ecc.emp.transaction.EMPTransaction;
+import com.ecc.emp.transaction.EMPTransactionDef;
+import com.ecc.emp.transaction.EMPTransactionManager;
+import common.action.db.SqlExecAction;
+import common.services.SQLDefine;
+import common.sql.dao.DBHandler;
+import common.util.BizUtil;
+import common.util.SFConst;
+import common.util.SFUtil;
+
+public class ScheduleAction {
+
+	public static HashMap<String, Integer> errorCoutMap = new HashMap<String, Integer>(); //存放调度任务错误次数
+	
+	/**
+     * 执行调度Task
+     * 配置结果如：factoryName:flowId:opId	工厂名：流程ID：操作ID
+     * @throws SchedulerException
+     */
+    public void doTaskJob(JobDataMap jobDataMap, JobExecutionContext jobContext) throws Exception {
+        String schName = "", jobName = "", opId = "", flowId = "", factoryName = "";
+        EMPTransactionManager tranManager = null;
+        EMPTransaction transaction = null;
+        Context context = null;
+        
+        Date startTime = new Date();
+    	KeyedCollection scheduleLog = null;
+		SQLDefine sqlDefInfo = null;
+		
+		InetAddress address = InetAddress.getLocalHost();
+		String ip = address.getHostAddress();
+		
+        try {
+        	schName = jobContext.getTrigger().getName();
+        	jobName = jobDataMap.getString(ScheduleTaskInfo.JOB_TASKNAME);
+        	
+        	EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "start job : [" + schName + "/" + jobName + "].................................");
+        	
+        	//do the job
+        	if (SFUtil.isEmpty(jobName) || jobName.indexOf(":") == -1 || jobName.split(":").length < 2) {
+        		throw new Exception("paramter ["+schName+"] config ["+jobName+"] error!");
+        	}
+        	
+        	//begin------------执行.do
+        	String[] jobs = jobName.split(":");
+        	factoryName = SFConst.SYS_SYSNAME;
+        	flowId = jobs[0];
+        	opId = jobs[1];
+        	EMPFlow theFlow = null;
+        	
+        	EMPLog.log(EMPConstance.EMP_SCHEDULE, EMPLog.INFO, 0, "Begin to execute the scheduled flow: " + flowId + "...");
+			EMPFlowComponentFactory factory =(EMPFlowComponentFactory) EMPFlowComponentFactory.getComponentFactory(factoryName);
+			theFlow = factory.getEMPFlow(flowId);
+			
+			context = (Context)theFlow.getContext().clone();
+			//1. 默认开启一个事务
+			tranManager = (EMPTransactionManager) context.getService(EMPConstance.TRX_SVC_NAME);
+			transaction = tranManager.getTransaction(new EMPTransactionDef(EMPTransactionDef.TRX_REQUIRE_NEW));
+			
+			sqlDefInfo = (SQLDefine) context.getService("SQL_00BA_SCHEDULE_LOG_I0001");
+			
+			this.addKeyedColl(context,"SCHEDULE_LOG");
+			scheduleLog = (KeyedCollection)context.getDataElement("SCHEDULE_LOG");
+			scheduleLog.put("SCHEDULE_NAME", schName);
+			scheduleLog.put("START_DATE", DateUtil.getDataStringByFormat(startTime, "yyyyMMdd"));
+			scheduleLog.put("START_TIME", DateUtil.getDataStringByFormat(startTime, "HHmmss"));
+//			scheduleLog.put("START_DAY", DateUtil.getDataStringByFormat(startTime, "yyyyMMdd"));
+//			createFBSPublicStructure(ctext, tranCode, channelNo);
+			
+			theFlow.execute(context, opId);
+			
+            errorCoutMap.put(schName, 0);//重新设置错误次数
+        
+            String content = "finish job : [" + schName + "/" + jobName + "],commit the transaction.................................";
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, content);
+			scheduleLog.put("END_DATE", DateUtil.getDataStringByFormat(new Date(), "yyyyMMdd"));
+			scheduleLog.put("END_TIME", DateUtil.getDataStringByFormat(new Date(), "HHmmss"));
+			scheduleLog.put("MEMO", content);
+			scheduleLog.put("LEVLE", "0");
+			scheduleLog.put("STATUS", "1");
+			scheduleLog.put("ERR_CODE", "");
+			scheduleLog.put("ERR_MSG", "");
+			scheduleLog.put("IP", ip);
+			
+			try {
+				SqlExecAction.execute(context, sqlDefInfo);
+			} catch (Exception e) {
+				EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "Failed to insert log " + flowId, e);
+			}
+			
+			//commit the transaction if exist
+			tranManager.commit(transaction);
+			EMPLog.log(EMPConstance.EMP_SCHEDULE, EMPLog.INFO, 0, "Execute the scheduled flow: " + flowId  + " OK!");
+			//end------------执行.do
+        } catch (Exception e) {
+        	if(tranManager != null){
+        		tranManager.rollback();
+        	}
+        	
+        	try {
+	        	EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "Failed to execute scheduled EMPFlow " + flowId, e);
+				
+				tranManager = (EMPTransactionManager) context.getService(EMPConstance.TRX_SVC_NAME);
+				transaction = tranManager.getTransaction(new EMPTransactionDef(EMPTransactionDef.TRX_REQUIRE_NEW));
+				String content = "excute job : [" + schName + "/" + jobName + "] error,roll back the transaction:"+e.getMessage();
+				scheduleLog.put("START_TIME", DateUtil.getDataStringByFormat(startTime, "HHmmss"));
+				scheduleLog.put("END_TIME", DateUtil.getDataStringByFormat(new Date(), "HHmmss"));
+				scheduleLog.put("MEMO", content);
+				scheduleLog.put("LEVLE", "0");
+				scheduleLog.put("STATUS", "0");
+				
+				scheduleLog.put("ERR_CODE", "");
+				scheduleLog.put("ERR_MSG", "");
+				scheduleLog.put("START_DATE", DateUtil.getDataStringByFormat(startTime, "yyyyMMdd"));
+				scheduleLog.put("END_DATE", DateUtil.getDataStringByFormat(new Date(), "yyyyMMdd"));
+				scheduleLog.put("IP", ip);
+				
+				
+				try {
+					SqlExecAction.execute(context, sqlDefInfo);
+				} catch (Exception e1) {
+					EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "Failed to insert log " + flowId, e1);
+				}
+				tranManager.commit(transaction);
+				
+	        	EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, content, e);
+            
+            	int sErrCount = errorCoutMap.containsKey(schName) ? errorCoutMap.get(schName) : 0;
+                int maxErrCount = jobDataMap.getInt(ScheduleTaskInfo.JOB_MAXERRCOUNT);
+                EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "jobName:["+schName+"], current error count:[" + sErrCount + "], max error count:[" + maxErrCount + "]");
+
+                //如果设置为-1，则不会因为错误而中断
+                if (maxErrCount == -1) return;
+                
+                int errCount = sErrCount + 1;
+                errorCoutMap.put(schName, errCount);
+                if (errCount >= maxErrCount) {
+                	//暂停当前任务
+                	//暂时不处理，交由具体业务逻辑处理
+                	//ScheduleUtils.stopScheduleJob(new Context(), schName);
+                	//EMPLog.log(SFConstance.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "The schedule task [" + schName + "/" + jobName + "] is paused beasuse of too many error times:[" + errCount + "]");
+                }
+            } catch (Exception e2) {
+            	if(tranManager != null){
+            		tranManager.rollback();
+            	}
+            	
+	            Trigger trigger = jobContext.getTrigger();
+	            Scheduler scheduler = jobContext.getScheduler();
+    			scheduler.pauseTrigger(trigger.getName(), ScheduleTaskInfo.GROUP); 
+    			scheduler.unscheduleJob(trigger.getName(),ScheduleTaskInfo.GROUP); 
+    			scheduler.deleteJob(trigger.getName(), ScheduleTaskInfo.GROUP); 
+    			
+    			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "stop job : [" + schName + "/" + jobName + "].................................");
+    			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "Error count handle fail" + e2.getMessage(), e2);
+            }
+
+        } finally {
+			if(context != null){
+				context.terminate();
+			}
+		}
+    }
+    
+    /**
+     * 执行调度Class,该class实现接口ScheduleActionInterface
+     * @param jobDataMap
+     * @param jobContext
+     * @throws SchedulerException
+     */
+	public void doClassJob(JobDataMap jobDataMap, JobExecutionContext jobContext) throws Exception {
+		String schName = "", jobName = "", factoryName = "";
+		EMPTransactionManager tranManager = null;
+        EMPTransaction tr = null;
+		Context context = null, rootContext = null;
+		
+		Date startTime = new Date();
+    	KeyedCollection scheduleLog = null;
+		SQLDefine sqlDefInfo = null;
+		
+		InetAddress address = InetAddress.getLocalHost();
+		String ip = address.getHostAddress();
+		Connection connection=null;
+		try {
+			schName = jobContext.getTrigger().getName();
+			jobName = jobDataMap.getString(ScheduleTaskInfo.JOB_TASKNAME);
+			if (SFUtil.isEmpty(jobName)) {
+        		throw new Exception("paramter ["+schName+"] config ["+jobName+"] error!");
+        	}
+			
+			//do the job
+			factoryName = SFConst.SYS_SYSNAME;
+			EMPFlowComponentFactory factory =(EMPFlowComponentFactory) EMPFlowComponentFactory.getComponentFactory(factoryName);
+			rootContext = factory.getContextNamed(factory.getRootContextName());
+			context = new Context();
+			context.setDataElement(new KeyedCollection());
+			if (context.getParentContextName() == null) {				
+				context = (Context) rootContext.clone();
+//				context.chainedTo(rootContext);
+			}
+			
+			/*
+			 * 默认开启一个事务
+			 */
+			tranManager = (EMPTransactionManager) context.getService(EMPConstance.TRX_SVC_NAME);
+			tr = tranManager.getTransaction(new EMPTransactionDef(EMPTransactionDef.TRX_REQUIRE_NEW));
+			
+			
+			sqlDefInfo = (SQLDefine) context.getService("SQL_00BA_SCHEDULE_LOG_I0001");
+			this.addKeyedColl(context,"SCHEDULE_LOG");
+			scheduleLog = (KeyedCollection)context.getDataElement("SCHEDULE_LOG");
+			scheduleLog.put("SCHEDULE_NAME", schName);
+			scheduleLog.put("START_DATE", DateUtil.getDataStringByFormat(startTime, "yyyyMMdd"));
+			scheduleLog.put("START_TIME", DateUtil.getDataStringByFormat(startTime, "HHmmss"));
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "start job : [" + schName + "/" + jobName + "].................................");
+			Class c = Class.forName(jobName);
+			ScheduleActionInterface ai = (ScheduleActionInterface) c.newInstance();
+			
+			
+			/*
+			 * 批量交易公共参数预设置
+			 */
+			connection=DBHandler.getConnection(context);
+			SFUtil.setDataValue(context, SFConst.PUBLIC_TRAN_CONNECTION, connection);
+			String logId=BizUtil.getInitSeqId(context);//生成定长ID（系统初始流水号16位）
+			DBHandler.releaseConnection(context, connection);//批量调度中数据库连接即用即释放
+			
+			SFUtil.setDataValue(context, SFConst.PUBLIC_LOG_ID, logId);//流水编号			
+			SFUtil.setDataValue(context, SFConst.PUBLIC_TX_CODE, schName);//交易号
+			
+			boolean b = ai.init(context);
+			if (b) {
+				ai.execute(context);
+				errorCoutMap.put(schName, 0);//重新设置错误次数
+			}
+			
+			String content = "finish job : [" + schName + "/" + jobName + "],commit the transaction.................................";
+			scheduleLog.put("END_DATE", DateUtil.getDataStringByFormat(new Date(), "yyyyMMdd"));
+			scheduleLog.put("END_TIME", DateUtil.getDataStringByFormat(new Date(), "HHmmss"));
+			scheduleLog.put("MEMO", content);
+			scheduleLog.put("LEVLE", "0");
+			scheduleLog.put("STATUS", "1");
+			scheduleLog.put("ERR_CODE", context.getDataValue(SFConst.CTX_ERRCODE));
+			scheduleLog.put("ERR_MSG", context.getDataValue(SFConst.CTX_ERRMSG));
+			
+			scheduleLog.put("IP", ip);
+			
+			SqlExecAction.execute(context, sqlDefInfo);
+			
+			//commit the transaction if exist对于要求建立新的交易事务的Action，只在单一请求中完成
+			tranManager.commit(tr);
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, content);
+		} catch (Exception e) {
+			//roll back the transaction对于要求建立新的交易事务的Action，只在单一请求中完成
+			if(tranManager != null){
+				tranManager.rollback();
+			}
+			
+			try {
+				EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "Failed to execute class error", e);
+				
+				tranManager = (EMPTransactionManager) context.getService(EMPConstance.TRX_SVC_NAME);
+				tr = tranManager.getTransaction(new EMPTransactionDef(EMPTransactionDef.TRX_REQUIRE_NEW));
+				String content = "excute job : [" + schName + "/" + jobName + "] error,roll back the transaction:"+e.getMessage();
+				scheduleLog.put("END_TIME", DateUtil.getDataStringByFormat(new Date(), "HHmmss"));
+				scheduleLog.put("MEMO", content);
+				scheduleLog.put("LEVLE", "0");
+				scheduleLog.put("STATUS", "0");
+				
+				scheduleLog.put("ERR_CODE", context.getDataValue(SFConst.CTX_ERRCODE));
+				scheduleLog.put("ERR_MSG", context.getDataValue(SFConst.CTX_ERRMSG));
+				scheduleLog.put("START_DATE", DateUtil.getDataStringByFormat(startTime, "yyyyMMdd"));
+				scheduleLog.put("END_DATE", DateUtil.getDataStringByFormat(new Date(), "yyyyMMdd"));
+				scheduleLog.put("IP", ip);
+				
+				
+				SqlExecAction.execute(context, sqlDefInfo);
+				
+				tranManager.commit(tr);
+				
+	        	EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, content, e);
+        	
+            	int sErrCount = errorCoutMap.containsKey(schName) ? errorCoutMap.get(schName) : 0;
+                int maxErrCount = jobDataMap.getInt(ScheduleTaskInfo.JOB_MAXERRCOUNT);
+                EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "jobName:["+schName+"], current error count:[" + sErrCount + "], max error count:[" + maxErrCount + "]");
+
+                //如果设置为-1，则不会因为错误而中断
+                if (maxErrCount == -1) return;
+                
+                int errCount = sErrCount + 1;
+                errorCoutMap.put(schName, errCount);
+                if (errCount >= maxErrCount) {
+                	//暂停当前任务
+                	//暂时不处理，交由具体业务逻辑处理
+                	//ScheduleUtils.stopScheduleJob(new Context(), schName);
+                	//EMPLog.log(SFConstance.DEFAULT_TRXCODE, EMPLog.DEBUG, 0, "The schedule task [" + schName + "/" + jobName + "] is paused beasuse of too many error times:[" + errCount + "]");
+                }
+            } catch (Exception e2) {
+            	if(tranManager != null){
+    				tranManager.rollback();
+    			}
+            	
+	            Trigger trigger = jobContext.getTrigger();
+	            Scheduler scheduler = jobContext.getScheduler();
+    			scheduler.pauseTrigger(trigger.getName(), ScheduleTaskInfo.GROUP); 
+    			scheduler.unscheduleJob(trigger.getName(),ScheduleTaskInfo.GROUP); 
+    			scheduler.deleteJob(trigger.getName(), ScheduleTaskInfo.GROUP); 
+    			
+    			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "stop job : [" + schName + "/" + jobName + "].................................");
+    			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "Error count handle fail" + e.getMessage(), e2);
+            }
+        } finally {
+			if(context != null){
+				DBHandler.releaseConnection(context, connection);//批量调度中数据库连接即用即释放
+				context.terminate();
+			}
+		}
+	}
+    
+	private void addKeyedColl(Context context,String keyedCollName) throws EMPException{
+		if(!context.containsKey(keyedCollName)){
+			try {
+				KeyedCollection outMsgKColl = SFUtil.getTemplateKColl(context, keyedCollName);
+				context.addDataElement(outMsgKColl);
+			} catch (InvalidArgumentException e) {
+				throw new EMPException(e);
+			} catch (DuplicatedDataNameException e) {
+				throw new EMPException(e);
+			} catch (Exception e) {
+				throw new EMPException(e);
+			}
+		}
+	}
+}

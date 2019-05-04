@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="GB18030" ?>
+<servletContext>
+	<classMap>
+		<map id="EMPMBean" class="com.ecc.emp.jmx.support.EMPMBeanInfo"/>
+		<map id="attr" class="com.ecc.emp.jmx.support.AttrInfo"/>
+		<map id="op" class="com.ecc.emp.jmx.support.OperationInfo"/>
+		<map id="mbeanExportor" class="com.ecc.emp.jmx.support.EMPMBeanExportor"/>
+		<map id="notifies" class="com.ecc.emp.jmx.support.RegistryInfo"/>
+		<map id="EMPJMXRMIClientManager" class="com.ecc.emp.jmx.rmiclient.EMPJMXRMIClientManager"/>
+		<map id="JMXRMIClient" class="com.ecc.emp.jmx.rmiclient.JMXRMIClient"/>
+		<map id="NotificationBeanDefine" class="com.ecc.emp.jmx.rmiclient.NotificationBeanDefine"/>
+		<map id="TimerDefine" class="com.ecc.emp.jmx.rmiclient.TimerDefine"/>
+		<map id="heartbeatMBeanDefine" class="com.ecc.emp.jmx.rmiclient.HeartbeatMBeanDefine"/>
+		<map id="StringMonitor" class="com.ecc.emp.jmx.rmiclient.StringMonitorDefine"/>
+		<map id="GaugeMonitor" class="com.ecc.emp.jmx.rmiclient.GaugeMonitorDefine"/>
+		<map id="accessManager" class="com.ecc.emp.accesscontrol.EMPAccessManager"/>
+	</classMap>
+	<sessionManager class="com.ecc.emp.session.EMPSessionManager" name="SFOnlineRequestServlet" sessionTimeOut="36000000" sessionCheckInterval="3600000"/>
+	<localeResolver class="com.ecc.emp.web.servlet.CookieLocaleResolver"/>
+	<multiPartResolver class="com.ecc.emp.web.multipart.implement.EMPMultipartResolver"/>
+	<initializer class="core.emp.initializer.SFInitializer"/>
+	<ExceptionHandler class="com.ecc.emp.web.servlet.mvc.ExceptionHandler">
+		<ExceptionView id="exception" url="error.jsp" exceptionName="exception"/>
+	</ExceptionHandler>
+	<accessManager id="accessManager">
+		<logInterceptor componentIdPrefix="PBank" appendUniqId="true" uniqIdLen="6" class="core.log.SFLogInertceptor">
+			<logInstance class="com.ecc.emp.log.EMPLog4jLog"/>
+		</logInterceptor>
+	</accessManager>
+	
+	<mbeanExportor id="mbeanExportor">
+		<EMPMBean id="SFOnlineServlet" name="SFOnlineServlet" objectId="SFOnlineServlet" description="EMP Web处理容器" type="servlet">
+			<attr id="rootPath" name="rootPath" displayName="web根路径" description="web-root-path" access="R"/>
+			<attr id="factoryName" name="factoryName" displayName="业务逻辑容器名称" description="业务逻辑容器名称" access="R"/>
+			<attr id="contentDivId" name="contentDivId" displayName="web工作分区ID" description="web工作分区ID" access="R"/>
+			<attr id="alarmResponseTime" name="alarmResponseTime" displayName="超时报警时间" description="超时报警时间设置" access="RW"/>
+			<op id="reloadMVCContext" name="reloadMVCContext" displayName="刷新web应用" description="刷新web应用"/>
+		</EMPMBean>
+		
+		<EMPMBean id="BrowserReqSessionMgr" name="BrowserReqSessionMgr" objectId="BrowserReqSessionMgr" description="The EMP Session manager" type="session">
+			<attr id="sessionCount" name="sessionCount" displayName="当前会话数目" description="SessionCount" access="R"/>
+		</EMPMBean>
+	</mbeanExportor>
+</servletContext>

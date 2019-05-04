@@ -1,0 +1,45 @@
+package module.trans.sf2cobank;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.data.KeyedCollection;
+
+import common.exception.SFException;
+import common.util.SFUtil;
+import core.log.SFLogger;
+
+import module.communication.CoBankClientBase;
+/**
+ * 810023 资金冲正的请求报文体，代理平台发起
+ * @author 汪华
+ *
+ */
+public class T810023Client extends CoBankClientBase{
+
+	@Override
+	protected Context doHandle(Context context, Map<String, Object> msg,
+			String bankNo) throws SFException {
+		SFLogger.info(context, "上合作行资金冲正-开始");
+		KeyedCollection inKeyColl = null;
+		//构建请求报文
+		if(!context.containsKey( "810023_I" )){
+			inKeyColl = new KeyedCollection("810023_I");
+			SFUtil.addDataField(context, inKeyColl, "PICS_LOG_NO",msg.get("PICS_LOG_NO"));//原平台流水号serial_no
+			SFUtil.addDataElement(context,inKeyColl);	
+		}
+		
+//		KeyedCollection outKeyColl = new KeyedCollection("810023_O");
+//		SFUtil.addDataField(context, outKeyColl, "AGENT_LOG_NO  ","");//联网行流水号serial_no
+//		SFUtil.addDataElement(context,outKeyColl);	
+		//发送报文
+		Map<String,Object> tmpMsg = new HashMap<String,Object>();
+		tmpMsg.put("810023_I", inKeyColl);	
+		//发送报文
+		Context msgContext=super.send(context,tmpMsg,"810023",bankNo);
+		SFLogger.info(context, "上合作行资金冲正-结束");
+	    return msgContext;
+	}
+
+}

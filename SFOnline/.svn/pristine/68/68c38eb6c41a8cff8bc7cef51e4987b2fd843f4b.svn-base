@@ -1,0 +1,84 @@
+package module.bean;
+
+
+public class SecTruAcct {
+	private String acctId;
+	private int serial;
+	private String acctType;
+	private String secCompCode;
+	private String curCode;
+	private String acctName;
+	private String openDepId;
+	private String branchId;
+	
+	private boolean acctIdChanged;
+	private boolean acctTypeChanged;
+	private boolean curCodeChanged;
+	private boolean acctNameChanged;
+	private boolean openDepIdChanged;
+	private boolean branchIdChanged;
+	public String getAcctId() {
+		return acctId;
+	}
+	public void setAcctId(String acctId) {
+		this.acctId = acctId;
+		this.acctIdChanged = true;
+	}
+	public int getSerial() {
+		return serial;
+	}
+	public void setSerial(int serial) {
+		this.serial = serial;
+	}
+	public String getAcctType() {
+		return acctType;
+	}
+	public void setAcctType(String acctType) {
+		this.acctType = acctType;
+		this.acctTypeChanged = true;
+	}
+	public String getSecCompCode() {
+		return secCompCode;
+	}
+	public void setSecCompCode(String secCompCode) {
+		this.secCompCode = secCompCode;
+	}
+	public String getCurCode() {
+		return curCode;
+	}
+	public void setCurCode(String curCode) {
+		this.curCode = curCode;
+		this.curCodeChanged = true;
+	}
+	public String getAcctName() {
+		return acctName;
+	}
+	public void setAcctName(String acctName) {
+		this.acctName = acctName;
+		this.acctNameChanged = true;
+	}
+	public String getOpenDepId() {
+		return openDepId;
+	}
+	public void setOpenDepId(String openDepId) {
+		this.openDepId = openDepId;
+		this.openDepIdChanged = true;
+	}
+	public String getBranchId() {
+		return branchId;
+	}
+	public void setBranchId(String branchId) {
+		this.branchId = branchId;
+		this.branchIdChanged = true;
+	}
+	
+	
+	public void resetChangedFlag(){
+		this.acctIdChanged = false;
+		this.acctTypeChanged = false;
+		this.curCodeChanged = false;
+		this.acctNameChanged = false;
+		this.openDepIdChanged = false;
+		this.branchIdChanged = false;
+	}
+}

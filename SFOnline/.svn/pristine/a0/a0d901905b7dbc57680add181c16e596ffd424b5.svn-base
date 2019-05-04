@@ -1,0 +1,7 @@
+#encrypt masterKey or masterkey
+#Mon Mar 23 16:12:15 GMT 2015
+HTTP_URL=http\://iqsz-d0005\:8080/FCR/esbHttpServlet;
+url=http://10.14.57.171:43042/esb_consumer/public-consumer
+uid=SDB_FBS
+masterKey=${3DES}4ffOaW8da9S1fbUMD+eYZtIKYPpZWiIW1ADMSZ/RnWE\=
+xmlVersion=2.0

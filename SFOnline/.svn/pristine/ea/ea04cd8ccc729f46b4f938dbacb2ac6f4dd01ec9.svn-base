@@ -1,0 +1,259 @@
+package core.schedule;
+
+import java.util.HashMap;
+import java.util.Iterator;
+
+import com.ecc.emp.core.Context;
+import com.ecc.emp.core.EMPException;
+import com.ecc.emp.data.IndexedCollection;
+import com.ecc.emp.data.KeyedCollection;
+import com.ecc.emp.log.EMPLog;
+import common.action.db.SqlExecAction;
+import common.services.GenContextBySql;
+import common.services.PublicService;
+import common.util.SFConst;
+
+public class EMPDBUtil {
+	
+	
+	public static Context EMPExecuteSQL(String sqlId, ContextData c) throws EMPException {
+		return EMPExecuteSQL(sqlId, null, c.EMPContext);
+	}
+	
+	/**
+	   * 用EMP的凡是查询数据库, 条件中只有一个参数
+	   * Serial NO: FINWARE_V3.5_EMP_2013100001
+	   * Date 2013-7-2
+	   * @author QF.wulei
+	   * @version 1.0
+	   * @param sqlId		SQL语句的ID
+	   * @param setFldName	查询条件字段
+	   * @param setFldValue	查询条件字段值
+	   * @param c			上下文数据
+	   * @return
+	   * @throws EMPException
+	   */
+	public static Context EMPExecuteSQL(String sqlId, String setFldName, String setFldValue, ContextData c) throws EMPException {
+		return EMPExecuteSQL(sqlId, setFldName, setFldValue, c.EMPContext);
+	}
+	 
+	  /**
+	   * 用EMP的凡是查询数据库, 条件中有多个参数
+	   * Serial NO: FINWARE_V3.5_EMP_2013100001
+	   * Date 2013-7-2
+	   * @author QF.wulei
+	   * @version 1.0
+	   * @param sqlId				SQL语句的ID
+	   * @param inputNameAndValue	输入的条件字段和条件字段值的对象，结构为：name,value
+	   * @param c					上下文
+	   * @return
+	   * @throws EMPException
+	   */
+	public static Context EMPExecuteSQL(String sqlId, HashMap<String, Object> inputNameAndValue, ContextData c) throws EMPException {
+		return EMPExecuteSQL(sqlId, inputNameAndValue, c.EMPContext);
+	}
+	
+	/**
+	   * 用EMP的凡是查询数据库, 条件中只有一个参数
+	   * Serial NO: FINWARE_V3.5_EMP_2013100001
+	   * Date 2013-7-2
+	   * @author QF.wulei
+	   * @version 1.0
+	   * @param sqlId		SQL语句的ID
+	   * @param setFldName	查询条件字段
+	   * @param setFldValue	查询条件字段值
+	   * @param c			上下文数据
+	   * @return
+	   * @throws EMPException
+	   */
+	public static Context EMPExecuteSQL(String sqlId, String setFldName, String setFldValue, Context context) throws EMPException {
+		try {
+			SqlExecAction sqlExecAction = ((PublicService) context.getService((String) context
+					.getDataValue(SFConst.SERVICE_PUBLICSERVICENAME)))
+					.getSQLExecAction(context);//获取数据源，FBSConstance.FBS_PUBLICSERVICENAME为固定写法
+			
+			sqlExecAction.setRefSQL(sqlId);//获取sql，配置文件fbsUtanDefine.xml
+			sqlExecAction.initialize();//初始化连接
+			GenContextBySql gen=(GenContextBySql) context.getService((String) context.getDataValue(SFConst.SERVICE_GENCONTEXTBYSQL));
+			Context tmpContext = gen.getContext(context, sqlId);//创建临时context，为取值用，FBSConstance.FBS_GENCONTEXTBYSQL为固定写法
+			
+			if (tmpContext.containsKey(setFldName)) {
+				tmpContext.setDataValue(setFldName, setFldValue);//传入值条件值，比如where NAME=?
+			} 
+//			else if (setFldName.indexOf(DataDictConstants.DATA_DICT_DOT_FLAG) > 0) {
+//				setFldName = setFldName.replace(DataDictConstants.DATA_DICT_DOT_FLAG, DataDictConstants.DATA_DICT_DOT);
+//				if (tmpContext.containsKey(setFldName)) {
+//					tmpContext.setDataValue(setFldName, setFldValue);//传入值条件值，比如where NAME=?
+//				}
+//			}
+			
+			sqlExecAction.execute(context, tmpContext);//执行sql语句
+			return tmpContext;
+		} catch (EMPException e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "查询数据失败！SQLID：["+sqlId+"],字段名称：["+setFldName+"],字段值：["+setFldValue+"]  "+e.getMessage(),e);
+			throw new EMPException(e);
+		}
+	}
+	
+	  /**
+	   * 用EMP的凡是查询数据库, 条件中有多个参数
+	   * Serial NO: FINWARE_V3.5_EMP_2013100001
+	   * Date 2013-7-2
+	   * @author QF.wulei
+	   * @version 1.0
+	   * @param sqlId				SQL语句的ID
+	   * @param inputNameAndValue	输入的条件字段和条件字段值的对象，结构为：name,value
+	   * @param c					上下文
+	   * @return
+	   * @throws EMPException
+	   */
+	public static Context EMPExecuteSQL(String sqlId, HashMap<String, Object> inputNameAndValue, Context context) throws EMPException {
+		try {
+		//	if (inputNameAndValue.size() == 0) return null;
+			
+			SqlExecAction sqlExecAction = ((PublicService) context.getService((String) context
+					.getDataValue(SFConst.SERVICE_PUBLICSERVICENAME)))
+					.getSQLExecAction(context);//获取数据源，FBSConstance.FBS_PUBLICSERVICENAME为固定写法
+			
+			sqlExecAction.setRefSQL(sqlId);//获取sql，配置文件fbsUtanDefine.xml
+			sqlExecAction.initialize();//初始化连接
+	    	
+			Context tmpContext = ((GenContextBySql) context.getService((String) context
+					.getDataValue(SFConst.SERVICE_GENCONTEXTBYSQL))).getContext(
+					context, sqlId);//创建临时context，为取值用，FBSConstance.FBS_GENCONTEXTBYSQL为固定写法
+			
+			//[FINWARE_V3.5_EMP_2013100001]_B liup 2013-8-12  添加是否有输入参数的判断，如果没有输入参数，也能让SQL执行，而不是直接return---------------
+			if(null != inputNameAndValue && inputNameAndValue.size()>0)
+			{
+				Iterator<String> it = inputNameAndValue.keySet().iterator();
+				String fldName = "";
+				Object fldValue = null;
+				while (it.hasNext()) {
+					fldName = it.next();
+					fldValue = inputNameAndValue.get(fldName);
+					
+					if (tmpContext.containsKey(fldName)) {
+						tmpContext.setDataValue(fldName, fldValue);//传入值条件值，比如where NAME=?
+					} 
+//					else if (fldName.indexOf(DataDictConstants.DATA_DICT_DOT_FLAG) > 0) {
+//						fldName = fldName.replace(DataDictConstants.DATA_DICT_DOT_FLAG, DataDictConstants.DATA_DICT_DOT);
+//						if (tmpContext.containsKey(fldName)) {
+//							tmpContext.setDataValue(fldName, fldValue);//传入值条件值，比如where NAME=?
+//						}
+//					}
+				}
+			}
+			//[FINWARE_V3.5_EMP_2013100001]_E liup 2013-8-12 ---------------
+			
+			sqlExecAction.execute(context, tmpContext);//执行sql语句
+			return tmpContext;
+		} catch (EMPException e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "查询数据失败！SQLID：["+sqlId+"],字段名称和值：["+inputNameAndValue+"]  "+e.getMessage(),e);
+			throw new EMPException(e);
+		}
+	}
+	
+	
+	/**
+	   * 将EMP的Context转成UTAN的2层Map结构
+	   * Serial NO: FINWARE_V3.5_EMP_2013100001
+	   * Date 2013-7-2
+	   * @author QF.wulei
+	   * @version 1.0
+	   * @param context
+	   * @return
+	   * @throws EMPException
+	   */
+	public static HashMap<String,HashMap<String, Object>> fromContext2Map(Context context) throws EMPException{
+		return fromContext2Map(context, SFConst.DFT_ICOLL_NAME);
+	}
+	
+	/**
+	   * 将EMP的Context转成UTAN的2层Map结构
+	   * Serial NO: FINWARE_V3.5_EMP_2013100001
+	   * Date 2013-7-24
+	   * @author QF.wulei
+	   * @version 1.0
+	   * @param context
+	   * @param iCollName
+	   * @return
+	   * @throws EMPException
+	   */
+	public static HashMap<String,HashMap<String, Object>> fromContext2Map(Context context, String iCollName) throws EMPException{
+		HashMap<String,HashMap<String, Object>> mainMap = null;
+		try {
+			IndexedCollection depositListIColl = null;
+			KeyedCollection keyedColl = null;
+			HashMap<String,Object> subMap = null;
+			
+			if (iCollName == null) iCollName = SFConst.DFT_ICOLL_NAME;
+			
+			if (!context.containsKey(iCollName)) {
+				EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "上下文中不存在列名为["+iCollName+"]的数据，请核查！");
+				throw new EMPException("上下文中不存在列名为["+iCollName+"]的数据，请核查！");
+			}
+			
+			depositListIColl = (IndexedCollection)context.getDataElement(iCollName);
+			if(depositListIColl.size() <= 0){
+				return new HashMap<String,HashMap<String, Object>>();
+			}
+			
+			mainMap = new HashMap<String,HashMap<String, Object>>();
+			for(int i=0; i < depositListIColl.size(); i++)
+			{
+				subMap = new HashMap<String,Object>();
+				keyedColl = (KeyedCollection)depositListIColl.getElementAt(i);
+				
+				for(int j=0; j < keyedColl.size(); j++)
+				{
+					String key = keyedColl.getDataElement(j).getName();
+					Object value = keyedColl.getDataValue(key);
+					
+					subMap.put(key, value);
+				}
+				
+				mainMap.put(String.valueOf(i + 1), subMap);
+			}
+		} catch (Exception e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "数据转换失败，请核查！"+e.getMessage(), e);
+			throw new EMPException(e);
+		}
+		return mainMap;
+	}
+	
+	
+	/**
+	   * 获取表字段数据,条件中只有一个元素的情况下
+	   * Serial NO: FINWARE_V3.5_EMP_2013100001
+	   * Date 2013-7-2
+	   * @author QF.wulei
+	   * @version 1.0
+	   * @param sqlId		SQL语句的ID
+	   * @param getFldName	要查询的字段名
+	   * @param setFldName	查询条件中条件字段
+	   * @param setFldValue	查询条件中条件值
+	   * @param c			上下文数据
+	   * @return
+	   * @throws EMPException
+	   */
+	public static String getTableFieldValue(String sqlId, String getFldName,String setFldName, String setFldValue, ContextData c) throws EMPException{
+		String value = "";
+		try {
+			if (getFldName == null || setFldName == null || getFldName.trim().length() == 0 || setFldName.trim().length() == 0) return "";
+			
+			getFldName = getFldName.trim();
+			setFldName = setFldName.trim();
+			
+			HashMap<String, Object> inputNameAndValue = new HashMap<String, Object>();
+			inputNameAndValue.put(setFldName, setFldValue);
+			Context context = EMPExecuteSQL(sqlId, inputNameAndValue, c);
+			value = (String)context.getDataValue(getFldName);
+		} catch (EMPException e) {
+			EMPLog.log(SFConst.DEFAULT_TRXCODE, EMPLog.ERROR, 0, "查询数据字段["+getFldName+"]失败！SQLID：["+sqlId+"],字段名称：["+setFldName+"],字段值：["+setFldValue+"]  "+e.getMessage(),e);
+			throw new EMPException(e);
+		}
+		return value;
+  }
+	
+	
+}

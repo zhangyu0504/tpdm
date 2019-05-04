@@ -1,0 +1,30 @@
+package module.batch.impl;
+
+import module.batch.BatchInterface;
+import module.cache.TransCache;
+
+import com.ecc.emp.core.Context;
+import common.exception.SFException;
+import common.util.SFConst;
+import common.util.SFUtil;
+/**
+ * 批量实现demo
+ * @author 汪华
+ *
+ */
+public class T900000 implements BatchInterface {
+	private Context context = null;
+	
+	public boolean init(Context context) throws SFException {
+		this.context = context;
+		String tranCode = SFUtil.getDataValue(context, SFConst.PUBLIC_TX_CODE);
+		TransCache.getValue(tranCode);
+		 
+		return true;
+	}
+
+	public void execute() throws SFException {
+		init(context);
+		
+	}
+}

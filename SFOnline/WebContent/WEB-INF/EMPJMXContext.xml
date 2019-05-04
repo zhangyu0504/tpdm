@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<EMPJMXManager>
+	<classMap>
+		<map id="EMPJMXManager" class="com.ecc.emp.jmx.support.EMPJMXManager"/>
+		<map id="registry" class="com.ecc.emp.jmx.support.RegistryInfo"/>
+		<map id="connector" class="com.ecc.emp.jmx.support.ConnectorInfo"/>
+		<map id="adaptor" class="com.ecc.emp.jmx.support.AdaptorInfo"/>
+		<map id="EMPMBean" class="com.ecc.emp.jmx.support.EMPMBeanInfo"/>
+		<map id="attr" class="com.ecc.emp.jmx.support.AttrInfo"/>
+		<map id="op" class="com.ecc.emp.jmx.support.OperationInfo"/>
+		<map id="notifies" class="com.ecc.emp.jmx.support.RegistryInfo"/>
+	</classMap>
+	
+	<registry host="localhost" port="10330"/>
+	<connector id="RMIConnector"
+		serviceURL="service:jmx:rmi:///jndi/rmi://localhost:10330/jmxServer"/>
+	
+	<adaptor id="htmlAdaptor" 
+		startUpMethod="start"
+		objectName="Adaptor:name=html,port=8082" 
+		adaptorClassName="com.sun.jdmk.comm.HtmlAdaptorServer"/>	
+	
+</EMPJMXManager>
