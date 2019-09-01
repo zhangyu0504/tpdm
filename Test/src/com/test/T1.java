@@ -34,7 +34,7 @@ switch(a){
 	case(11): System.out.println("eeeeee11");
 	break;
 	default:
-		 System.out.println("22222");
+		 System.out.println("222221");
 }
 	
 	}
