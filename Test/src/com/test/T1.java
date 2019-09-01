@@ -29,7 +29,7 @@ public class T1 {
 int score =85;
 System.out.println(score>=90?"A":score>84?"B":"D");
 switch(a){
-	case(10): System.out.println("12211212");
+	case(10): System.out.println("122112121");
 	break;
 	case(11): System.out.println("eeeeee");
 	break;
