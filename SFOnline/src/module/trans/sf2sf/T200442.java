@@ -25,7 +25,7 @@ import core.log.SFLogger;
  *  <p>非直连显示出交易码和交易名称，当前活动数，活动率，空闲率</p>
  *  
  *  
- * tran code :200442
+ * tran code :200442 
  * @author 吕超鸿
  */
 public class T200442 extends TranBase {

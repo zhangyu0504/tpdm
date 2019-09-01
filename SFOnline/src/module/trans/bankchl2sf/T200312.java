@@ -11,7 +11,7 @@ import module.dao.AcctDetailDao;
 import module.dao.AcctJourDao;
 import module.trans.TranBase;
 
-
+ 
 public class T200312 extends TranBase {
 	protected void initialize(Context context) throws SFException {
 	}
