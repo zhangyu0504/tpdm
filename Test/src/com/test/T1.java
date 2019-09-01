@@ -31,7 +31,7 @@ System.out.println(score>=90?"A":score>84?"B":"D");
 switch(a){
 	case(10): System.out.println("122112121");
 	break;
-	case(11): System.out.println("eeeeee");
+	case(11): System.out.println("eeeeee11");
 	break;
 	default:
 		 System.out.println("22222");
